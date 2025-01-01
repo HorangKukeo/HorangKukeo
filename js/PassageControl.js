@@ -116,7 +116,7 @@ function parseAndDisplayPassage(index) {
                     const dimgheight= thisImageInfo.naturalHeight;
                     let dimgsize;
                     if (thisImageInfo.size == 'big'){
-                        dimgsize = 400;
+                        dimgsize = 350;
                     }else if (thisImageInfo.size == 'mid'){
                         dimgsize = 200;
                     }else{
@@ -176,6 +176,17 @@ function parseAndDisplayPassage(index) {
                 passageContext.innerHTML = createTableWithHTML(passageContext.innerHTML);
                 
                 passageContext.className = 'q_table_cont';
+
+                const rowCount = passageContext.getElementsByTagName('table').length;
+                console.log(rowCount);
+    
+                // 행 수에 따라 컨테이너 높이 설정
+                // 예: 기본 높이 + (행당 높이 * 행 수)
+                const baseHeight = 0; // 기본 여백
+                const rowHeight = 35; // 행당 높이
+                const totalHeight = baseHeight + (rowHeight * rowCount);
+                
+                passageContext.style.height = `calc(${totalHeight} / 16 * var(--base))`;
             }
             
         // passageBox 생성

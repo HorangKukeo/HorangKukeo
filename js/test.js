@@ -86,213 +86,218 @@ function Arrowed(inputHtml) {
  }
 
 function drawArrows() {
-const container = document.getElementById(`page_${pagenum}`);
-const svg = document.getElementById(`svg-overlay_${pagenum}`);
-
-if (!container || !svg) {
-    return;
-}
-
-const existingPaths = svg.querySelectorAll('.arrow');
-const existingAtts = svg.querySelectorAll('.pathtext');
-existingPaths.forEach(path => path.remove());
-existingAtts.forEach(pathtext => pathtext.remove());
-
-const markerPairs = [];
-const stack = [];
-const numberedMarkers = new Map();
-const allMarkers = Array.from(container.querySelectorAll('.marker-start, .marker-end'));
-
-// 먼저 번호 기반 마커들을 처리
-allMarkers.forEach(marker => {
-   const id = marker.getAttribute('data-id');
-   if (id && (id.startsWith('Ns_') || id.startsWith('Ne_'))) {
-       const number = id.split('_')[1];  // Ns_1 -> 1 또는 Ne_1 -> 1
-       
-       if (!numberedMarkers.has(number)) {
-           numberedMarkers.set(number, {});
-       }
-       
-       if (id.startsWith('Ns_')) {
-           numberedMarkers.get(number).start = marker;
-       } else {
-           numberedMarkers.get(number).end = marker;
-       }
-   }
-});
-
-// 번호 기반 페어들을 markerPairs에 추가
-numberedMarkers.forEach((pair, number) => {
-   if (pair.start && pair.end) {
-       markerPairs.push({
-           start: pair.start,
-           end: pair.end,
-           startId: pair.start.getAttribute('data-id'),
-           endId: pair.end.getAttribute('data-id'),
-           startarr: pair.start.getAttribute('data-arrow'),
-           endarr: pair.end.getAttribute('data-arrow'),
-           loc: pair.end.getAttribute('data-loc'),
-           att: pair.end.getAttribute('data-att')
-       });
-   }
-});
-
-// 일반 마커들 처리
-allMarkers.forEach(marker => {
-   const id = marker.getAttribute('data-id');
-   if (!id || (!id.startsWith('Ns_') && !id.startsWith('Ne_'))) {
-       if (marker.classList.contains('marker-start')) {
-           stack.push(marker);
-       } else if (marker.classList.contains('marker-end')) {
-           if (stack.length > 0) {
-               const startMarker = stack.pop();
-               markerPairs.push({
-                   start: startMarker,
-                   end: marker,
-                   startId: startMarker.getAttribute('data-id'),
-                   endId: marker.getAttribute('data-id'),
-                   startarr: startMarker.getAttribute('data-arrow'),
-                   endarr: marker.getAttribute('data-arrow'),
-                   loc: marker.getAttribute('data-loc'),
-                   att: marker.getAttribute('data-att')
-               });
-           }
-       }
-   }
-});
-
-function getCenter(elem) {
-    const rect = elem.getBoundingClientRect();
     const container = document.getElementById(`page_${pagenum}`);
-    const containerRect = container.getBoundingClientRect();
-    
-    // offsetWidth/Height를 사용하여 상대적 위치 계산
-    return {
-        x: (rect.left - containerRect.left)+ (rect.width / 2),
-        y: (rect.top - containerRect.top)+ (rect.height),
-        w: rect.width,   // 요소의 너비
-        h: rect.height,  // 요소의 높이
-        id: elem.getAttribute('data-id'),
-        arr: elem.getAttribute('data-arrow'),
-        loc: elem.getAttribute('data-loc'),
-        att: elem.getAttribute('data-att')
-    };
-}
+    const svg = document.getElementById(`svg-overlay_${pagenum}`);
 
-const pageRect = container.getBoundingClientRect();
-const v = 2 * (1 / 16) * (pageRect.width / 100);  // 페이지 너비의 백분율로 계산
-
-markerPairs.forEach((pair, index) => {
-    let startPos = getCenter(pair.start);
-    let endPos = getCenter(pair.end);
-    let gaptype = 'none';
-    const arradjust = startPos.arr == 'true' ? 1 : 0.3;
-
-    const loc = endPos.loc;
-    const att = endPos.att;
-
-    const gapy = startPos.y - endPos.y;
-    const gapx = startPos.x - endPos.x;
-    
-    if (Math.abs(gapx) < 70*v && Math.abs(gapy) < 15*v && gaptype == 'none'){ //일직선 상에 있는 flat에 대한 보정
-        gaptype = 'shtflat';
-        startPos.y -= (startPos.h / 2) * Math.sin(45);
-        endPos.x -= (80/endPos.w);
-        endPos.y -= arradjust * ((endPos.h / 0.8)) * Math.sin(45);
+    if (!container || !svg) {
+        return;
     }
 
-    if (Math.abs(gapy) < 15*v && gaptype == 'none'){ //일직선 상에 있는 flat에 대한 보정
-        gaptype = 'flat';
-        startPos.x += (-gapx/Math.abs(gapx))*(startPos.w / 2) * Math.cos(45);
-        startPos.y -= (startPos.h / 2) * Math.sin(45);
-        endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w / 10));
-        endPos.y -= arradjust * ((endPos.h / 1)) * Math.sin(45);
+    const existingPaths = svg.querySelectorAll('.arrow');
+    const existingAtts = svg.querySelectorAll('.pathtext');
+    existingPaths.forEach(path => path.remove());
+    existingAtts.forEach(pathtext => pathtext.remove());
+
+    const defs = svg.querySelector('defs');
+    if (defs) {
+        defs.remove();
     }
-    
-    if (Math.abs(gapy) < 45*v && Math.abs(gapx) < 30*v && gaptype == 'none'){
-        gaptype = 'shtver';
-        if (gapx == 0){
-            startPos.x += (startPos.w / 2) * Math.cos(45);
+
+
+    const markerPairs = [];
+    const stack = [];
+    const numberedMarkers = new Map();
+    const allMarkers = Array.from(container.querySelectorAll('.marker-start, .marker-end'));
+
+    // 먼저 번호 기반 마커들을 처리
+    allMarkers.forEach(marker => {
+    const id = marker.getAttribute('data-id');
+    if (id && (id.startsWith('Ns_') || id.startsWith('Ne_'))) {
+        const number = id.split('_')[1];  // Ns_1 -> 1 또는 Ne_1 -> 1
+        
+        if (!numberedMarkers.has(number)) {
+            numberedMarkers.set(number, {});
+        }
+        
+        if (id.startsWith('Ns_')) {
+            numberedMarkers.get(number).start = marker;
+        } else {
+            numberedMarkers.get(number).end = marker;
+        }
+    }
+    });
+
+    // 번호 기반 페어들을 markerPairs에 추가
+    numberedMarkers.forEach((pair, number) => {
+    if (pair.start && pair.end) {
+        markerPairs.push({
+            start: pair.start,
+            end: pair.end,
+            startId: pair.start.getAttribute('data-id'),
+            endId: pair.end.getAttribute('data-id'),
+            startarr: pair.start.getAttribute('data-arrow'),
+            endarr: pair.end.getAttribute('data-arrow'),
+            loc: pair.end.getAttribute('data-loc'),
+            att: pair.end.getAttribute('data-att')
+        });
+    }
+    });
+
+    // 일반 마커들 처리
+    allMarkers.forEach(marker => {
+    const id = marker.getAttribute('data-id');
+    if (!id || (!id.startsWith('Ns_') && !id.startsWith('Ne_'))) {
+        if (marker.classList.contains('marker-start')) {
+            stack.push(marker);
+        } else if (marker.classList.contains('marker-end')) {
+            if (stack.length > 0) {
+                const startMarker = stack.pop();
+                markerPairs.push({
+                    start: startMarker,
+                    end: marker,
+                    startId: startMarker.getAttribute('data-id'),
+                    endId: marker.getAttribute('data-id'),
+                    startarr: startMarker.getAttribute('data-arrow'),
+                    endarr: marker.getAttribute('data-arrow'),
+                    loc: marker.getAttribute('data-loc'),
+                    att: marker.getAttribute('data-att')
+                });
+            }
+        }
+    }
+    });
+
+    function getCenter(elem) {
+        const rect = elem.getBoundingClientRect();
+        const container = document.getElementById(`page_${pagenum}`);
+        const containerRect = container.getBoundingClientRect();
+        
+        // offsetWidth/Height를 사용하여 상대적 위치 계산
+        return {
+            x: (rect.left - containerRect.left)+ (rect.width / 2),
+            y: (rect.top - containerRect.top)+ (rect.height),
+            w: rect.width,   // 요소의 너비
+            h: rect.height,  // 요소의 높이
+            id: elem.getAttribute('data-id'),
+            arr: elem.getAttribute('data-arrow'),
+            loc: elem.getAttribute('data-loc'),
+            att: elem.getAttribute('data-att')
+        };
+    }
+
+
+
+    markerPairs.forEach((pair, index) => {
+        let startPos = getCenter(pair.start);
+        let endPos = getCenter(pair.end);
+        let gaptype = 'none';
+        const arradjust = startPos.arr == 'true' ? 1 : 0.3;
+
+        const loc = endPos.loc;
+        const att = endPos.att;
+
+        const gapy = startPos.y - endPos.y;
+        const gapx = startPos.x - endPos.x;
+        
+        if (Math.abs(gapx) < 70*v && Math.abs(gapy) < 15*v && gaptype == 'none'){ //일직선 상에 있는 flat에 대한 보정
+            gaptype = 'shtflat';
+            startPos.y -= (startPos.h / 2) * Math.sin(45);
+            endPos.x -= (80/endPos.w);
+            endPos.y -= arradjust * ((endPos.h / 0.8)) * Math.sin(45);
+        }
+
+        if (Math.abs(gapy) < 15*v && gaptype == 'none'){ //일직선 상에 있는 flat에 대한 보정
+            gaptype = 'flat';
+            startPos.x += (-gapx/Math.abs(gapx))*(startPos.w / 2) * Math.cos(45);
+            startPos.y -= (startPos.h / 2) * Math.sin(45);
+            endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w / 10));
+            endPos.y -= arradjust * ((endPos.h / 1)) * Math.sin(45);
+        }
+        
+        if (Math.abs(gapy) < 45*v && Math.abs(gapx) < 30*v && gaptype == 'none'){
+            gaptype = 'shtver';
+            if (gapx == 0){
+                startPos.x += (startPos.w / 2) * Math.cos(45);
+                startPos.y += (startPos.h / 1.5) * Math.sin(45);
+                endPos.x += arradjust * (endPos.w / 1) * Math.cos(45);
+                endPos.y -= arradjust * ((endPos.h / 1.5)) * Math.sin(45);
+            }else{
+                startPos.x += (startPos.w / 1.2) * Math.cos(45);
+                startPos.y += (startPos.h / 1.5) * Math.sin(45);
+                endPos.x += arradjust * (endPos.w / 0.7) * Math.cos(45);
+                endPos.y -= arradjust * ((endPos.h / 1.5)) * Math.sin(45);
+            }
+
+        }
+
+        if (Math.abs(gapx) < 30*v && gaptype == 'none'){
+            gaptype = 'ver';
+            startPos.y += (startPos.h / 1.5) * 1;
+            endPos.y -= arradjust * ((endPos.h / 1) * 1.2);
+        }
+
+        if (Math.abs(gapx) < 50*v && gaptype == 'none'){
+            gaptype = 'nar';
+            startPos.x += (gapx/Math.abs(gapx))*(startPos.w / 2) * Math.cos(45);
             startPos.y += (startPos.h / 1.5) * Math.sin(45);
-            endPos.x += arradjust * (endPos.w / 1) * Math.cos(45);
-            endPos.y -= arradjust * ((endPos.h / 1.5)) * Math.sin(45);
-        }else{
-            startPos.x += (startPos.w / 1.2) * Math.cos(45);
-            startPos.y += (startPos.h / 1.5) * Math.sin(45);
-            endPos.x += arradjust * (endPos.w / 0.7) * Math.cos(45);
+            endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w / 1)) * Math.cos(45);
             endPos.y -= arradjust * ((endPos.h / 1.5)) * Math.sin(45);
         }
-
-    }
-
-    if (Math.abs(gapx) < 30*v && gaptype == 'none'){
-        gaptype = 'ver';
-        startPos.y += (startPos.h / 1.5) * 1;
-        endPos.y -= arradjust * ((endPos.h / 1) * 1.2);
-    }
-
-    if (Math.abs(gapx) < 50*v && gaptype == 'none'){
-        gaptype = 'nar';
-        startPos.x += (gapx/Math.abs(gapx))*(startPos.w / 2) * Math.cos(45);
-        startPos.y += (startPos.h / 1.5) * Math.sin(45);
-        endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w / 1)) * Math.cos(45);
-        endPos.y -= arradjust * ((endPos.h / 1.5)) * Math.sin(45);
-    }
-    
-    if (Math.abs(gapx) > 30*v && gaptype == 'none'){ //대각선
-        if(Math.abs(gapy) >= 35*v){
-            gaptype = 'dia'
-            /*startPos.x += (startPos.w / 2);*/
-            startPos.y += (startPos.h);
-            endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w)) * Math.cos(45);
-            endPos.y -= arradjust * endPos.h * Math.sin(45);
-        }else{
-            gaptype = 'shtdia'
-            /*startPos.x += (startPos.w / 2);*/
-            startPos.y += (startPos.h);
-            endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w)) * Math.cos(45);
-            endPos.y -= arradjust * endPos.h * Math.sin(45);
+        
+        if (Math.abs(gapx) > 30*v && gaptype == 'none'){ //대각선
+            if(Math.abs(gapy) >= 35*v){
+                gaptype = 'dia'
+                /*startPos.x += (startPos.w / 2);*/
+                startPos.y += (startPos.h);
+                endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w)) * Math.cos(45);
+                endPos.y -= arradjust * endPos.h * Math.sin(45);
+            }else{
+                gaptype = 'shtdia'
+                /*startPos.x += (startPos.w / 2);*/
+                startPos.y += (startPos.h);
+                endPos.x += arradjust * ((gapx/Math.abs(gapx))*(endPos.w)) * Math.cos(45);
+                endPos.y -= arradjust * endPos.h * Math.sin(45);
+            }
         }
-    }
 
-    console.log(gaptype);
-    let thetabase = Math.round(Math.atan2(endPos.y - startPos.y, endPos.x - startPos.x) * 180 / Math.PI);
-    let theta;
+        console.log(gaptype);
+        let thetabase = Math.round(Math.atan2(endPos.y - startPos.y, endPos.x - startPos.x) * 180 / Math.PI);
+        let theta;
 
-    if (gaptype == 'flat'){
-        theta = thetabase - (45 * (-gapx/Math.abs(gapx)));
-        if (gapx > 0){
-            theta -= 160;
+        if (gaptype == 'flat'){
+            theta = thetabase - (45 * (-gapx/Math.abs(gapx)));
+            if (gapx > 0){
+                theta -= 160;
+            }
+        }else if (gaptype == 'shtflat'){
+            theta = -10;
+        }else if (gaptype == 'dia'){
+            theta = thetabase - 120;
+            if (gapx < 0){
+                theta = theta + 70;
+            }
+        }else if (gaptype == 'shtdia'){
+            theta = thetabase - 120;
+            if (gapx < 0){
+                theta = theta + 70;
+            }
+        }else if (gaptype == 'nar'){
+            theta = thetabase - (30 * (-gapx/Math.abs(gapx)));
+            if (gapx > 0){
+                theta -= 160;
+            }
+        }else if (gaptype == 'shtver'){
+                theta = 60 + (thetabase/6);
+        }else if (gaptype == 'ver'){
+            theta = 0;
         }
-    }else if (gaptype == 'shtflat'){
-        theta = -10;
-    }else if (gaptype == 'dia'){
-        theta = thetabase - 120;
-        if (gapx < 0){
-            theta = theta + 70;
-        }
-    }else if (gaptype == 'shtdia'){
-        theta = thetabase - 120;
-        if (gapx < 0){
-            theta = theta + 70;
-        }
-    }else if (gaptype == 'nar'){
-        theta = thetabase - (30 * (-gapx/Math.abs(gapx)));
-        if (gapx > 0){
-            theta -= 160;
-        }
-    }else if (gaptype == 'shtver'){
-            theta = 60 + (thetabase/6);
-    }else if (gaptype == 'ver'){
-        theta = 0;
-    }
-    /*theta = thetabase;*/
+        /*theta = thetabase;*/
 
-    // 각 화살표마다 고유한 스타일 정보 설정
-    let arrowStyle = startPos.arr;
+        // 각 화살표마다 고유한 스타일 정보 설정
+        let arrowStyle = startPos.arr;
 
-    drawArrow(startPos, endPos, arrowStyle, index, theta, gaptype, v, loc, att);
-});
+        drawArrow(startPos, endPos, arrowStyle, index, theta, gaptype, v, loc, att);
+    });
 }
 
 function drawArrow(start, end, arrowStyle, index, theta, gaptype, v, loc, att) {
@@ -322,7 +327,7 @@ function drawArrow(start, end, arrowStyle, index, theta, gaptype, v, loc, att) {
         }else{
             arrsize = 0;
         }
-        
+        console.log(arrsize * v);
         marker.setAttribute("markerWidth", String(arrsize * v));
         marker.setAttribute("markerHeight", String(arrsize * v));
         marker.setAttribute("refX", 0);

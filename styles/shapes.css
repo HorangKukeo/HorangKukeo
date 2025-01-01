@@ -10,6 +10,7 @@
 /* q_table 스타일 정의 */
 .q_table_top {
     width: 102%; /* 테이블 전체 너비 */
+    max-height: calc(35 / 16 * var(--base));
     position: relative;
     left: 50%;
     transform: translateX(-50%);
@@ -23,6 +24,7 @@
 }
 .q_table_mid {
     width: 102%; /* 테이블 전체 너비 */
+    max-height: calc(35 / 16 * var(--base));
     position: relative;
     left: 50%;
     transform: translateX(-50%);
@@ -36,6 +38,7 @@
 }
 .q_table_bot {
     width: 102%; /* 테이블 전체 너비 */
+    max-height: calc(35 / 16 * var(--base));
     position: relative;
     left: 50%;
     transform: translateX(-50%);
@@ -51,23 +54,15 @@
 
 /* 각 테이블 셀 기본 스타일 */
 .td {
+    height: calc(25 / 16 * var(--base));
     border: none;
     border-left: calc(2 / 16 * var(--base)) dashed var(--bluel); /* 셀 테두리 */
     border-right: calc(2 / 16 * var(--base)) dashed var(--bluel); /* 셀 테두리 */
     border-collapse: collapse; /* 테두리 중첩 제거 */
-    padding: 8px; /* 셀 내용 여백 */
+    padding: calc(5 / 16 * var(--base)); /* 셀 내용 여백 */
     text-align: center; /* 내용 중앙 정렬 */
     /*background-color: var(--background-light, #ffffff31); /* 셀 배경색 (옵션) */
 }
-
-/* 테이블 헤더 또는 강조 스타일 (필요시 추가) */
-.th {
-    border: 1px solid var(--bluel); /* 헤더 셀 테두리 */
-    padding: 8px; /* 헤더 셀 여백 */
-    text-align: center; /* 헤더 텍스트 정렬 */
-    background-color: var(--background-dark, #f0f0f0); /* 헤더 배경색 */
-}
-
       
 .q_table_cont {
     text-indent: 0;
@@ -75,11 +70,11 @@
     margin-bottom: calc(40 / 16 * var(--base));
     margin-top: calc(-18 / 16 * var(--base));
     padding: calc(0 / 16 * var(--base));
-    line-height: 1.6;
+    line-height: 0;
     border-radius: calc(10 / 16 * var(--base));
     overflow: hidden; /* 내용이 테두리를 넘지 않도록 */
     width: 80%;
-    border: calc(3 / 16 * var(--base)) solid var(--bluet);
+    border: calc(5 / 16 * var(--base)) solid var(--bluet);
     background-color: var(--bluet);
     margin-left: auto;
     margin-right: auto;

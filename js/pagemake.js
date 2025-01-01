@@ -87,6 +87,7 @@ function createPageElements() {
             right2.className = 'right-2';
             const input1 = document.createElement('input');
             input1.type = 'text';
+            input1.className = 'inputbox';
             right2.appendChild(input1);
             row1.appendChild(right1);
             row1.appendChild(whiteLineV1);
@@ -106,6 +107,7 @@ function createPageElements() {
             right4.className = 'right-4';
             const input2 = document.createElement('input');
             input2.type = 'text';
+            input2.className = 'inputbox';
             right4.appendChild(input2);
             row2.appendChild(right3);
             row2.appendChild(whiteLineV2);

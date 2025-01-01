@@ -1,6 +1,7 @@
 function createTableWithHTML(passageText) {
     const rows = passageText.split('<br>'); // 줄바꿈으로 행 분리
     const tableContainer = document.createElement('div'); // 전체 테이블 컨테이너
+    let rowCount = 0;
 
     rows.forEach((rowText, index) => {
         const table = document.createElement('table');
@@ -13,6 +14,7 @@ function createTableWithHTML(passageText) {
         } else {
             table.classList.add('q_table_mid'); // 중간 테이블
         }
+        rowCount = index + 1;
 
         const tr = document.createElement('tr');
         const cols = rowText.split('///'); // "///"로 열 분리
@@ -21,7 +23,6 @@ function createTableWithHTML(passageText) {
             const td = document.createElement('td');
             td.classList.add('td')
             td.style.width = `${100 / cols.length}%`; // 열 너비 계산
-            console.log(td.style.width);
 
             // HTML 태그가 포함된 경우에도 제대로 렌더링
             td.innerHTML = colText.trim();

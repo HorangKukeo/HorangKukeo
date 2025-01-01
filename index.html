@@ -74,6 +74,9 @@
     let baseWidthPercent = 0;
     let uniqueCounter = 0;
 
+    ///arrow 관련 설정
+    let v = 0;
+
     ///Img 관련 사전 변수 설정
     let imageWidth = 0;
     let imageHeight = 0;
@@ -260,8 +263,9 @@
             for(let i = 1; i <= maxpagenum; i++) {
             pagenum = i;
             drawArrows();
-            }
             
+            }
+    
             pagenum = maxpagenum; // 원래 pagenum 복원
         }
 
@@ -286,10 +290,13 @@
 
         pageWidth = pageElement.offsetWidth; // .page의 실제 width(px)
         baseWidthPercent = pageWidth * 0.02; // .page width의 2%
+        v = 2 * (1/16) * (pageWidth / 100);
+        pageElement.style.height = pageWidth / 210 * 297;
 
         // CSS 변수 업데이트
         document.documentElement.style.setProperty('--base', `${baseWidthPercent}px`);
         /*widthheight();*/
+
         
 
     }
@@ -300,9 +307,12 @@
     };
     window.addEventListener('resize', () => {
         updateBaseWidth(); // 확대/축소 시 업데이트
+        redrawArrows();
+        /*widthheight();*/
     });
-    window.addEventListener('resize', () => {
-    redrawArrows();
+
+    window.addEventListener('orientationchange', () => {
+    setTimeout(updateBaseWidth, 100); // 방향 전환 완료 후 실행
     });
 </script>
 </html>
