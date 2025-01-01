@@ -1,0 +1,110 @@
+.vertical-line {
+    display: inline-block;
+    width: calc(2 / 16 * var(--base));
+    height: calc(30 / 16 * var(--base));
+    background-color: var(--blue); /* 선 색상 */
+    margin: 0 5px; /* 선과 텍스트 간 여백 */
+}
+
+/* ///////////////////////////////////////////////////////////Table 관련 Styles ////////////////////////////////////////*/
+/* q_table 스타일 정의 */
+.q_table_top {
+    width: 102%; /* 테이블 전체 너비 */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    border-collapse: collapse; /* 테두리 중첩 제거 */
+    border-spacing: 0; /* 셀 간 간격 제거 */
+    margin: -1px; /* 테이블 자체 간격 제거 */
+    border-radius: 50%;
+    border-top: calc(2 / 16 * var(--base)) solid var(--bluet);
+    border-left: calc(2 / 16 * var(--base)) solid var(--bluet);
+    border-right: calc(2 / 16 * var(--base)) solid var(--bluet);
+}
+.q_table_mid {
+    width: 102%; /* 테이블 전체 너비 */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    border-collapse: collapse; /* 테두리 중첩 제거 */
+    border-spacing: 0; /* 셀 간 간격 제거 */
+    margin: -px; /* 테이블 자체 간격 제거 */
+    border-radius: 50%;
+    border-top: calc(2 / 16 * var(--base)) dashed var(--bluel);
+    border-left: calc(2 / 16 * var(--base)) solid var(--bluet);
+    border-right: calc(2 / 16 * var(--base)) solid var(--bluet);
+}
+.q_table_bot {
+    width: 102%; /* 테이블 전체 너비 */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    border-collapse: collapse; /* 테두리 중첩 제거 */
+    border-spacing: 0; /* 셀 간 간격 제거 */
+    margin: -1px; /* 테이블 자체 간격 제거 */
+    border-radius: 50%;
+    border-top: calc(2 / 16 * var(--base)) dashed var(--bluel);
+    border-left: calc(2 / 16 * var(--base)) solid var(--bluet);
+    border-right: calc(2 / 16 * var(--base)) solid var(--bluet);
+    border-bottom: calc(2 / 16 * var(--base)) solid var(--bluet);
+}
+
+/* 각 테이블 셀 기본 스타일 */
+.td {
+    border: none;
+    border-left: calc(2 / 16 * var(--base)) dashed var(--bluel); /* 셀 테두리 */
+    border-right: calc(2 / 16 * var(--base)) dashed var(--bluel); /* 셀 테두리 */
+    border-collapse: collapse; /* 테두리 중첩 제거 */
+    padding: 8px; /* 셀 내용 여백 */
+    text-align: center; /* 내용 중앙 정렬 */
+    /*background-color: var(--background-light, #ffffff31); /* 셀 배경색 (옵션) */
+}
+
+/* 테이블 헤더 또는 강조 스타일 (필요시 추가) */
+.th {
+    border: 1px solid var(--bluel); /* 헤더 셀 테두리 */
+    padding: 8px; /* 헤더 셀 여백 */
+    text-align: center; /* 헤더 텍스트 정렬 */
+    background-color: var(--background-dark, #f0f0f0); /* 헤더 배경색 */
+}
+
+      
+.q_table_cont {
+    text-indent: 0;
+    font-size: calc(13 / 16 * var(--base));
+    margin-bottom: calc(40 / 16 * var(--base));
+    margin-top: calc(-18 / 16 * var(--base));
+    padding: calc(0 / 16 * var(--base));
+    line-height: 1.6;
+    border-radius: calc(10 / 16 * var(--base));
+    overflow: hidden; /* 내용이 테두리를 넘지 않도록 */
+    width: 80%;
+    border: calc(3 / 16 * var(--base)) solid var(--bluet);
+    background-color: var(--bluet);
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    letter-spacing: calc(0.5 / 16 * var(--base)); /* 기본 자간 설정 */
+    transition: letter-spacing 0.2s ease; /* 자간 변화 시 부드러운 전환 효과 */
+    text-align: justify; /* 텍스트 양쪽 정렬 */
+    text-justify: inter-word; /* 단어 간 간격을 활용하여 정렬 */
+    box-shadow: calc(3 / 16 * var(--base)) calc(3 / 16 * var(--base)) calc(6 / 16 * var(--base)) rgba(0, 0, 0, 0.2);
+}
+
+
+
+/* ///////////////////////////////////////////////////////////Blank 관련 Styles ////////////////////////////////////////*/
+.blank-block {
+    width: 100%; /* 부모 컨테이너의 가로를 꽉 채우기 */
+    height: calc(40 / 16 * var(--base)); /* 원하는 높이 (예: 20px) */
+    background-color: transparent; /* 투명한 배경 */
+    pointer-events: none; /* 클릭 불가능 처리 */
+    /*border: 3px solid #000;*/
+}
+
+.blank-block_small{
+  width: 100%; /* 부모 컨테이너의 가로를 꽉 채우기 */
+  height: calc(14 / 16 * var(--base)); /* 원하는 높이 (예: 20px) */
+  background-color: transparent; /* 투명한 배경 */
+  pointer-events: none; /* 클릭 불가능 처리 */
+}

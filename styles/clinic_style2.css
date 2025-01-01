@@ -1,0 +1,248 @@
+.dotted-lines {
+    position: absolute; /* 절대 위치로 설정 */
+    top: 0%; /* 부모 요소의 최상단에 위치 */
+    left: 50%; /* 수평 중앙 정렬 기준 */
+    transform: translate(-50%, -50%);
+    display: flex; /* Flex 사용 */
+    align-items: center; /* 수직 중앙 정렬 */
+    justify-content: center; /* 수평 중앙 정렬 */
+    text-align: center; /* 텍스트 중앙 정렬 */
+    font-weight: bold; /* 텍스트 굵게 */
+    font-size: calc(16 / 16 * var(--base)); /* 텍스트 크기 */
+    color: #1f77b4; /* 텍스트 색상 */
+    background-color: #ffffff; /* 배경색 */
+    border: calc(1 / 16 * var(--base)) solid transparent; /* 테두리 */
+    width: auto; /* 텍스트 크기에 따라 너비 조정 */
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    padding: calc(5 / 16 * var(--base));
+    box-sizing: border-box; /* 패딩과 테두리를 포함한 크기 계산 */
+    z-index: 100; /* 부모 요소 위로 표시되도록 우선순위 설정 */
+    margin-bottom: calc(200 / 16 * var(--base)); /* 아래쪽 여백 추가 */
+    border: calc(3 / 16 * var(--base)) solid #1f76b47d; /* 진한 검은색 테두리 */
+}
+
+.nextmark_box {
+    display: flex; /* flex 컨테이너로 설정 */
+    width: 100%; /* 부모 요소의 너비 전체를 차지 */
+    justify-content: flex-end; /* 우측 정렬 */
+    margin-top: calc(10 / 16 * var(--base));
+  }
+
+.nextmark {
+    display: flex;
+    align-items: center; /* 수직 중앙 정렬 (필요 시 추가) */
+    font-size: calc(16 / 16 * var(--base)); /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵게 */
+    color: #007bff; /* 파란색 */
+    margin: calc(10 / 16 * var(--base)); /* 상하좌우 여백 */
+    padding-right: calc(30 / 16 * var(--base));
+    cursor: pointer; /* 클릭 가능 표시 */
+}
+
+.submark {
+    font-size: calc(14 / 16 * var(--base)); /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵게 */
+    color: #007bff; /* 파란색 */
+    margin-right: calc(6 / 16 * var(--base));
+    /*padding: 5px;*/
+    /*background-color: #75b6fc72;*/
+}
+
+.submark_small {
+    font-size: calc(12 / 16 * var(--base)); /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵게 */
+    color: #000;
+    margin-right: calc(6 / 16 * var(--base));
+    padding-left: calc(30 / 16 * var(--base));
+    /*padding: 5px;*/
+    /*background-color: #75b6fc72;*/
+}
+
+.nummark_small {
+    font-size: calc(12 / 16 * var(--base)); /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵게 */
+    color: var(--blue);
+    margin-right: calc(6 / 16 * var(--base));
+    padding-left: calc(30 / 16 * var(--base));
+    /*padding: 5px;*/
+    /*background-color: #75b6fc72;*/
+}
+
+.arrow_small {
+    font-size: calc(12 / 16 * var(--base)); /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵게 */
+    color: #000;
+    margin-right: calc(6 / 16 * var(--base));
+    padding-left: calc(5 / 16 * var(--base));
+    /*padding: 5px;*/
+    /*background-color: #75b6fc72;*/
+}
+
+.passageContainer{
+    position: relative;
+    width: 88%;
+    border: calc(3 / 16 * var(--base)) solid #1f76b47d; /* 진한 검은색 테두리 */
+    border-radius: calc(20 / 16 * var(--base));
+    padding-top:calc(15 / 16 * var(--base));
+    background-color: #aed2f95b;
+}
+
+.Bolding {
+    font-weight: bold;
+    color: #000;
+}
+
+.ExtraBolding {
+    font-weight: bold;
+    font-size: calc(14 / 16 * var(--base));
+    color: #007bff;
+}
+
+
+.annot_box {
+    display: flex; /* flex 컨테이너로 설정 */
+    width: 100%; /* 부모 요소의 너비 전체를 차지 */
+    justify-content: flex-end; /* 우측 정렬 */
+    margin-top: 0px;
+    font-size:calc(16 / 16 * var(--base))
+}
+
+  .annotR {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    border-radius: calc(5 / 16 * var(--base));
+    background-color: #a39d9d51;
+    cursor: pointer;
+    
+    color: #000000;
+    padding: calc(5 / 16 * var(--base));
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: calc(12 / 16 * var(--base)); /* 원하는 작은 글씨 크기로 조정 */
+    margin-left: auto;
+    margin-top: 0;
+  }
+
+  .annotL {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    border-radius: calc(5 / 16 * var(--base));
+    background-color: #a39d9d51;
+    cursor: pointer;
+    
+    color: #000000;
+    padding: calc(5 / 16 * var(--base));
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: calc(12 / 16 * var(--base)); /* 원하는 작은 글씨 크기로 조정 */
+    margin-right: auto;
+    margin-top: calc(-8 / 16 * var(--base));
+    margin-bottom: calc(5 / 16 * var(--base));
+}
+
+.undered{
+    text-decoration: underline;
+    text-decoration-color: #007bff;
+    text-decoration-thickness: calc(1.5 / 16 * var(--base));
+    text-underline-offset: calc(3 / 16 * var(--base));
+    /*text-decoration-style: dotted;*/
+}
+
+.circled{
+    border: calc(2 / 16 * var(--base)) solid #007bff;
+    border-radius: 50%;
+    padding: calc(3 / 16 * var(--base));
+    /*text-decoration-style: dotted;*/
+}
+
+
+
+.essay-container {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    border: calc(1 / 16 * var(--base)) solid #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    background-color: #f9f9f9;
+    cursor: pointer;
+    text-align: center;
+    font-size: calc(10 / 16 * var(--base));
+    font-weight: bold;
+    color: #007bff;
+    margin: calc(10 / 16 * var(--base)) calc(5 / 16 * var(--base)); /* 수평 마진 */
+    padding: calc(5 / 16 * var(--base)); /* 상단 여유 공간 확보 */
+    white-space: normal;
+    word-wrap: break-word;
+    /* width은 내용에 따라 자동 조절됨 */
+}
+
+
+.multiple-select {
+    font-size: calc(12 / 16 * var(--base)); /* 텍스트 크기 */
+    color: #000000;
+}
+
+
+.multiple-select_answer {
+    position: relative;
+    vertical-align: middle;
+    justify-content: space-between;
+    align-items: center;
+    border: calc(1 / 16 * var(--base)) solid #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    background-color: #ffffff;
+    padding: calc(3 / 16 * var(--base));
+    word-wrap: break-word;
+    white-space: normal;
+    font-size: calc(12 / 16 * var(--base)); /* 작은 글씨 */
+    color: #007bff; /* 파란색 */
+    font-weight: bold;
+    justify-content: center; /* 수평 중앙 정렬 */
+    align-items: center; /* 수직 중앙 정렬 */
+}
+
+
+/* 시작 마커와 종료 마커 스타일 */
+.marker-start, .marker-end {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0); /* 마커 강조 색상 */
+    padding: 0px 0px;
+    border-radius: calc(3 / 16 * var(--base));
+}
+
+
+
+/* SVG 오버레이 스타일 */
+svg {
+    position: absolute;
+    top: calc(-15 / 16 * var(--base));
+    left: 0;
+    pointer-events: none; /* 마우스 이벤트 통과 */
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    z-index: 200; /* 텍스트 뒤에 배치 */
+}
+
+.svg-container {
+    border: 3px solid #000;
+    width: auto;
+    margin: 0 auto;
+    position: relative;
+    box-sizing: border-box;
+}
+
+
+/* 화살표 스타일 */
+.arrow {
+    fill: none;
+    stroke: #007bff8d;
+    stroke-width: calc(3 / 16 *var(--base) );
+    stroke-linecap: butt;
+}
+
