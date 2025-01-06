@@ -97,12 +97,12 @@ function createPageElements() {
             row2.className = 'row';
             const right3 = document.createElement('div');
             right3.className = 'right-3';
-            right3.textContent = '개강일';
+            right3.textContent = '영역';
             const whiteLineV2 = document.createElement('div');
             whiteLineV2.className = 'white-line-V';
             const right4 = document.createElement('div');
             right4.className = 'right-3';
-            right4.textContent = '1/19(일)'
+            right4.textContent = '문학'
             row2.appendChild(right3);
             row2.appendChild(whiteLineV2);
             row2.appendChild(right4);
