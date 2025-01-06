@@ -11,7 +11,7 @@
   }
   :root{
     /*--base: calc(80vw * 0.02);*/
-    --base: calc(80vw * 0.02);
+    --base: calc(100vw * 0.02);
   }
 
   .buttons {
@@ -48,7 +48,7 @@
           .page {
           position: relative;
           display: flex;
-          width: 80%; /* A4 용지 너비 */
+          width: 100%; /* A4 용지 너비 */
           height: calc(var(--base)*200/210*297);
           border: calc(0 / 16 * var(--base)) solid black; /* 검은색 1px 테두리 추가 */
           padding: calc(20 / 16 * var(--base));
