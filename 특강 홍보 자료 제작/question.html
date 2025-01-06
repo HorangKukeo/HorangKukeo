@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>클리닉 콘텐츠</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/NanumBarunGothic-YetHangul/NanumBarunGothic-YetHangul.css" type="text/css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>    
+        <link rel="stylesheet" href="styles/clinic_style1.css">
+        <link rel="stylesheet" href="styles/clinic_style2.css">
+        <link rel="stylesheet" href="styles/styles_att.css">
+
+        
+</head>
+<body>        
+
+    <button id="submit-button" onclick="submitAnswers()">제출하기</button>
+    <button id="answer-button" onclick="AnswerSheet()">답지보기</button>
+        <button id="next" onclick="loadExcelAndParse()">다음 불러오기</button>
+            
+
+</body>
+<script src="js/pagemake.js"></script>
+<script src="js/PassageControl.js"></script>
+<script src="js/buttons.js"></script>
+<script src="js/buttons2.js"></script>
+<script src="js/subscript.js"></script>
+<script src="js/test.js"></script>
+<script>
+ 
+    window.onbeforeprint = () => {
+        document.querySelectorAll('.page').forEach(page => {
+            page.style.border = '0';
+        });
+    };
+
+    window.onafterprint = () => {
+        document.querySelectorAll('.page').forEach(page => {
+            page.style.border = '2px solid black'; // 다시 원래 상태로 복구
+        });
+    };
+    const userAnswers = {}; // 사용자 응답 저장
+    let globalQuestionCounter = 1; // 전체 문제 번호 카운트
+    let height = 0;
+    let percentage = 0;
+    let lastProcessedIndex = -1; // 마지막으로 처리된 passage box의 인덱스 (-1은 아직 처리된 박스가 없음을 의미)
+    let allPassages = []; // 모든 passage 데이터를 저장할 변수
+    let currentPage; // 현재 페이지를 저장하는 변수
+    let passagenum = 0;
+    let currentPassage = 0;
+    let pagenum = 0;
+    let totalHeight = 0;
+    let checkman = 0;
+    let nowSetting = 0; //현재 몇 번째 setting된 문항을 불러왔는지 확인.
+    let maxSetting = 0; //최대 몇 개의 setting 문항을 불러올 수 있는지 확인.
+    let valueSetting;
+    let headOX = 0; // head를 생성할지 여부를 결정.
+    let sheetTitle; //시트 제목 저장
+    let sheetTitle_sub; //시트 소제목 저장
+    let kkkk = 0; //임시연산자
+    let titleFrameAdjust = 0; //titleFrame 높이 보정
+    let preHeight = 0; //이전 page의 Height를 저장.
+    let blankblock //blankblock
+    let attsplitCheck = 0;
+
+
+    async function loadExcelAndParse() {
+
+        try {
+
+
+
+            const response = await fetch('qdb.xlsm'); // Excel 파일 로드
+            const data = await response.arrayBuffer();
+            const workbook = XLSX.read(data, { type: 'array' });
+
+                if (maxSetting == 0){
+                    valueSetting = XLSX.utils.sheet_to_json(workbook.Sheets['Setting'], { header: 1 });
+                    const maxSetting = valueSetting[2][1]
+                }
+            const sheetName = valueSetting[1][nowSetting+1]; // 원하는 시트 이름
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+            sheetTitle = rows[1][1];
+            sheetTitle_sub = rows[1][2];
+
+            // 데이터를 메모리에 저장
+            allPassages = rows.slice(3).filter(row => row[1]); // 첫 번째 행 제외, 두 번째 열의 데이터 추출
+            passagenum = allPassages.length;
+            console.log("Excel 데이터가 성공적으로 로드되었습니다.");
+                try{
+                    if(pagenum != 0);{
+                        nextmark();
+                    }
+                } catch(error) {
+                    console.error('첫페이지 생성중', error);
+                }
+            createPageElements();
+            nowSetting ++;
+            headOX = 0;
+            height = 0;
+            percentage = 0;
+            passagenum = 0;
+            currentPassage = 0;
+            totalHeight = 0;
+            checkman = 0;
+            kkkk = 0;
+
+
+
+
+
+        } catch (error) {
+            console.error('Excel 데이터를 로드하는 중 오류 발생:', error);
+        }
+    }
+
+    window.onload = () => {
+        loadExcelAndParse();     
+    };
+</script>
+</html>
