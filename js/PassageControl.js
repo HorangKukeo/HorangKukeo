@@ -376,7 +376,12 @@ function parseAndDisplayPassage(index) {
                                         <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
                                     </span>`;
                     }else{
-                        const inputSize =  Math.round(Math.max(answer.length, 2)*1.2);
+                        let inputSize;
+                        if(mobile == 0){
+                            inputSize =  Math.round(Math.max(answer.length, 2)*1.3);
+                        }else if(mobile == 1){
+                            inputSize =  Math.round(Math.max(answer.length, 2)*1.7);
+                        }
     
                         questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
                                             <span class="question-number">${questionNumber}</span>
