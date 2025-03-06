@@ -781,7 +781,8 @@ function parseAndDisplayPassage(index) {
                     if (firstcheck !== 0){
                     passageBox.style.display = 'none';
                     }else{
-                        nowP = psgnum + 1;
+                        nowP = psgnum + 1; //처음 등장하는 passage를 nowP에 미리 저장함.
+                        firstP = nowP; //처음 등장하는 passage를 firstP로 저장함.
                     }
             }else if(allPassages[index][0].startsWith('img')){ // img는 출력하지 않도록 설정
                 passageBox.remove;

@@ -22,8 +22,11 @@ function submitAnswers() {
 
         if(mobile == 1){
             document.getElementById(`psgbox_${nowQ}`).style.display = 'none';
+            document.getElementById(`psgbox_${nowP}`).style.display = 'none';
+            document.getElementById(`psgbox_${firstP}`).style.display = 'block';
             document.getElementById(`psgbox_${firstcheck}`).style.display = 'block';
             nowQ = firstcheck;
+            nowP = firstP;
             const submitButton = document.getElementById('submitq');
             if (submitButton) {
                 submitButton.remove();
