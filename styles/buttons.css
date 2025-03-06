@@ -2,42 +2,42 @@
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
     position: fixed;
     bottom: calc(50% + env(safe-area-inset-bottom));
-    left: 95%;
-    transform: translate(-50%, +50%);
+    left: 100%;
+    transform: translate(-100%, +50%);
     z-index: 3000;
-    width: calc(20 / 16 * var(--base));
+    width: calc(35 / 16 * var(--base));
     font-size: calc(12 / 16 * var(--base));
-    text-align: center;
-    padding-left: calc(2 / 16 * var(--base));
+    justify-content: left;
+    padding-left: calc(4 / 16 * var(--base));
     padding-right: calc(2 / 16 * var(--base));
     /* 필요에 따라 추가 스타일 적용 */
   }
 
 #preq {
-    position: fixed;
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
+    position: fixed;
     bottom: calc(50% + env(safe-area-inset-bottom));
-    left: 5%;
-    transform: translate(-50%, +50%);
+    left: 0%;
+    transform: translate(0%, +50%);
     z-index: 3000;
-    width: calc(20 / 16 * var(--base));
+    width: calc(35 / 16 * var(--base));
     font-size: calc(12 / 16 * var(--base));
+    justify-content: right;
     padding-left: calc(2 / 16 * var(--base));
-    padding-right: calc(2 / 16 * var(--base));
-    /* 필요에 따라 추가 스타일 적용 */
+    padding-right: calc(4 / 16 * var(--base));
 }
 
 #submitq {
-    position: fixed;
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
-    bottom: calc(75% + env(safe-area-inset-bottom));
-    left: 95%;
-    transform: translate(-50%, +50%);
+    position: fixed;
+    bottom: calc(70% + env(safe-area-inset-bottom));
+    left: 100%;
+    transform: translate(-100%, +50%);
     z-index: 3000;
-    width: calc(20 / 16 * var(--base));
+    width: calc(35 / 16 * var(--base));
     font-size: calc(12 / 16 * var(--base));
-    padding-left: calc(2 / 16 * var(--base));
+    justify-content: left;
+    padding-left: calc(4 / 16 * var(--base));
     padding-right: calc(2 / 16 * var(--base));
-    /* 필요에 따라 추가 스타일 적용 */
 }
   
