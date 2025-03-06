@@ -179,6 +179,7 @@ function submitAnswers() {
     const payload = {
         school : schoolname,
         name: studentname,
+        mission: sheetName,
         score: score,
         total: Object.keys(userAnswers).length,
         timestamp: new Date().toISOString()

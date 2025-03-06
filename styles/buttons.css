@@ -1,7 +1,7 @@
 #nextq {
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
     position: fixed;
-    bottom: calc(70 / 16 * var(--base));
+    bottom: calc(20% + env(safe-area-inset-bottom));
     left: 80%;
     transform: translateX(-50%);
     z-index: 3000;
@@ -12,7 +12,7 @@
 #preq {
     position: fixed;
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
-    bottom: calc(70 / 16 * var(--base));
+    bottom: calc(20% + env(safe-area-inset-bottom));
     left: 20%;
     transform: translateX(-50%);
     z-index: 3000;
@@ -23,7 +23,7 @@
 #submitq {
     position: fixed;
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
-    bottom: calc(70 / 16 * var(--base));
+    bottom: calc(20% + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     z-index: 3000;

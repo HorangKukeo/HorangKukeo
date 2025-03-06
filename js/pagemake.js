@@ -298,7 +298,7 @@ function createPageElements() {
                         currentPassage = 0;
                         if(mobile == 1){
                             const spacer = document.createElement('div');
-                            spacer.style.height = 'calc(100 / 16 * var(--base))';
+                            spacer.style.height = 'calc(300 / 16 * var(--base))';
                             page.appendChild(spacer);
                         }
 

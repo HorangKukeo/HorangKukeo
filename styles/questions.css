@@ -250,7 +250,7 @@
     font-size: calc(12 / 16 * var(--base));
     font-weight: bold;
     text-align: center;
-    bottom: calc(8 / 16 * var(--base));
+    bottom: calc(20% + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     z-index: 3000;
