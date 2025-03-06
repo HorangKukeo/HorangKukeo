@@ -380,7 +380,7 @@ function parseAndDisplayPassage(index) {
                         if(mobile == 0){
                             inputSize =  Math.round(Math.max(answer.length, 2)*1.3);
                         }else if(mobile == 1){
-                            inputSize =  Math.round(Math.max(answer.length, 2)*1.7);
+                            inputSize =  Math.round(Math.max(answer.length, 2)*3);
                         }
     
                         questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
