@@ -378,15 +378,15 @@ function parseAndDisplayPassage(index) {
                     }else{
                         let inputSize;
                         if(mobile == 0){
-                            inputSize =  Math.round(Math.max(answer.length, 2)*1.3);
+                            inputSize =  Math.round(Math.max(answer.length, 2)*15);
                         }else if(mobile == 1){
-                            inputSize =  Math.round(Math.max(answer.length, 2)*3);
+                            inputSize =  Math.round(Math.max(answer.length, 2)*15);
                         }
     
                         questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
                                             <span class="question-number">${questionNumber}</span>
                                             <span class="hint-text" style="width: 85%;">${hint}</span>
-                                            <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
+                                            <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));"/>
                                         </span>`;
                     }
             } else if (type === 'fa') { //초성형 문제
