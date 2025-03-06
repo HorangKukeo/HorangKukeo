@@ -378,9 +378,17 @@ function parseAndDisplayPassage(index) {
                     }else{
                         let inputSize;
                         if(mobile == 0){
-                            inputSize =  Math.round(Math.max(answer.length, 2)*15);
+                            let effectiveLength = 0;
+                            for (const char of answer) {
+                            effectiveLength += (char === ' ' ? 0.3 : 1);
+                            }
+                            inputSize = Math.round(Math.max(effectiveLength, 2) * 14);
                         }else if(mobile == 1){
-                            inputSize =  Math.round(Math.max(answer.length, 2)*15);
+                            let effectiveLength = 0;
+                            for (const char of answer) {
+                            effectiveLength += (char === ' ' ? 0.3 : 1);
+                            }
+                            inputSize = Math.round(Math.max(effectiveLength, 2) * 14);
                         }
     
                         questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
