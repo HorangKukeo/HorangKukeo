@@ -107,7 +107,7 @@
 /*///////////////////////////Bracket//////////////////////////*/
 .bracket {
     padding-left: calc(15 / 16 * var(--base));
-    width: 95%;
+    width: 90%;
     margin-left: auto;
     margin-right: auto;
     position: relative;
@@ -118,7 +118,7 @@
     display: flex; /* 수평 배치 */
     align-items: center; /* 세로 중앙 정렬 */
     border: 0px solid #000;
-    margin-bottom: calc(-22 / 16 * var(--base));
+    margin-bottom: calc(0 / 16 * var(--base));
 }
 
 .mainPara > .bracket:last-child {
@@ -126,12 +126,12 @@
 }
 
 .bracket-single {
-    margin-left: calc(-5 / 16 * var(--base));
+    margin-left: calc(-2 / 16 * var(--base));
     position: absolute; /* 부모 요소를 기준으로 배치 */
     transform: translateY(0%); /* 세로 중앙 기준으로 조정 */
     top: calc(7 / 16 * var(--base)); /* 부모 요소의 세로 중앙 */
     height: calc(100% - calc(16 / 16 * var(--base)));
-    width: calc(1.5 / 16 * var(--base)); /*선 두께 */
+    width: calc(1.2 / 16 * var(--base)); /*선 두께 */
     background-color: #000000; /* 테스트용 색상 */
 }
 
@@ -148,7 +148,7 @@
     left: 0; /* 부모의 왼쪽 기준 */
     top: 0; /* 부모의 위쪽 기준 */
     width: calc(5 / 16 * var(--base));
-    height: calc(1.5 / 16 * var(--base)); /* 선 두께 */
+    height: calc(1.2 / 16 * var(--base)); /* 선 두께 */
     background-color: #000000; /* 선 색상 */
     display: block; /* 요소를 블록으로 렌더링 */
 }
@@ -159,7 +159,7 @@
     left: 0; /* 부모의 왼쪽 기준 */
     top: 100%; /* 부모의 위쪽 기준 */
     width: calc(5 / 16 * var(--base)); /* 선의 두께 */
-    height: calc(1.5 / 16 * var(--base)); /* 부모 높이에 맞춤 */
+    height: calc(1.2 / 16 * var(--base)); /* 부모 높이에 맞춤 */
     background-color: #000000; /* 선 색상 */
     display: block; /* 요소를 블록으로 렌더링 */
 }

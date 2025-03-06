@@ -278,7 +278,9 @@ function parseAndDisplayPassage(index) {
                             <div class="bracket-label">${bracketType}</div>
                                 <span class="bracket-single"></span>
                                 <span class="bracket-blank"></span>
-                                ${content}
+                                <div class="bracket-content" style="text-indent: calc(6 / 16 * var(--base))">
+                                    ${content}
+                                </div>
                             </div>
                         </div>`;
                         
@@ -297,7 +299,7 @@ function parseAndDisplayPassage(index) {
                     <div class="bracket-top"></div>
                     <div class="bracket-label">${bracket}</div>
                     <div class="bracket-bot"></div>
-                    <div class="bracket-content">
+                    <div class="bracket-content" style="text-indent: calc(6 / 16 * var(--base))">
                         ${bracketHtml}
                     </div>
                 </div>`;
@@ -320,20 +322,39 @@ function parseAndDisplayPassage(index) {
         const filteredLines = processedLines.filter(line => line !== null); //bracket 값이 null인 경우 공백을 삭제함.
         // filteredLines를 join하면서, <div> 뒤에 <br>이 추가되지 않도록 처리
         const passageWithLineBreaks = filteredLines.reduce((acc, current, index) => {
-            const previous = acc[acc.length - 1] || ''; // 이전 줄
-            const isPreviousDiv = previous.trim().startsWith('<div'); // 이전 줄이 <div>로 시작하는지 확인
-
-            if (isPreviousDiv) {
-                // 이전 줄이 <div>로 시작하면 현재 줄을 바로 추가 (줄바꿈 없이)
-                acc.push(current);
+            // 이전 줄(문자열)을 가져오고, 선행 <br> 태그를 제거
+            let previous = (acc[acc.length - 1] || '').replace(/^(<br\s*\/?>\s*)+/, '');
+            
+            // 문자열을 임시 DOM 요소로 변환하여 첫 번째 요소를 가져옴
+            const tempContainer = document.createElement('div');
+            tempContainer.innerHTML = previous;
+            const previousElement = tempContainer.firstElementChild;
+            
+            // 이전 요소가 존재하고, 그 클래스 리스트에 'bracket'이 포함되어 있는지 확인
+            const isPreviousBracket = previousElement && previousElement.classList.contains('bracket');
+            
+            // 현재 요소가 div로 시작하는지 확인
+            const isCurrentDiv = current.trim().startsWith('<div');
+            
+            // 들여쓰기 요소 생성
+            const indentSpan = `<span class="indent_${psgnum}"></span>`;
+            
+            if (isPreviousBracket) {
+                // 이전 요소의 클래스가 'bracket'인 경우, 현재 줄을 바로 추가 (줄바꿈 없이)
+                // div 요소가 아닌 경우에만 들여쓰기 요소 추가
+                acc.push(isCurrentDiv ? current : indentSpan + current);
             } else {
-                // 그렇지 않으면 줄바꿈 포함하여 추가
-                acc.push(index > 0 ? `<br>${current}` : current);
+                // 그렇지 않으면, 첫 번째 라인이 아니라면 <br> 태그를 추가해서 결합
+                // div 요소가 아닌 경우에만 들여쓰기 요소 추가
+                if (index > 0) {
+                    acc.push(isCurrentDiv ? `<br>${current}` : `<br>${indentSpan}${current}`);
+                } else {
+                    acc.push(isCurrentDiv ? current : indentSpan + current);
+                }
             }
-
             return acc;
         }, []).join('');
-
+        
         
         let replacedPassage = passageWithLineBreaks.replace(regex, (match, type, content) => {
             
@@ -719,6 +740,7 @@ function parseAndDisplayPassage(index) {
                 mainPara.classList.add('mainPara');
                 passageContext.style.width = "80%";
                 mainPara.style.lineHeight = "2";
+                mainPara.style.paddingLeft = "calc(10 / 16 * 1em)";
                 passageContext.appendChild(mainPara);
 
             }else if(allPassages[index][0] === 'T') { // 문항 출제 등 Title을 사용하는 경우
@@ -766,6 +788,7 @@ function parseAndDisplayPassage(index) {
         const passageBox = document.createElement('div');
         passageBox.classList.add('passage-box');
         passageBox.setAttribute('id', `psgbox_${psgnum + 1}`);
+        
 
         // type이 onebyone인 경우 N(문항 번호) passageBox의 display를 none으로 바꿈.
         if(type == 'onebyone'){
@@ -791,6 +814,19 @@ function parseAndDisplayPassage(index) {
             
         }
         passageBox.appendChild(passageContext);
+
+        // 조건을 만족하는 경우 indent 요소에 너비를 추가.
+        if (allPassages[index][0].startsWith('A')){
+            const indentElements = passageBox.querySelectorAll(`.indent_${psgnum}`);
+            if (indentElements.length > 0) {
+                
+                // 모든 요소에 너비 적용
+                indentElements.forEach(element => {
+                    element.style.display = 'inline-block';
+                    element.style.width = 'calc(8 / 16 * var(--base))';
+                });
+            }
+        }
 
         /*/ 높이 합계 표시 요소 생성 및 passageBox에 추가 (지금까지 이게 존재했는데 왜 존재하는지 잘 모르는 상황이 되어벌임;;)
         const heightTotalDisplay = document.createElement('div');

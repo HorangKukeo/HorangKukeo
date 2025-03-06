@@ -318,7 +318,7 @@
         border: calc(2/16*var(--base)) solid var(--bluet);
         box-shadow: 0 calc(4 / 16 * var(--base)) calc(8 / 16 * var(--base)) rgba(0, 0, 0, 0.2);
     }
-
+    
     .titlePara {
         text-indent: calc(0 / 16 * var(--base));
         font-size: calc(13 / 16 * var(--base));

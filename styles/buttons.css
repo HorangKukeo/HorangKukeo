@@ -1,33 +1,43 @@
 #nextq {
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
     position: fixed;
-    bottom: calc(20% + env(safe-area-inset-bottom));
-    left: 80%;
-    transform: translateX(-50%);
+    bottom: calc(50% + env(safe-area-inset-bottom));
+    left: 95%;
+    transform: translate(-50%, +50%);
     z-index: 3000;
+    width: calc(20 / 16 * var(--base));
     font-size: calc(12 / 16 * var(--base));
+    text-align: center;
+    padding-left: calc(2 / 16 * var(--base));
+    padding-right: calc(2 / 16 * var(--base));
     /* 필요에 따라 추가 스타일 적용 */
   }
 
 #preq {
     position: fixed;
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
-    bottom: calc(20% + env(safe-area-inset-bottom));
-    left: 20%;
-    transform: translateX(-50%);
+    bottom: calc(50% + env(safe-area-inset-bottom));
+    left: 5%;
+    transform: translate(-50%, +50%);
     z-index: 3000;
+    width: calc(20 / 16 * var(--base));
     font-size: calc(12 / 16 * var(--base));
+    padding-left: calc(2 / 16 * var(--base));
+    padding-right: calc(2 / 16 * var(--base));
     /* 필요에 따라 추가 스타일 적용 */
 }
 
 #submitq {
     position: fixed;
     font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
-    bottom: calc(20% + env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: calc(75% + env(safe-area-inset-bottom));
+    left: 95%;
+    transform: translate(-50%, +50%);
     z-index: 3000;
+    width: calc(20 / 16 * var(--base));
     font-size: calc(12 / 16 * var(--base));
+    padding-left: calc(2 / 16 * var(--base));
+    padding-right: calc(2 / 16 * var(--base));
     /* 필요에 따라 추가 스타일 적용 */
 }
   
