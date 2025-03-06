@@ -1,0 +1,33 @@
+#nextq {
+    font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
+    position: fixed;
+    bottom: calc(70 / 16 * var(--base));
+    left: 80%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    font-size: calc(12 / 16 * var(--base));
+    /* 필요에 따라 추가 스타일 적용 */
+  }
+
+#preq {
+    position: fixed;
+    font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
+    bottom: calc(70 / 16 * var(--base));
+    left: 20%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    font-size: calc(12 / 16 * var(--base));
+    /* 필요에 따라 추가 스타일 적용 */
+}
+
+#submitq {
+    position: fixed;
+    font-family: 'Nanum Barun Gothic YetHangul', sans-serif;
+    bottom: calc(70 / 16 * var(--base));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    font-size: calc(12 / 16 * var(--base));
+    /* 필요에 따라 추가 스타일 적용 */
+}
+  

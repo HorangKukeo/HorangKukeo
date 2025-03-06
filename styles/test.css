@@ -1,0 +1,12 @@
+.diagram-container {
+    text-indent: 0;
+    width: 100%;
+    height: auto;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    margin-top: calc(5 / 16 * var(--base));
+    padding-top:0;
+    border: 0px dotted #000;
+}
