@@ -33,7 +33,7 @@ function Bolding(inputText) {
     const BlockMRegex = /\{\%m\}(.*?)\{\%m\}/g;
 
 
-    // 먼저 <<내용>>을 처리
+    // 먼저 {{내용}}을 처리
     let processedText = inputText.replace(boldRegex, (match, content) => {
         return `<span class="Bolding">${content}</span>`;
     });
@@ -59,7 +59,9 @@ function Bolding(inputText) {
 
 function undered(inputText) {
     const underRegex = /\{\_(.*?)\_\}/g;
-    const circleRegex = /\{\[(.*?)\]\}/g;
+    const circleRegex = /\{\○(.*?)\○\}/g;
+    const rectangleRegex = /\{\□(.*?)\□\}/g;
+    const highlightRegex = /\{\▷(.*?)\◁\}/g;
 
     // 먼저 <<내용>>을 처리
     let processedText = inputText.replace(underRegex, (match, content) => {
@@ -69,12 +71,17 @@ function undered(inputText) {
     processedText = processedText.replace(circleRegex, (match, content) => {
         return `<span class="circled">${content}</span>`;
     });
+
+    processedText = processedText.replace(rectangleRegex, (match, content) => {
+        return `<span class="rectangled">${content}</span>`;
+    });
+
+    processedText = processedText.replace(highlightRegex, (match, content) => {
+        return `<span class="highlighted">${content}</span>`;
+    });
     
     return processedText; // 최종 결과 반환
 }
-
-
-
 
 function Annot(inputText) {
     const annotR = inputText.match(/^\s*##}(.*)/); // boldedLine에서 주석 처리
@@ -130,7 +137,7 @@ function Align(inputText) {
 
 
 function Att(inputText) {
-    const newRegex = /\\(U|D|UR|UUR|UL|DR|DL|DDL)\\([^\\]+)\\/g;
+    const newRegex = /\\(U|D|UR|UUR|UL|DR|DL|DDL|DDR)\\([^\\]+)\\/g;
     return inputText.replace(newRegex, (match, style, content) => {
         const [context, att] = content.split(';');
         /*const styleClass = style === "attU" ? "attU" : "attD";*/
@@ -141,20 +148,41 @@ function Att(inputText) {
         const borderStyle = lined === 'over'
         ? 'border-top: calc(2 / 16 * var(--base)) solid var(--blue); margin-top: calc(-2 / 16 * var(--base));'
         : 'border-bottom: calc(2 / 16 * var(--base)) solid var(--blue); margin-bottom: calc(-2 / 16 * var(--base));';
-      
 
+        let att_rev = att.trim().replace(/(\s+)(<span[^>]*>)/g, (match, spaces, spanTag) => {
+            // 공백을 thin space로 대체
+            return '\u2009' + spanTag;
+        });
+        
+        // </span> 태그 뒤의 공백 처리
+        att_rev = att_rev.trim().replace(/(<\/span>)(\s+)/g, (match, spanEndTag, spaces) => {
+            // 공백을 thin space로 대체
+            return spanEndTag + '\u2009';
+        });
+
+        let context_rev = context.trim().replace(/(\s+)(<span[^>]*>)/g, (match, spaces, spanTag) => {
+            // 공백을 thin space로 대체
+            return '\u2009' + spanTag;
+        });
+        
+        // </span> 태그 뒤의 공백 처리
+        context_rev = context_rev.trim().replace(/(<\/span>)(\s+)/g, (match, spanEndTag, spaces) => {
+            // 공백을 thin space로 대체
+            return spanEndTag + '\u2009';
+        });
+        
         if (passage_type == 'sub'){
             blanking_small();
             document.getElementById(`page_${pagenum-1}`).appendChild(blankblock);
             blanking_small();
             document.getElementById(`page_${pagenum-1}`).appendChild(blankblock);
             
-            return `<span class="attContainer_sub">${context.trim()}
-            <span class="${styleClass}_sub">${att.trim()}</span>
+            return `<span class="attContainer_sub">${context_rev}
+            <span class="${styleClass}_sub">${att_rev}</span>
             </span>`;    
         }else{
-            return `<span class="attContainer" style="${borderStyle}">${context.trim()}
-            <span class="${styleClass}">${att.trim()}</span>
+            return `<span class="attContainer" style="${borderStyle}">${context_rev}
+            <span class="${styleClass}">${att_rev}</span>
             </span>`;
         }
     });

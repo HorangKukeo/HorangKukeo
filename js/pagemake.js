@@ -4,6 +4,9 @@ let double_fix = 'false';
 let ENum_doubled = 'single';
 let ENum_doublenum = 0;
 
+let inboxX = 0;
+let inboxY = 0;
+
 function createPageElements() {
     
         pagenum++; // 새로운 페이지로 이동
@@ -152,7 +155,7 @@ function createPageElements() {
         if(mobile == 0){
         const footer = document.createElement('div');
         footer.className = 'page-footer';
-        footer.textContent = pagenum;
+        footer.textContent = Number(footerpagenum) + Number(pagenum);
         const footerline = document.createElement('div');
         footerline.className = 'page-footer-line';
         footer.appendChild(footerline);

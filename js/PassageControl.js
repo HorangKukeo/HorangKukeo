@@ -250,7 +250,7 @@ function parseAndDisplayPassage(index) {
             // 정렬 처리(중앙)
             const aligned = Align(annot);
 
-            // underline 처리
+            // underline 및 다양한 텍스트 도형 처리
             const underlined = undered(aligned);
 
             // [[내용]] 스타일 적용
@@ -278,7 +278,7 @@ function parseAndDisplayPassage(index) {
                             <div class="bracket-label">${bracketType}</div>
                                 <span class="bracket-single"></span>
                                 <span class="bracket-blank"></span>
-                                <div class="bracket-content" style="text-indent: calc(6 / 16 * var(--base))">
+                                <div class="bracket-content" style="text-indent: calc(0 / 16 * var(--base))">
                                     ${content}
                                 </div>
                             </div>
@@ -295,11 +295,23 @@ function parseAndDisplayPassage(index) {
             } else if (/\/\[[^\]]\]\//.test(arr) && bracket == arr.match(/\[[^\]]\]/)?.[0]) {
                 // bracket 엔딩
                 bracketHtml += arr.replace(/\/\[[^\]]\]\//g, '');
+                const indentSpan = `<span class="indent_${psgnum}"></span>`;
+                bracketHtml = indentSpan + bracketHtml;
+                bracketHtml = bracketHtml.replace(/<br\s*\/?>/gi, function(match, offset, string) {
+                    // 문서의 끝에 있는 <br> 태그인지 확인
+                    if (offset + match.length >= string.length) {
+                        // 문서의 마지막 <br>은 그대로 유지
+                        return match;
+                    } else {
+                        // 나머지 모든 <br>에는 indentSpan 추가
+                        return match + indentSpan;
+                    }
+                });
                 fin = `<div class="bracket">
                     <div class="bracket-top"></div>
                     <div class="bracket-label">${bracket}</div>
                     <div class="bracket-bot"></div>
-                    <div class="bracket-content" style="text-indent: calc(6 / 16 * var(--base))">
+                    <div class="bracket-content" style="text-indent: calc(0 / 16 * var(--base))">
                         ${bracketHtml}
                     </div>
                 </div>`;
@@ -739,6 +751,17 @@ function parseAndDisplayPassage(index) {
                 mainPara.classList.add('mainPara');
                 passageContext.style.width = "80%";
                 mainPara.style.lineHeight = "3";
+
+                passageContext.appendChild(mainPara);
+            }else if(allPassages[index][0] === 'APP') {
+                passageContext.style.textIndent = "calc(0 / 16 * 1em)";
+                passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
+                const mainPara = document.createElement('div');
+                mainPara.innerHTML = passageContext.innerHTML
+                passageContext.innerHTML = '';
+                mainPara.classList.add('mainPara');
+                passageContext.style.width = "80%";
+                mainPara.style.lineHeight = "3.3";
                 passageContext.appendChild(mainPara);
 
             }else if(allPassages[index][0] === 'AA') {
@@ -795,6 +818,28 @@ function parseAndDisplayPassage(index) {
  
 
                 passageContext.appendChild(tableCont);
+            }else if(allPassages[index][0].startsWith('inbox_')){
+                posi = 'inbox';
+                // allPassages[index][0]에서 문자열 가져오기
+                const inboxId = allPassages[index][0];
+                        
+                // 유효성 검사
+                if (!inboxId || !inboxId.startsWith("inbox_") || !inboxId.includes("@")) {
+                    throw new Error(`Invalid format at index ${index}. Expected: inbox_A@B`);
+                }
+
+                // 파싱 로직
+                const withoutPrefix = inboxId.substring(inboxId.indexOf("_") + 1);
+                const parts = withoutPrefix.split("@");
+
+                if (parts.length !== 2) {
+                    throw new Error(`Invalid format at index ${index}. Expected: inbox_A@B`);
+                }
+
+                // 결과 저장
+                inboxX = parts[0];
+                inboxY = parts[1];
+                passageContext.style.width = "auto";
             }
 
         // passageBox 생성
@@ -846,6 +891,7 @@ function parseAndDisplayPassage(index) {
         heightTotalDisplay.classList.add('height-total');
         passageBox.appendChild(heightTotalDisplay);*/
 
+        // img 요소나 inbox 요소를 이전에 위치한 문단 안에 삽입함.
         // passageBox를 #passage에 추가
         const parentElement = document.getElementById(`passage_${pagenum}`);
         if (parentElement && posi != '') {
@@ -855,7 +901,10 @@ function parseAndDisplayPassage(index) {
                 passageContext.style.position = 'absolute';
                 if (posi == 'TR'){
                     passageContext.style.top = 'calc(40 / 16 * var(--base))';
-                    passageContext.style.right = 'calc(15 / 16 * var(--base))';
+                    passageContext.style.right = 'calc(25 / 16 * var(--base))';
+                }else if (posi == 'inbox'){
+                    passageContext.style.right = `calc(${Number(inboxX) + 15}/ 16 * var(--base))`;
+                    passageContext.style.top = `calc(${Number(inboxY) + 40}/ 16 * var(--base))`;
                 }
                 lastman.appendChild(passageContext);
             }
