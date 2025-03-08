@@ -11,6 +11,7 @@
     line-height: 1.4em;
     align-items: center;         /* 세로 중앙 정렬 */
     /* width은 내용에 따라 자동 조절됨 */
+    
 }
 
 
@@ -299,7 +300,48 @@
     background-color: transparent;
 }
 
+.attContainer .attDDR{
+    text-indent: 0; /* 들여쓰기 초기화 */
+    /*border: calc(1 / 16 * var(--base)) dotted #007bff;*/
+    border-radius: calc(5 / 16 * var(--base));
+    display: inline-block; /* block에서 inline-block으로 변경 */
+    text-align: center;
+    font-size: calc(10 / 16 * var(--base));
+    font-weight: bold;
+    color: #007bff;
+    padding-left: calc(3 / 16 * var(--base));
+    padding-right: calc(3 / 16 * var(--base));
+    position: absolute;
+    top: 200%; /* 프레임 위로 이동 */
+    margin-bottom: calc(5 / 16 * var(--base));
+    margin-left: calc(17 / 16 * var(--base));
+    left: 50%;               /* 부모 가로 기준의 50% 지점 */
+    transform: translateX(0%); /* 수평 중앙 정렬 보정 */
+    /*background-color: #FFFFFF;*/
+    z-index: 100; /* 다른 요소 위로 표시 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+    height: auto;
+}
 
+.attContainer .attDDR::before {
+    content: '';
+    position: absolute;
+    /* 원하는 위치. 예: 수직 중앙, 왼쪽에 붙이기 */
+    top: -20%; /*height의 추가(100 + x 중 x)의 절반*/
+    margin-left: calc(-22 / 16 * var(--base));
+    transform: translateY(-50%);
+    width: calc(15 / 16 * var(--base)); 
+    height: 140%;
+    
+    /* 테두리는 top, left만 실선/점선 등으로 적용, 나머지는 none(또는 transparent) */
+    border-bottom: calc(2 / 16 * var(--base)) solid var(--blue);
+    border-left: calc(2 / 16 * var(--base)) solid var(--blue);
+    border-right: none;
+    border-top: none;
+    
+    /* 배경색을 넣고 싶다면 지정 가능 (없으면 투명) */
+    background-color: transparent;
+  }
 
 .attContainer_sub{
     text-indent: 0; /* 들여쓰기 초기화 */

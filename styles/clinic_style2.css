@@ -222,13 +222,24 @@
 }
 
 .circled{
+    white-space: pre-wrap;
     border: calc(2 / 16 * var(--base)) solid #007bff;
     border-radius: 50%;
     padding: calc(3 / 16 * var(--base));
     /*text-decoration-style: dotted;*/
 }
 
+.rectangled{
+    white-space: pre-wrap;
+    border: calc(2 / 16 * var(--base)) solid #007bff;
+    padding: calc(1 / 16 * var(--base));
+}
 
+.highlighted{
+    white-space: pre-wrap;
+    padding: calc(1.5 / 16 * var(--base));
+    background-color: var(--bluel);
+}
 
 .essay-container {
     text-indent: 0; /* 들여쓰기 초기화 */
