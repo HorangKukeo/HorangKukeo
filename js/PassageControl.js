@@ -484,12 +484,12 @@ function parseAndDisplayPassage(index) {
                 const inputId = `input-${questionNumber}`;
                 userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
 
-                const inputSize =  Math.max(content.length, 1)*1.5;
+                const inputSize =  Math.max(content.length, 1)*14;
                 questionHTML = `<span class="input-container" id="${inputId}" data-answer="${content}" data-type="c" >
-                                    <span class="question-number">${questionNumber}</span>
-                                    <span class="hint-text" style = "display: none;">${content}</span>
-                                    <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                </span>`;
+                <span class="question-number">${questionNumber}</span>
+                <span class="hint-text" style = "display: none;">${content}</span>
+                <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));""/>
+                </span>`;
             } else if (type === 'fc') { //초성형 문제
                 const [answer, size] = content.split('@');
                 const inputId = `input-${questionNumber}`;
@@ -503,10 +503,16 @@ function parseAndDisplayPassage(index) {
                                         <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
                                     </span>`;
                 }else{
-                    const inputSize = size*1.5; //아직 지정 안함.
-                    questionHTML = `<span class="input-container" id="${inputId}" data-answer="${answer}" data-type="c">
+                    let inputSize;
+                    if(mobile == 0){
+                        inputSize = size * 13;
+                    }else if(mobile == 1){
+                        inputSize = size * 13;
+                    }
+                    questionHTML = `<span class="input-container" id="${inputId}" data-answer="${answer}" data-type="c" >
                                         <span class="question-number">${questionNumber}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
+                                        <span class="hint-text" style = "display: none;">${answer}</span>
+                                        <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));""/>
                                     </span>`;
                 }
             } else if (type === 'cc') {

@@ -20,7 +20,7 @@ function submitAnswers() {
             element.style.display = 'inline-block';
         });
 
-        if(mobile == 1){
+        if(mobile == 1 && type == 'onebyone'){
             document.getElementById(`psgbox_${nowQ}`).style.display = 'none';
             document.getElementById(`psgbox_${nowP}`).style.display = 'none';
             document.getElementById(`psgbox_${firstP}`).style.display = 'block';
