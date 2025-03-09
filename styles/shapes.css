@@ -73,7 +73,7 @@
     line-height: 0;
     border-radius: calc(10 / 16 * var(--base));
     overflow: hidden; /* 내용이 테두리를 넘지 않도록 */
-    width: 85%;
+    width: 90%;
     
     background-color: var(--whitet);
     margin-left: auto;

@@ -37,9 +37,30 @@ function submitAnswers() {
         let userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
         let correctAnswerArray = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
 
-        // 공백 제거 후 정렬 (순서 무시)
-        userAnswerArray = userAnswerArray.map(ans => ans.trim()).sort();
-        correctAnswerArray = correctAnswerArray.map(ans => ans.trim()).sort();
+        // 전처리 함수: 무시할 문자 제거 및 원문자/숫자 정규화
+        function normalizeAnswer(answer) {
+            // 1. 무시할 문자들 제거 (공백, 쉼표, 마침표, 작은따옴표, 큰따옴표, 하이픈)
+            let normalized = answer.replace(/[\s,.'":\\-]/g, '');
+            
+            // 2. 원문자와 일반 숫자 정규화
+            // 원문자 ①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳ → 일반 숫자 1-20으로 변환
+            const circledNumbers = {
+                '①': '1', '②': '2', '③': '3', '④': '4', '⑤': '5',
+                '⑥': '6', '⑦': '7', '⑧': '8', '⑨': '9', '⑩': '10',
+                '⑪': '11', '⑫': '12', '⑬': '13', '⑭': '14', '⑮': '15',
+                '⑯': '16', '⑰': '17', '⑱': '18', '⑲': '19', '⑳': '20'
+            };
+            
+            for (const [circled, normal] of Object.entries(circledNumbers)) {
+                normalized = normalized.replace(new RegExp(circled, 'g'), normal);
+            }
+            
+            return normalized;
+        }
+
+        // 정규화된 배열 생성
+        userAnswerArray = userAnswerArray.map(ans => normalizeAnswer(ans)).sort();
+        correctAnswerArray = correctAnswerArray.map(ans => normalizeAnswer(ans)).sort();
 
         // 배열끼리 JSON 문자열로 비교 → 완전히 동일하면 정답
         let isCorrect = JSON.stringify(userAnswerArray) === JSON.stringify(correctAnswerArray);
@@ -60,6 +81,10 @@ function submitAnswers() {
         const submitButton = document.getElementById('submit-button');
         if (submitButton) {
             submitButton.remove();
+        }
+        const submitQ = document.getElementById('submitq');
+        if (submitQ) {
+            submitQ.remove();
         }
 
         // ---- 5) 정답/오답 시 시각 피드백 ----
@@ -161,15 +186,16 @@ function submitAnswers() {
 
     // ---- 6) 최종 점수 계산 ----
     const score = Object.values(userAnswers)
-        .filter(answerData => answerData && answerData.userAnswer && answerData.correctAnswer)
-        .map(({ userAnswer, correctAnswer }) => {
-            let userArr = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
-            let correctArr = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
-            userArr = userArr.map(x => x.trim()).sort();
-            correctArr = correctArr.map(x => x.trim()).sort();
-            return JSON.stringify(userArr) === JSON.stringify(correctArr);
-        })
-        .reduce((acc, curr) => acc + (curr ? 1 : 0), 0);
+    .filter(answerData => answerData && (answerData.userAnswer !== undefined) && (answerData.correctAnswer !== undefined))
+    .map(({ userAnswer, correctAnswer }) => {
+        let userArr = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+        let correctArr = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
+        userArr = userArr.map(x => (x || '').trim()).sort();
+        correctArr = correctArr.map(x => (x || '').trim()).sort();
+        return JSON.stringify(userArr) === JSON.stringify(correctArr);
+    })
+    .reduce((acc, curr) => acc + (curr ? 1 : 0), 0);
+
 
     // ---- 7) 최종 점수 표시 ----
     const scoreDisplay = document.createElement('div');

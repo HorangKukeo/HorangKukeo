@@ -133,6 +133,7 @@
     margin-top: calc(-15 / 16 * var(--base)); /* 위쪽 여백 */
     margin-bottom: calc(4 / 16 * var(--base)); /* 아래쪽 여백 */
     margin-left: auto;
+    margin-right: calc(12 / 16 * var(--base)); /* 아래쪽 여백 */
   }
 
   .annotL {

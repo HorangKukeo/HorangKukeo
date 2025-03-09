@@ -245,34 +245,37 @@ function parseAndDisplayPassage(index) {
         
         const processedLines = lines.map(line => {
             // ## 주석 처리
-            const annot = Annot(line);
+            let processing = Annot(line);
 
             // 정렬 처리(중앙)
-            const aligned = Align(annot);
+            processing = Align(processing);
 
             // underline 및 다양한 텍스트 도형 처리
-            const underlined = undered(aligned);
+            processing = undered(processing);
 
             // [[내용]] 스타일 적용
-            const bolding = Bolding(underlined); // 먼저 bolding 적용
+            processing = Bolding(processing); // 먼저 bolding 적용
 
             // 덧말 처리
-            const att = Att(bolding);
+            processing = Att(processing);
 
-            const arr = Arrowed(att);
 
-            let fin = arr;
+            processing = Arrowed(processing);
+
+            processing = Mobiled(processing);
+
+            let fin = processing;
 
             if (bracket == 'none') {
                 // Check if there are any bracket patterns
-                if (/\/\[[^\]]\]\//.test(arr)) {
+                if (/\/\[[^\]]\]\//.test(processing)) {
                     // Get all bracket patterns in the line
-                    const matches = Array.from(arr.matchAll(/\/\[[^\]]\]\//g));
+                    const matches = Array.from(processing.matchAll(/\/\[[^\]]\]\//g));
                     if (matches.length >= 2 && matches[0][0] === matches[matches.length - 1][0]) {
                         // If we have matching brackets at start and end
-                        const bracketType = arr.match(/\[[^\]]\]/)?.[0];
+                        const bracketType = processing.match(/\[[^\]]\]/)?.[0];
                         // Remove the bracket patterns and get the content
-                        const content = arr.replace(/\/\[[^\]]\]\//g, '');
+                        const content = processing.replace(/\/\[[^\]]\]\//g, '');
                         
                         fin = `<div class="bracket">
                             <div class="bracket-label">${bracketType}</div>
@@ -287,14 +290,14 @@ function parseAndDisplayPassage(index) {
                         return fin;
                     } else {
                         // If we only found opening bracket
-                        bracket = arr.match(/\[[^\]]\]/)?.[0];
-                        bracketHtml += arr.replace(/\/\[[^\]]\]\//g, '') + '<br>';
+                        bracket = processing.match(/\[[^\]]\]/)?.[0];
+                        bracketHtml += processing.replace(/\/\[[^\]]\]\//g, '') + '<br>';
                         return null;
                     }
                 }
-            } else if (/\/\[[^\]]\]\//.test(arr) && bracket == arr.match(/\[[^\]]\]/)?.[0]) {
+            } else if (/\/\[[^\]]\]\//.test(processing) && bracket == processing.match(/\[[^\]]\]/)?.[0]) {
                 // bracket 엔딩
-                bracketHtml += arr.replace(/\/\[[^\]]\]\//g, '');
+                bracketHtml += processing.replace(/\/\[[^\]]\]\//g, '');
                 const indentSpan = `<span class="indent_${psgnum}"></span>`;
                 bracketHtml = indentSpan + bracketHtml;
                 bracketHtml = bracketHtml.replace(/<br\s*\/?>/gi, function(match, offset, string) {
@@ -319,15 +322,15 @@ function parseAndDisplayPassage(index) {
                 bracketHtml = '';
                 return fin;
             } else if (bracket != 'none') {
-                bracketHtml += arr + '<br>';
+                bracketHtml += processing + '<br>';
                 return null;
             } else {
                 bracketHtml = '';
                 bracket = 'none';
-                return arr;
+                return processing;
             }
             
-            return arr;
+            return processing;
         });
         
         const regex = /\*(\w+)\*\{(.*?)\}/g;
@@ -800,6 +803,11 @@ function parseAndDisplayPassage(index) {
                 const tableCont = document.createElement('div');
                 tableCont.innerHTML = createTableWithHTML(passageContext.innerHTML);
                 tableCont.className = 'q_table_cont';
+
+                    if(mobile == 1){
+                        tableCont.style.width = '100%';
+                    }
+
                 passageContext.innerHTML = '';
 
                 const rowCount = tableCont.getElementsByTagName('table').length;

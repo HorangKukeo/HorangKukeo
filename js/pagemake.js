@@ -234,22 +234,28 @@ function createPageElements() {
                                 currentPassage++; // 다음 passage로 이동
                                 checkman = 0;
                             }else if (allPassages[currentPassage][0] == 'double'){
+                                if(mobile == 0){
                                 doubled = 1;
                                 double_fix = 'false';
                                 doublenum++;
                                 // doubleFrame 생성 (좌측, 우측 박스를 포함한)
                                 const doubleFrame = createDoubleFrame(doublenum);
                                 document.getElementById(`passage_${pagenum}`).appendChild(doubleFrame);
+                                }
                                 currentPassage++; // 다음 passage로 이동
                                 checkman = 0;
                             }else if (allPassages[currentPassage][0] == 'doubleL'){
+                                if(mobile == 0){
                                 doubled = 1;
                                 double_fix = 'true';
+                                }
                                 currentPassage++; // 다음 passage로 이동
                                 checkman = 0;
                             }else if (allPassages[currentPassage][0] == 'doubleR'){
+                                if(mobile == 0){
                                 doubled = 2;
                                 double_fix = 'true';
+                                }
                                 currentPassage++; // 다음 passage로 이동
                                 checkman = 0;
                             }else if (allPassages[currentPassage][0] == 'single'){

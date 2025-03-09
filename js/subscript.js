@@ -12,7 +12,7 @@ function nextmark(){
 function blanking(){
     blankblock = document.createElement('div');
     blankblock.className = 'blank-block';
-    if (mobile == 1){
+    if (mobile == 1 && type == 'onebyone'){
         blankblock.style.display = 'none';
     }
 }
@@ -20,7 +20,7 @@ function blanking(){
 function blanking_small(){
     blankblock = document.createElement('div');
     blankblock.className = 'blank-block_small';
-    if (mobile == 1){
+    if (mobile == 1 && type == 'onebyone'){
         blankblock.style.display = 'none';
     }
 }
@@ -187,6 +187,22 @@ function Att(inputText) {
         }
     });
     return inputText; // 최종 결과 반환
+}
+
+
+function Mobiled(inputText){
+        // 정규식 패턴: 〔로 시작하고 〕로 끝나는 패턴 찾기
+        const pattern = /〔([^〔〕]+)〕/g;
+        
+            // 조건에 따라 패턴 처리
+            if (mobile === 0) {
+                // 데스크톱: 패턴을 빈 문자열로 대체(삭제)
+                inputText = inputText.replace(pattern, '');
+            } else {
+                // 모바일: 패턴에서 〔〕 기호를 제거하고 내용만 유지
+                inputText = inputText.replace(pattern, '$1');
+            }
+        return inputText
 }
 
 
