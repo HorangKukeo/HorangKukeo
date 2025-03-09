@@ -37,7 +37,6 @@ function submitAnswers() {
         let userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
         let correctAnswerArray = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
 
-        // 전처리 함수: 무시할 문자 제거 및 원문자/숫자 정규화
         function normalizeAnswer(answer) {
             // 1. 무시할 문자들 제거 (공백, 쉼표, 마침표, 작은따옴표, 큰따옴표, 하이픈)
             let normalized = answer.replace(/[\s,.'":\\-]/g, '');
@@ -55,8 +54,28 @@ function submitAnswers() {
                 normalized = normalized.replace(new RegExp(circled, 'g'), normal);
             }
             
+            // 3. 자음 조합 정규화 - 분리된 자음을 결합된 형태와 동일하게 처리
+            const jamoMappings = {
+                'ㄹㄱ': 'ㄺ',
+                'ㄱㅅ': 'ㄳ',
+                'ㄴㅈ': 'ㄵ',
+                'ㄴㅎ': 'ㄶ',
+                'ㄹㅁ': 'ㄻ',
+                'ㄹㅂ': 'ㄼ',
+                'ㄹㅅ': 'ㄽ',
+                'ㄹㅌ': 'ㄾ',
+                'ㄹㅍ': 'ㄿ',
+                'ㄹㅎ': 'ㅀ',
+                'ㅂㅅ': 'ㅄ'
+            };
+            
+            for (const [separated, combined] of Object.entries(jamoMappings)) {
+                normalized = normalized.replace(new RegExp(separated, 'g'), combined);
+            }
+            
             return normalized;
         }
+        
 
         // 정규화된 배열 생성
         userAnswerArray = userAnswerArray.map(ans => normalizeAnswer(ans)).sort();
