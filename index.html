@@ -32,6 +32,7 @@
 </body>
 <script src="js/pagemake.js"></script>
 <script src="js/PassageControl.js"></script>
+<script src="js/stars.js"></script>
 <script src="js/buttons.js"></script>
 <script src="js/buttons2.js"></script>
 <script src="js/subscript.js"></script>
@@ -45,15 +46,15 @@
 <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 <script>
 let mobile = 1;
-let type = 'topdown';
+let type = 'onebyone';
 let firstcheck = 0; // 첫 문항을 확인하고 저장합니다.
 let nowQ = 0; // 현재 문항 번호를 추적합니다.
 let nowP = 0; // 현재 passage를 추적합니다.
 let firstP = 0; // 첫 passage를 확인하고 저장합니다.
 var studentname = '신성식';
 var schoolname = '중3A';
-var excelName = '문법Q';
-var sheetName = '받침의 발음 Step 1';
+var excelName = '문학Q';
+var sheetName = '모란이 피기까지는';
 let footerpagenum = 0;
 
 document.getElementById("preq").style.display = "none";
@@ -337,8 +338,8 @@ let sheetTitle_sub; //시트 소제목   저장
 
                     return banktData;
                 }
-
-
+    
+            console.log(allPassages);
             passagenum = allPassages.length;
                 try{
                     if(pagenum != 0);{

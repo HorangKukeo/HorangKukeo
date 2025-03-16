@@ -107,7 +107,7 @@
 /*///////////////////////////Bracket//////////////////////////*/
 .bracket {
     padding-left: calc(15 / 16 * var(--base));
-    width: 93%;
+    width: 95%;
     margin-left: auto;
     margin-right: auto;
     position: relative;
@@ -230,11 +230,11 @@
 .cells {
     height: calc(30 / 16 * var(--base));
     width: max-content; /* 내부 콘텐츠의 길이에 따라 가로 크기 조절 */
-    border: calc(1 / 16 * var(--base)) solid black;
+    border: calc(1 / 16 * var(--base)) solid var(--bluel);
     padding: calc(3 / 16 * var(--base));
     text-align: center;
     vertical-align: middle;
-    white-space: pre-wrap; /* 줄바꿈(\n)은 유지, 공백은 줄임 */
+    /*white-space: pre-wrap; /* 줄바꿈(\n)은 유지, 공백은 줄임 */
 }
 
 .rows{
@@ -244,8 +244,9 @@
 .tables{
     width: 90%; /* 내부 콘텐츠의 길이에 따라 가로 크기 조절 */
     border-collapse: collapse;
+    border: calc(0 / 16 * var(--base)) solid #000;
     background-color: #ffffffa9;
-    font-size: calc(12 / 16 * var(--base));
+    font-size: calc(11 / 16 * var(--base));
 }
 
 .tables-Container {

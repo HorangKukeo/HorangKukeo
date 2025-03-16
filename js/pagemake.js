@@ -7,6 +7,11 @@ let ENum_doublenum = 0;
 let inboxX = 0;
 let inboxY = 0;
 
+let noneQuestion = 0; // 문제를 출력하지 않음.
+let inAnswer = 0; // 정답을 켠 경우에만 출력하기 위해서 사용. 기본 = 0, 정답 시에만 사용 = 1, 정답 시에만 비사용 = 2
+
+let gap = 0;
+
 function createPageElements() {
     
         pagenum++; // 새로운 페이지로 이동
@@ -68,6 +73,9 @@ function createPageElements() {
             logoImg.src = logo; // 로고 이미지 경로 설정!
             logoImg.alt = '외솔교육 로고';
             leftBlock.appendChild(logoImg);
+                if(logo=='logo2.png'){
+                    logoImg.style.height = 'calc(37 / 16 * var(--base))'
+                }
 
             // 3.2 중앙 블록 (제목)
             const centerBlock = document.createElement('div');
@@ -178,8 +186,7 @@ function createPageElements() {
 
         // 5. 페이지를 body에 추가
         document.body.appendChild(page);
-        
-
+    
 
             while (currentPassage < passagenum) {
                 if (currentPassage >= passagenum) {
@@ -225,8 +232,36 @@ function createPageElements() {
                                         break;
                                         
                                     }
+                            }else if (allPassages[currentPassage][0] == 'gap'){
+                                if (allPassages[currentPassage][1] == 'wide') {
+                                    gap = 25;
+                                } else if (allPassages[currentPassage][1] == 'normal') {
+                                    gap = 0;
+                                }
+                                currentPassage++; // 다음 passage로 이동
+                                checkman = 0;
                             }else if (allPassages[currentPassage][0] == 'noq'){
                                 qndisplay = 1;
+                                currentPassage++; // 다음 passage로 이동
+                                checkman = 0;
+                            }else if (allPassages[currentPassage][0] == 'none'){
+                                noneQuestion = 1;
+                                currentPassage++; // 다음 passage로 이동
+                                checkman = 0;
+                            }else if (allPassages[currentPassage][0] == 'exist'){
+                                noneQuestion = 0;
+                                currentPassage++; // 다음 passage로 이동
+                                checkman = 0;
+                            }else if (allPassages[currentPassage][0] == 'inans'){
+                                inAnswer = 1;
+                                currentPassage++; // 다음 passage로 이동
+                                checkman = 0;
+                            }else if (allPassages[currentPassage][0] == 'outans'){
+                                inAnswer = 2;
+                                currentPassage++; // 다음 passage로 이동
+                                checkman = 0;
+                            }else if (allPassages[currentPassage][0] == 'aans'){
+                                inAnswer = 0;
                                 currentPassage++; // 다음 passage로 이동
                                 checkman = 0;
                             }else if (allPassages[currentPassage][0] == 'yesq'){

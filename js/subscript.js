@@ -1,3 +1,76 @@
+function styled(line, bracket, bracketHtml) {
+    // 기본 텍스트 처리
+    let processing = Annot(line);
+    processing = Align(processing);
+    processing = undered(processing);
+    processing = Bolding(processing);
+    processing = Att(processing);
+    processing = Arrowed(processing);
+    processing = Mobiled(processing);
+    
+    // 결과 객체 초기화
+    let result = {
+        output: processing,
+        bracket: bracket,
+        bracketHtml: bracketHtml,
+        skip: false
+    };
+    
+    // bracket 처리 로직
+    if (bracket == 'none') {
+        if (/\/\[[^\]]\]\//.test(processing)) {
+            const matches = Array.from(processing.matchAll(/\/\[[^\]]\]\//g));
+            if (matches.length >= 2 && matches[0][0] === matches[matches.length - 1][0]) {
+                // 한 라인에 시작과 끝 대괄호가 모두 있는 경우
+                const bracketType = processing.match(/\[[^\]]\]/)?.[0];
+                const content = processing.replace(/\/\[[^\]]\]\//g, '');
+                
+                result.output = `<div class="bracket">
+                    <div class="bracket-label">${bracketType}</div>
+                        <span class="bracket-single"></span>
+                        <span class="bracket-blank"></span>
+                        <div class="bracket-content" style="text-indent: calc(0 / 16 * var(--base))">
+                            ${content}
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                // 여는 대괄호만 발견된 경우
+                result.bracket = processing.match(/\[[^\]]\]/)?.[0];
+                result.bracketHtml = processing.replace(/\/\[[^\]]\]\//g, '') + '<br>';
+                result.skip = true; // 이 라인은 출력하지 않음을 표시
+            }
+        }
+    } else if (/\/\[[^\]]\]\//.test(processing) && bracket == processing.match(/\[[^\]]\]/)?.[0]) {
+        // bracket 엔딩
+        result.bracketHtml = bracketHtml + processing.replace(/\/\[[^\]]\]\//g, '');
+        const indentSpan = `<span class="indent_${psgnum}"></span>`;
+        result.bracketHtml = indentSpan + result.bracketHtml;
+        result.bracketHtml = result.bracketHtml.replace(/<br\s*\/?>/gi, function(match, offset, string) {
+            return (offset + match.length >= string.length) ? match : match + indentSpan;
+        });
+        
+        result.output = `<div class="bracket">
+            <div class="bracket-top"></div>
+            <div class="bracket-label">${bracket}</div>
+            <div class="bracket-bot"></div>
+            <div class="bracket-content" style="text-indent: calc(0 / 16 * var(--base))">
+                ${result.bracketHtml}
+            </div>
+        </div>`;
+        
+        result.bracket = 'none';
+        result.bracketHtml = '';
+    } else if (bracket != 'none') {
+        // 대괄호 내부 컨텐츠 누적
+        result.bracketHtml = bracketHtml + processing + '<br>';
+        result.skip = true; // 이 라인은 출력하지 않음을 표시
+    }
+    
+    return result;
+}
+
+
 function nextmark(){
     const nextmark_box = document.createElement('div');
     nextmark_box.classList.add('nextmark_box');
@@ -31,6 +104,7 @@ function Bolding(inputText) {
     const BlockRegex = /\{\%}(.*?)\{\%}/g;
     const BlockSRegex = /\{\%s\}(.*?)\{\%s\}/g;
     const BlockMRegex = /\{\%m\}(.*?)\{\%m\}/g;
+    const BlockCRegex = /\{\%c\}(.*?)\{\%c\}/g;
 
 
     // 먼저 {{내용}}을 처리
@@ -48,9 +122,18 @@ function Bolding(inputText) {
         return `<span class="innerbox">${content}</span>`;
     });
 
+    processedText = processedText.replace(BlockSRegex, (match, content) => {
+        // 매칭된 부분을 <span class="innerbox">로 감싸서 반환
+        return `<span class="innerbox_small">${content}</span>`;
+    });
+
     processedText = processedText.replace(BlockMRegex, (match, content) => {
         // 매칭된 부분을 <span class="innerbox">로 감싸서 반환
         return `<span class="innerbox_medium">${content}</span>`;
+    });
+    processedText = processedText.replace(BlockCRegex, (match, content) => {
+        // 매칭된 부분을 <span class="innerbox">로 감싸서 반환
+        return `<span class="innerbox_center">${content}</span>`;
     });
 
     return processedText; // 최종 결과 반환
@@ -62,6 +145,7 @@ function undered(inputText) {
     const circleRegex = /\{\○(.*?)\○\}/g;
     const rectangleRegex = /\{\□(.*?)\□\}/g;
     const highlightRegex = /\{\▷(.*?)\◁\}/g;
+    const cancelRegex = /\{\!(.*?)\!\}/g;
 
     // 먼저 <<내용>>을 처리
     let processedText = inputText.replace(underRegex, (match, content) => {
@@ -79,7 +163,11 @@ function undered(inputText) {
     processedText = processedText.replace(highlightRegex, (match, content) => {
         return `<span class="highlighted">${content}</span>`;
     });
-    
+
+    processedText = processedText.replace(cancelRegex, (match, content) => {
+        return `<span class="cancel">${content}</span>`;
+    });
+
     return processedText; // 최종 결과 반환
 }
 
@@ -137,17 +225,28 @@ function Align(inputText) {
 
 
 function Att(inputText) {
-    const newRegex = /\\(U|D|UR|UUR|UL|DR|DL|DDL|DDR)\\([^\\]+)\\/g;
+    const newRegex = /\\(!?(?:U|D|UR|UUR|UL|DR|DL|DDL|DDR))\\([^\\]+)\\/g;
     return inputText.replace(newRegex, (match, style, content) => {
         const [context, att] = content.split(';');
-        /*const styleClass = style === "attU" ? "attU" : "attD";*/
+        let noline = 0; // line을 생성하지 않도록 컨트롤.
+            // style이 '!'로 시작하는지 확인
+            if (style.startsWith('!')) {
+                noline = 1;
+                // '!' 문자 제거
+                style = style.substring(1);
+            } else {
+                noline = 0;
+            }
         const styleClass = 'att' + style;
         const lined = style.includes('U') ? 'over' : (style.includes('D') ? 'under' : '');
         const passage_type = allPassages[currentPassage][0];
+        
 
-        const borderStyle = lined === 'over'
-        ? 'border-top: calc(2 / 16 * var(--base)) solid var(--blue); margin-top: calc(-2 / 16 * var(--base));'
-        : 'border-bottom: calc(2 / 16 * var(--base)) solid var(--blue); margin-bottom: calc(-2 / 16 * var(--base));';
+        const borderStyle = noline === 1
+            ? 'border: none;'
+            : (lined === 'over'
+            ? 'border-top: calc(2 / 16 * var(--base)) solid var(--blue); margin-top: calc(-2 / 16 * var(--base));'
+            : 'border-bottom: calc(2 / 16 * var(--base)) solid var(--blue); margin-bottom: calc(-2 / 16 * var(--base));');
 
         let att_rev = att.trim().replace(/(\s+)(<span[^>]*>)/g, (match, spaces, spanTag) => {
             // 공백을 thin space로 대체
@@ -204,7 +303,6 @@ function Mobiled(inputText){
             }
         return inputText
 }
-
 
 function Pagemerging(){
     if (

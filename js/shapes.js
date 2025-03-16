@@ -37,6 +37,8 @@ function createTableWithHTML(passageText) {
     return tableContainer.outerHTML; // 컨테이너 반환
 }
 
+
+
 // double 프레임 생성 함수 (예: allPassages[currentPassage][0] == 'double' 일 때 호출)
 function createDoubleFrame(doublenum) {
     // 전체 double 컨테이너 생성

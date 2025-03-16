@@ -1,3 +1,10 @@
+
+.mainPara .center-cont {
+    text-align: center;
+    margin: 0;
+    margin-bottom: calc(-6 / 16 * var(--base));
+}
+
 .center-cont {
     text-align: center;
     margin-bottom: calc(0 / 16 * var(--base));
@@ -8,6 +15,14 @@
     text-align: left;
     text-indent: calc(15 / 16 * var(--base));
     margin-bottom: calc(0 / 16 * var(--base));
+}
+
+
+.mainPara .center-title-cont {
+    text-align: center;
+    margin-bottom: calc(-5 / 16 * var(--base));
+    padding-bottom: calc(5 / 16 * var(--base));
+    border-bottom: calc(1 / 16 * var(--base)) dashed var(--blue);
 }
 
 

@@ -196,6 +196,24 @@
     margin-bottom: calc(4 / 16 * var(--base)); /* 아래쪽 여백 */
 }
 
+.innerbox_small {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    border-radius: calc(5 / 16 * var(--base)); /* 모서리 둥글기 */
+    border: calc(1 / 16 * var(--base)) dashed var(--bluel);
+    background-color: rgb(255, 255, 255); /* 투명한 파란색 배경 */
+    color: var(--blue); /* 글씨 색상 */
+    padding: calc(4 / 16 * var(--base)); /* 패딩 크기 */
+
+    word-wrap: break-word; /* 단어 단위 줄바꿈 */
+    font-size: calc(9 / 16 * var(--base)); /* 글씨 크기 줄임 */
+    margin-right: auto;
+    margin-top: calc(-5 / 16 * var(--base)); /* 위쪽 여백 */
+    margin-bottom: calc(2 / 16 * var(--base)); /* 아래쪽 여백 */
+}
+
 .innerbox_medium {
     text-indent: 0; /* 들여쓰기 초기화 */
     display: inline-block;
@@ -213,6 +231,14 @@
     margin-bottom: calc(4 / 16 * var(--base)); /* 아래쪽 여백 */
 }
 
+.innerbox_center {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    color: var(--blued); /* 글씨 색상 */
+}
+
 
 .undered{
     text-decoration: underline;
@@ -222,13 +248,26 @@
     /*text-decoration-style: dotted;*/
 }
 
-.circled{
+.circled {
+    text-indent: 0;
     white-space: pre-wrap;
-    border: calc(2 / 16 * var(--base)) solid #007bff;
+    border: calc(1.5 / 16 * var(--base)) solid var(--blue);
+    padding: calc(2 / 16 * var(--base));
+    padding-left: calc(1 / 16 * var(--base));
+    padding-right: calc(1 / 16 * var(--base));
+    margin: calc(-1 / 16 * var(--base));
     border-radius: 50%;
-    padding: calc(3 / 16 * var(--base));
-    /*text-decoration-style: dotted;*/
+    /* 폰트 사이즈 기준 높이 설정 */
+    height: 2em; /* 폰트 사이즈의 2배 */
+    
+    /* 내용 가운데 정렬 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
 }
+
 
 .rectangled{
     white-space: pre-wrap;
@@ -241,6 +280,46 @@
     padding: calc(1.5 / 16 * var(--base));
     background-color: var(--bluel);
 }
+
+.cancel {
+    position: relative;
+    display: inline-block;
+}
+
+.cancel::before,
+.cancel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+
+.cancel::before {
+    background-image: linear-gradient(
+        to bottom right, 
+        transparent calc(50% - calc(1 / 16 * var(--base))), 
+        #ff3a3056 calc(50% - calc(1 / 16 * var(--base))), 
+        #ff3a3056 calc(50% + calc(1 / 16 * var(--base))), 
+        transparent calc(50% + calc(1 / 16 * var(--base)))
+    );
+    background-size: 100% 100%;
+}
+
+.cancel::after {
+    background-image: linear-gradient(
+        to bottom left, 
+        transparent calc(50% - calc(1 / 16 * var(--base))), 
+        #ff3a3056 calc(50% - calc(1 / 16 * var(--base))), 
+        #ff3a3056 calc(50% + calc(1 / 16 * var(--base))), 
+        transparent calc(50% + calc(1 / 16 * var(--base)))
+    );
+    background-size: 100% 100%;
+}
+
 
 .essay-container {
     text-indent: 0; /* 들여쓰기 초기화 */

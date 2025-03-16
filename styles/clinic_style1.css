@@ -254,7 +254,7 @@
           width: 105%; /* 부모 너비에 맞춤 */
           background-color: #ffffff;
           margin: calc(10 / 16 * var(--base)) 0; /* 상하 여백 */
-          margin-left: calc(4 / 16 * var(--base)); /* 왼쪽 여백 추가 */
+          margin-left: calc(8 / 16 * var(--base)); /* 왼쪽 여백 추가 */
           position: relative;
       }
 

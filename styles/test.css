@@ -10,3 +10,21 @@
     padding-top:0;
     border: 0px dotted #000;
 }
+
+.v-mark-container {
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    margin: 0 0px;
+    font-size: 0.85em;
+    text-indent: 0;
+  }
+  
+  .v-mark-top {
+    position: absolute;
+    top: -0.4em;
+    left: 0;
+    right: 0;
+    font-size: 0.9em;
+    text-align: center;
+  }

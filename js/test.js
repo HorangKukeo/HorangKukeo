@@ -88,7 +88,8 @@ function tablemaker(passage) {
                 // 일반 셀
                 else {
                     cell = document.createElement('td');
-                    cell.textContent = content;
+                    cell.innerHTML = content; // textContent에서 innerHTML로 변경
+                    /*cell.textContent = content;*/
                     // 이전 행 정보에 추가 (rowspan 처리용)
                     prevRowCells[cellIndex] = cell;
                 }

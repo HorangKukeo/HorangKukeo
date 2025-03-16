@@ -36,28 +36,30 @@ function parseAndDisplayPassage(index) {
         
 
     }else if(allPassages[index][0] =='table'){
-        
 
         const lines = passage.split('\n');
         
-        const processedLines = lines.map(line => {
-            // [[내용]] 스타일 적용
-            const bolding = Bolding(line); // 먼저 bolding 적용
+        let bracket = 'none';
+        let bracketHtml = '';
         
-            // ## 주석 처리
-            const annot = Annot(bolding);
+        const processedLines = lines.map(line => {
+            // styled 함수가 텍스트 처리와 bracket 처리를 모두 수행
+            const result = styled(line, bracket, bracketHtml);
+            
+            // 상태 업데이트
+            bracket = result.bracket;
+            bracketHtml = result.bracketHtml;
+            
+            // skip이 true면 해당 라인은 건너뜀 (나중에 filter로 제거)
+            return result.skip ? null : result.output;
+        }).filter(line => line !== null);
 
-            // underline 처리
-            const underlined = undered(annot);
+        const combinedContent = processedLines.join('\n')
 
-            // 덧말 처리
-            const att = Att(underlined);
-
-            const arr = Arrowed(att);
-            return arr
-        });
-        let tables = tablemaker(passage);
+        let tables = tablemaker(combinedContent);
         tables.classList.add('tables');
+        console.log(tables);
+
         let tableHTML = tables.outerHTML; // 또는 tables.innerHTML;
         const parser = new DOMParser();
         const tableDoc = parser.parseFromString(tableHTML, "text/html");
@@ -65,62 +67,65 @@ function parseAndDisplayPassage(index) {
 
 
         Array.from(targetTable.querySelectorAll("td")).forEach((cell) => {
-            const regex = /\*(\w+)\*\{(.*?)\}/g;
             const originalContent = cell.innerHTML;
-            cell.innerHTML = originalContent.replace(regex, (match, type, content) => {
-                let questionNumber = globalQuestionCounter;
-                let questionHTML = "";
-                if (type === "a") { /// 표는 정신이 너무 없어서 question-number를 일단 지움.
-                    const [hint, answer] = content.split("_");
-                    const inputId = `input-${questionNumber}`;
-                    userAnswers[inputId] = { userAnswer: "", correctAnswer: answer };
-        
-                    const inputSize = Math.round(Math.max(answer.length, 3) * 1.7);
-        
-                    questionHTML = `<div class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                        <span class="question-number" style="display: none;">${questionNumber}</span>
-                                        <span class="hint-text">${hint}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                    </div>`;
-                    globalQuestionCounter++;
-                    return questionHTML;
-                }else if (type === "c"){
-                    const inputId = `input-${questionNumber}`;
-                    userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
-    
-                    const inputSize =  Math.round(Math.max(content.length, 3)*1.7);
-    
-                    questionHTML = `<div class="input-container" id="${inputId}" data-answer="${content}" data-type="c">
-                                        <span class="question-number" style="display: none;">${questionNumber}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                    </div>`;
-                    globalQuestionCounter++;
-                    return questionHTML
-
-                } else {
-                    questionHTML = match; // 패턴이 다르면 원본 그대로 유지
-                    return questionHTML;
-                }
-            });
-            // 2. 일반 텍스트의 '_'를 <br>로 변환
-            const regexUnderscore = /_/g;
-            cell.innerHTML = cell.innerHTML.replace(regexUnderscore, "<br>");
+            cell.innerHTML = stars(originalContent);
+            cell.innerHTML = cell.innerHTML.replace(/\|/g, '<br>');
         });
-
-
         
         let replacedPassage = document.createElement('div');
         replacedPassage.innerHTML = targetTable.outerHTML;
         replacedPassage.classList.add('tables-Container');
+        
         let passageContext = document.createElement('div');
         passageContext.classList.add('passage');
         passageContext.appendChild(replacedPassage);
         passageContext.style.justifyContent = 'center'; // 가로 중앙 정렬
         passageContext.style.alignItems = 'center'; // 세로 중앙 정렬 (필요 시)
         passageContext.style.display = 'flex';
-        document.getElementById(`passage_${pagenum}`).appendChild(passageContext);
-        heightCalculator(passageContext.offsetHeight * 0.9);
-    
+
+        const passageBox = document.createElement('div');
+        passageBox.classList.add('passage-box');
+        passageBox.setAttribute('id', `psgbox_${psgnum + 1}`);
+        passageBox.appendChild(passageContext);
+        psgnum++;
+        passageContext.setAttribute('inAnswer', `${inAnswer}`);
+        passageContext.setAttribute('id', `psg_${psgnum}`);
+        
+        const parentElement = document.getElementById(`passage_${pagenum}`);
+        if (doubled == 1) {
+            // doubled가 1이면, id가 "double_${doublenum}_L" 인 요소를 찾음
+            let leftElem = document.getElementById(`double_${doublenum}_L`);
+            if (leftElem) {
+              leftElem.appendChild(passageBox);
+            } else {
+              console.warn(`Element with id double_${doublenum}_L not found.`);
+            }
+            if (double_fix == 'false'){
+            doubled = 2;
+            }
+          } else if (doubled == 2) {
+            // doubled가 2이면, id가 "double_${doublenum}_R" 인 요소를 찾음
+            let rightElem = document.getElementById(`double_${doublenum}_R`);
+            if (rightElem) {
+              rightElem.appendChild(passageBox);
+            } else {
+              console.warn(`Element with id double_${doublenum}_R not found.`);
+            }
+            if (double_fix == 'false'){
+            doubled = 1;
+            }
+          } else {
+            // 그 외에는 parentElement에 추가
+            parentElement.appendChild(passageBox);
+            heightCalculator(passageBox.offsetHeight);
+        }
+
+        if (qndisplay == 1){
+            const qns = passageBox.querySelectorAll(".question-number");
+            qns.forEach(div => {
+                div.style.display = "none";
+              });
+        }
     }else if(allPassages[index][0] =='diaq'){
 
         // 지문을 줄 단위로 분리
@@ -205,7 +210,12 @@ function parseAndDisplayPassage(index) {
         passageBox.classList.add('passage-box');
         passageBox.appendChild(passageContext);
         /*document.getElementById(`passage_${pagenum}`).appendChild(passageBox);*/
+        passageContext.setAttribute('inAnswer', `${inAnswer}`);
 
+        if (inAnswer == 1){
+            passageContext.style.visibility = 'hidden';
+        }
+        
         const parentElement = document.getElementById(`passage_${pagenum}`);
         if (doubled == 1) {
             // doubled가 1이면, id가 "double_${doublenum}_L" 인 요소를 찾음
@@ -239,101 +249,24 @@ function parseAndDisplayPassage(index) {
     }else if(allPassages[index][0] == 'split'){
         console.log(allPassages[index][0]);
     }else{
-    
         // 지문을 줄 단위로 분리
         const lines = passage.split('\n');
         
-        const processedLines = lines.map(line => {
-            // ## 주석 처리
-            let processing = Annot(line);
-
-            // 정렬 처리(중앙)
-            processing = Align(processing);
-
-            // underline 및 다양한 텍스트 도형 처리
-            processing = undered(processing);
-
-            // [[내용]] 스타일 적용
-            processing = Bolding(processing); // 먼저 bolding 적용
-
-            // 덧말 처리
-            processing = Att(processing);
-
-
-            processing = Arrowed(processing);
-
-            processing = Mobiled(processing);
-
-            let fin = processing;
-
-            if (bracket == 'none') {
-                // Check if there are any bracket patterns
-                if (/\/\[[^\]]\]\//.test(processing)) {
-                    // Get all bracket patterns in the line
-                    const matches = Array.from(processing.matchAll(/\/\[[^\]]\]\//g));
-                    if (matches.length >= 2 && matches[0][0] === matches[matches.length - 1][0]) {
-                        // If we have matching brackets at start and end
-                        const bracketType = processing.match(/\[[^\]]\]/)?.[0];
-                        // Remove the bracket patterns and get the content
-                        const content = processing.replace(/\/\[[^\]]\]\//g, '');
-                        
-                        fin = `<div class="bracket">
-                            <div class="bracket-label">${bracketType}</div>
-                                <span class="bracket-single"></span>
-                                <span class="bracket-blank"></span>
-                                <div class="bracket-content" style="text-indent: calc(0 / 16 * var(--base))">
-                                    ${content}
-                                </div>
-                            </div>
-                        </div>`;
-                        
-                        return fin;
-                    } else {
-                        // If we only found opening bracket
-                        bracket = processing.match(/\[[^\]]\]/)?.[0];
-                        bracketHtml += processing.replace(/\/\[[^\]]\]\//g, '') + '<br>';
-                        return null;
-                    }
-                }
-            } else if (/\/\[[^\]]\]\//.test(processing) && bracket == processing.match(/\[[^\]]\]/)?.[0]) {
-                // bracket 엔딩
-                bracketHtml += processing.replace(/\/\[[^\]]\]\//g, '');
-                const indentSpan = `<span class="indent_${psgnum}"></span>`;
-                bracketHtml = indentSpan + bracketHtml;
-                bracketHtml = bracketHtml.replace(/<br\s*\/?>/gi, function(match, offset, string) {
-                    // 문서의 끝에 있는 <br> 태그인지 확인
-                    if (offset + match.length >= string.length) {
-                        // 문서의 마지막 <br>은 그대로 유지
-                        return match;
-                    } else {
-                        // 나머지 모든 <br>에는 indentSpan 추가
-                        return match + indentSpan;
-                    }
-                });
-                fin = `<div class="bracket">
-                    <div class="bracket-top"></div>
-                    <div class="bracket-label">${bracket}</div>
-                    <div class="bracket-bot"></div>
-                    <div class="bracket-content" style="text-indent: calc(0 / 16 * var(--base))">
-                        ${bracketHtml}
-                    </div>
-                </div>`;
-                bracket = 'none';
-                bracketHtml = '';
-                return fin;
-            } else if (bracket != 'none') {
-                bracketHtml += processing + '<br>';
-                return null;
-            } else {
-                bracketHtml = '';
-                bracket = 'none';
-                return processing;
-            }
-            
-            return processing;
-        });
+        let bracket = 'none';
+        let bracketHtml = '';
         
-        const regex = /\*(\w+)\*\{(.*?)\}/g;
+        const processedLines = lines.map(line => {
+            // styled 함수가 텍스트 처리와 bracket 처리를 모두 수행
+            const result = styled(line, bracket, bracketHtml);
+            
+            // 상태 업데이트
+            bracket = result.bracket;
+            bracketHtml = result.bracketHtml;
+            
+            // skip이 true면 해당 라인은 건너뜀 (나중에 filter로 제거)
+            return result.skip ? null : result.output;
+        }).filter(line => line !== null);
+
         const filteredLines = processedLines.filter(line => line !== null); //bracket 값이 null인 경우 공백을 삭제함.
         // filteredLines를 join하면서, <div> 뒤에 <br>이 추가되지 않도록 처리
         const passageWithLineBreaks = filteredLines.reduce((acc, current, index) => {
@@ -370,208 +303,8 @@ function parseAndDisplayPassage(index) {
             return acc;
         }, []).join('');
         
-        
-        let replacedPassage = passageWithLineBreaks.replace(regex, (match, type, content) => {
-            
-            
-            let questionNumber = globalQuestionCounter;
-            let questionHTML = '';
+        let replacedPassage = stars(passageWithLineBreaks);
 
-            if (type === 'a') { //초성형 문제
-                const [hint, answer] = content.split('_');
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: answer };
-
-                if (qndisplay == 0){
-                    const inputSize =  Math.round(Math.max(answer.length, 2)*1.7);
-    
-                    questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                        <span class="question-number">${questionNumber}</span>
-                                        <span class="hint-text">${hint}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                    </span>`;
-                    }else{
-                        let inputSize;
-                        if(mobile == 0){
-                            let effectiveLength = 0;
-                            for (const char of answer) {
-                            effectiveLength += (char === ' ' ? 0.3 : 1);
-                            }
-                            inputSize = Math.round(Math.max(effectiveLength, 2) * 14);
-                        }else if(mobile == 1){
-                            let effectiveLength = 0;
-                            for (const char of answer) {
-                            effectiveLength += (char === ' ' ? 0.3 : 1);
-                            }
-                            inputSize = Math.round(Math.max(effectiveLength, 2) * 14);
-                        }
-    
-                        questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                            <span class="question-number">${questionNumber}</span>
-                                            <span class="hint-text" style="width: 85%;">${hint}</span>
-                                            <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));"/>
-                                        </span>`;
-                    }
-            } else if (type === 'fa') { //초성형 문제
-                const [hint, answer0] = content.split('_');
-                const [answer, size] = answer0.split('@');
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: answer };
-
-                if (qndisplay == 0){
-                    const inputSize =  Math.round(size*1.7);
-    
-                    questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                        <span class="question-number">${questionNumber}</span>
-                                        <span class="hint-text">${hint}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                    </span>`;
-                    }else{
-                        const inputSize =  Math.round(size*1.4);
-    
-                        questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                            <span class="question-number">${questionNumber}</span>
-                                            <span class="hint-text" style="width: 85%;">${hint}</span>
-                                            <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                        </span>`;
-                    }
-            } else if (type === 'sa') { //초성형 문제
-                const [hint, answer] = content.split('_');
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: answer };
-
-                const inputSize =  Math.round(Math.max(hint.length, 3)*1.7);
-
-                questionHTML = `<span class="hint-container-small" id="${inputId}" data-answer="${answer}" data-type="a">
-                                    <span class="question-number">${questionNumber}</span>
-                                    <span class="hint-text">${hint}</span>
-                                    <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                </span>`;
-            } else if (type === 'b') {
-                const options = content.split('@');
-                const choiceId = `choice-${questionNumber}`;
-                const correctOption = options.find(o => o.endsWith('_')).replace(/_$/, '');
-                userAnswers[choiceId] = { userAnswer: '', correctAnswer: correctOption };
-
-                const optionsHTML = options.map(option => {
-                    const isCorrect = option.endsWith('_');
-                    const text = option.replace(/_$/, '');
-                    return `<span class="choice-option" data-correct="${isCorrect}">${text}</span>`;
-                }).join('');
-
-                questionHTML = `<span class="choice-container" id="${choiceId}" data-type="b">
-                                    <span class="question-number">${questionNumber}</span>
-                                    ${optionsHTML}
-                                </span>`;
-                                
-            } else if (type === 'bb') {
-                const options = content.split('@');
-                const choiceId = `choice-${questionNumber}`;
-                const correctOptions = options
-                .filter(o => o.endsWith('_')) // `_`로 끝나는 모든 선택지를 배열로 추출
-                .map(option => option.replace(/_$/, '')); // `_` 제거 후 순수 텍스트만 남김
-                userAnswers[choiceId] = { userAnswer: [], correctAnswer: correctOptions };
-
-                const optionsHTML = options.map(option => {
-                    const isCorrect = option.endsWith('_');
-                    const text = option.replace(/_$/, '');
-                    return `<span class="choice-options" data-correct="${isCorrect}">${text}</span>`;
-                }).join('');
-
-                questionHTML = `<span class="choice-container" id="${choiceId}" data-type="bb">
-                                    <span class="question-number">${questionNumber}</span>
-                                    ${optionsHTML}
-                                </span>`;
-                                
-            } else if (type === 'c') {
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
-
-                const inputSize =  Math.max(content.length, 1)*14;
-                questionHTML = `<span class="input-container" id="${inputId}" data-answer="${content}" data-type="c" >
-                <span class="question-number">${questionNumber}</span>
-                <span class="hint-text" style = "display: none;">${content}</span>
-                <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));""/>
-                </span>`;
-            } else if (type === 'fc') { //초성형 문제
-                const [answer, size] = content.split('@');
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: answer };
-
-                if (qndisplay == 0){
-                    const inputSize = size*1.5;
-    
-                    questionHTML = `<span class="input-container" id="${inputId}" data-answer="${answer}" data-type="c">
-                                        <span class="question-number">${questionNumber}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                    </span>`;
-                }else{
-                    let inputSize;
-                    if(mobile == 0){
-                        inputSize = size * 13;
-                    }else if(mobile == 1){
-                        inputSize = size * 13;
-                    }
-                    questionHTML = `<span class="input-container" id="${inputId}" data-answer="${answer}" data-type="c" >
-                                        <span class="question-number">${questionNumber}</span>
-                                        <span class="hint-text" style = "display: none;">${answer}</span>
-                                        <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));""/>
-                                    </span>`;
-                }
-            } else if (type === 'cc') {
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
-
-                const inputSize =  Math.round(Math.max(content.length, 1)*1.5);
-
-                questionHTML = `<span class="input-container" id="${inputId}" data-answer="${content}" data-type="c" style="margin-left: 0px;">
-                                    <span class="question-number">${questionNumber}</span>
-                                    <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                </span>`;
-            } else if (type === 'd') {
-                const inputId = `input-${questionNumber}`;
-                userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
-
-                questionHTML = `<div class="short-container" id="${inputId}" data-answer="${content}" data-type="a">
-                                    <span class="question-number">${questionNumber}</span>
-                                    <input type="text" placeholder="" data-type="userinput"/>
-                                </div>`;
-            } else if (type === 'i') {
-                    const key = `img${currentImage}`;     // 예: "img1"
-                    const thisImageInfo = imageInfoMap[key];
-                    const dimgsrc   = thisImageInfo.src;
-                    const dimgcap   = thisImageInfo.caption;
-                    const dimgwidth = thisImageInfo.naturalWidth;
-                    const dimgheight= thisImageInfo.naturalHeight;
-                    const dimgposi = thisImageInfo.position;
-
-                    let dimgsize;
-                    if (thisImageInfo.size == 'big'){
-                        dimgsize = 350;
-                    }else if (thisImageInfo.size == 'mid'){
-                        dimgsize = 200;
-                    }else{
-                        dimgsize = 160;
-                    }
-                    if(mobile == 0){
-                    questionHTML = `
-                        <div class="image-container" data-posi = ${dimgposi}>
-                            <img id='dimg${currentImage}' src="${dimgsrc}" alt="${dimgcap}" class="embedded-image" data-width = ${dimgwidth} data-height = ${dimgheight}
-                            style="height: calc(${dimgsize} / 16 * var(--base));"/>
-                            <div class="image-caption">${dimgcap}</div>
-                        </div>
-                    `;
-                    }else{
-                    }
-                    imageWidth = dimgwidth; // 전역 변수 설정해둠.
-                    imageHeight = dimgheight; // 전역 변수 설정해둠.
-                    currentImage++;
-                    globalQuestionCounter--;
-            }
-
-            globalQuestionCounter++;
-            return questionHTML;
-        });
 
         // 모든 .choice-option 및 .choice-options 요소를 검사
         document.querySelectorAll('.choice-option, .choice-options').forEach(option => {
@@ -591,6 +324,7 @@ function parseAndDisplayPassage(index) {
         // passageContext 생성
         let passageContext = document.createElement('div');
         passageContext.innerHTML = replacedPassage;
+        /*passageContext.innerHTML = passageContext.innerHTML.replace(/\|/g, '<br>');*/
         let posi = '';
         
 
@@ -637,6 +371,7 @@ function parseAndDisplayPassage(index) {
                 }else{
                     passageContext.style.marginLeft = "calc(25 / 16 * 1em)";
                 }
+                passageContext.style.marginBottom = `calc(${gap} / 16 * 1em)`;
                 passageContext.style.width = "90%";
                         if (ENum_doubled === 'L') {
                             // 'L'인 경우, 해당 L 프레임 내부에서 .nummark_small 요소 찾기
@@ -695,6 +430,7 @@ function parseAndDisplayPassage(index) {
                 }else{
                     passageContext.style.marginLeft = "calc(25 / 16 * 1em)";
                 }
+                passageContext.style.marginBottom = `calc(${gap} / 16 * 1em)`;
                 ENum = 0;
                 passageENum = 0;
                 passageContext.style.width = "90%";
@@ -747,7 +483,7 @@ function parseAndDisplayPassage(index) {
                 mainPara.innerHTML = passageContext.innerHTML
                 passageContext.innerHTML = '';
                 mainPara.classList.add('mainPara');
-                passageContext.style.width = "80%";
+                passageContext.style.width = "85%";
                 mainPara.style.lineHeight = "2";
                 passageContext.appendChild(mainPara);
 
@@ -758,7 +494,7 @@ function parseAndDisplayPassage(index) {
                 mainPara.innerHTML = passageContext.innerHTML
                 passageContext.innerHTML = '';
                 mainPara.classList.add('mainPara');
-                passageContext.style.width = "80%";
+                passageContext.style.width = "85%";
                 mainPara.style.lineHeight = "3";
 
                 passageContext.appendChild(mainPara);
@@ -769,7 +505,7 @@ function parseAndDisplayPassage(index) {
                 mainPara.innerHTML = passageContext.innerHTML
                 passageContext.innerHTML = '';
                 mainPara.classList.add('mainPara');
-                passageContext.style.width = "80%";
+                passageContext.style.width = "85%";
                 mainPara.style.lineHeight = "3.3";
                 passageContext.appendChild(mainPara);
 
@@ -783,9 +519,24 @@ function parseAndDisplayPassage(index) {
                 mainPara.innerHTML = passageContext.innerHTML
                 passageContext.innerHTML = '';
                 mainPara.classList.add('mainPara');
-                passageContext.style.width = "80%";
+                passageContext.style.width = "85%";
                 mainPara.style.lineHeight = "2";
                 mainPara.style.paddingLeft = "calc(10 / 16 * 1em)";
+                passageContext.appendChild(mainPara);
+
+            }else if(allPassages[index][0] === 'OAA') {
+                passageContext.style.textIndent = "calc(0 / 16 * 1em)";
+                passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
+                passageContext.style.marginTop = "calc(-50 / 16 * 1em)";
+                passageContext.style.marginBottom = "calc(40 / 16 * 1em)";
+                
+                const mainPara = document.createElement('div');
+                mainPara.innerHTML = passageContext.innerHTML
+                passageContext.innerHTML = '';
+                mainPara.classList.add('mainPara');
+                passageContext.style.width = "85%";
+                mainPara.style.lineHeight = "2";
+                mainPara.style.paddingLeft = "calc(30 / 16 * 1em)";
                 passageContext.appendChild(mainPara);
 
             }else if(allPassages[index][0] === 'T') { // 문항 출제 등 Title을 사용하는 경우
@@ -815,22 +566,8 @@ function parseAndDisplayPassage(index) {
                 const baseHeight = 0; // 기본 여백
                 let rowHeight = 60; // 행당 높이
 
-                // 모든 td 요소를 순회
-                const tds = tableCont.querySelectorAll('td');
-                tds.forEach(td => {
-                    // td.innerHTML을 기준으로 교체
-                    if (td.innerHTML.includes('|')) {
-                        td.innerHTML = td.innerHTML.replace(/\|/g, '<br>');
-                        rowHeight += 0;
-                    }
-                    
-                });
-                // 행 수에 따라 컨테이너 높이 설정
-                // 예: 기본 높이 + (행당 높이 * 행 수)
                 const totalHeight = baseHeight + (rowHeight * rowCount);
                 /*tableCont.style.height = `calc(${totalHeight} / 16 * var(--base))`;*/
- 
-
                 passageContext.appendChild(tableCont);
             }else if(allPassages[index][0].startsWith('inbox_')){
                 posi = 'inbox';
@@ -855,12 +592,17 @@ function parseAndDisplayPassage(index) {
                 inboxY = parts[1];
                 passageContext.style.width = "auto";
             }
-
+            
+        passageContext.innerHTML = passageContext.innerHTML.replace(/\|/g, '<br>');
         // passageBox 생성
         const passageBox = document.createElement('div');
         passageBox.classList.add('passage-box');
         passageBox.setAttribute('id', `psgbox_${psgnum + 1}`);
-        
+        passageContext.setAttribute('inAnswer', `${inAnswer}`);
+
+        if (inAnswer == 1){
+            passageContext.style.visibility = 'hidden';
+        }
 
         // type이 onebyone인 경우 N(문항 번호) passageBox의 display를 none으로 바꿈.
         if(type == 'onebyone'){
@@ -873,7 +615,7 @@ function parseAndDisplayPassage(index) {
                 }
             }else if(allPassages[index][0].startsWith('A')){
                 passageBox.setAttribute('contextType', 'passage');
-                    if (firstcheck !== 0){
+                    if (nowP !== 0){
                     passageBox.style.display = 'none';
                     }else{
                         nowP = psgnum + 1; //처음 등장하는 passage를 nowP에 미리 저장함.
@@ -896,6 +638,33 @@ function parseAndDisplayPassage(index) {
                 indentElements.forEach(element => {
                     element.style.display = 'inline-block';
                     element.style.width = 'calc(8 / 16 * var(--base))';
+                    element.style.height = 'calc(2 / 16 * var(--base))';
+                });
+            }
+        } else if (allPassages[index][0].startsWith('OA')){
+            const indentElements = passageBox.querySelectorAll(`.indent_${psgnum}`);
+            if (indentElements.length > 0) {
+                
+                // 모든 요소에 너비 적용
+                indentElements.forEach(element => {
+                    element.style.display = 'inline-block';
+                    element.style.width = 'calc(1 / 16 * var(--base))';
+                    element.style.height = 'calc(2 / 16 * var(--base))';
+                    element.style.marginLeft = 'calc(-10 / 16 * var(--base))';
+                });
+            }
+            const bracketElements = passageContext.querySelectorAll('.bracket');
+            if (bracketElements.length > 0) {
+                bracketElements.forEach(element => {
+                element.style.marginLeft = 'calc(5 / 16 * var(--base))';
+                });
+            }
+            
+            // bracket-content 클래스 요소의 padding-left 설정
+            const bracketContentElements = passageContext.querySelectorAll('.bracket-content');
+            if (bracketContentElements.length > 0) {
+                bracketContentElements.forEach(element => {
+                  element.style.paddingLeft = 'calc(10 / 16 * var(--base))';
                 });
             }
         }
@@ -960,6 +729,11 @@ function parseAndDisplayPassage(index) {
             let passageNotation = document.createElement('div');
             passageNotation.classList.add('passageNotation');
             passageNotation.textContent = allPassages[index][2];
+            const hasNummark = passageContext.querySelector('span.nummark') !== null;
+                // nummark가 있으면 추가 클래스 적용 또는 직접 스타일 지정
+                if (hasNummark) {
+                    passageNotation.style.transform = 'translateY(calc(-25 / 16 * var(--base)))';
+                }
             passageContext.appendChild(passageNotation);
         }
         
