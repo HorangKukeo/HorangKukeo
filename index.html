@@ -46,15 +46,15 @@
 <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 <script>
 let mobile = 1;
-let type = 'onebyone';
+let type = 'topdown';
 let firstcheck = 0; // 첫 문항을 확인하고 저장합니다.
 let nowQ = 0; // 현재 문항 번호를 추적합니다.
 let nowP = 0; // 현재 passage를 추적합니다.
 let firstP = 0; // 첫 passage를 확인하고 저장합니다.
 var studentname = '신성식';
 var schoolname = '중3A';
-var excelName = '문학Q';
-var sheetName = '모란이 피기까지는';
+var excelName = '문법Q';
+var sheetName = '문장의 짜임 1-2';
 let footerpagenum = 0;
 
 document.getElementById("preq").style.display = "none";
@@ -339,7 +339,6 @@ let sheetTitle_sub; //시트 소제목   저장
                     return banktData;
                 }
     
-            console.log(allPassages);
             passagenum = allPassages.length;
                 try{
                     if(pagenum != 0);{
@@ -377,8 +376,8 @@ let sheetTitle_sub; //시트 소제목   저장
                 const choices = document.querySelectorAll('.choice-container');
                 if (choices.length > 0) {
                     choices.forEach(el => {
-                        el.style.wordWrap = 'normal';  // 또는 'unset'도 가능
-                        el.style.whiteSpace = 'normal'; // 또는 'unset'도 가능
+                        el.style.wordWrap = 'unset';  // 또는 'unset'도 가능
+                        el.style.whiteSpace = 'unset'; // 또는 'unset'도 가능
                     });
                 }
             }
@@ -490,10 +489,16 @@ let sheetTitle_sub; //시트 소제목   저장
             console.error('.page 요소가 존재하지 않습니다.');
             return; // .page 요소가 없으면 중단
         }
+        let prop = 0;
+        if (mobile == 1){
+            prop = 4.5;
+        }else{
+
+        }
         pageElement.style.width = '100vw';
         pageWidth = pageElement.offsetWidth; // .page의 실제 width(px)
-        baseWidthPercent = pageWidth * 0.045; // .page width의 2%
-        v = 4.5 * (1/16) * (pageWidth / 100);
+        baseWidthPercent = pageWidth * prop * 0.01; // .page width의 2%
+        v = prop * (1/16) * (pageWidth / 100);
         pageElement.style.height = 'auto';
         pageElement.style.padding = '0';
 

@@ -225,7 +225,7 @@ function Align(inputText) {
 
 
 function Att(inputText) {
-    const newRegex = /\\(!?(?:U|D|UR|UUR|UL|DR|DL|DDL|DDR))\\([^\\]+)\\/g;
+    const newRegex = /\\(!?(?:U|UU|D|UR|UUR|UL|UUL|DR|DL|DDL|DDR))\\([^\\]+)\\/g;
     return inputText.replace(newRegex, (match, style, content) => {
         const [context, att] = content.split(';');
         let noline = 0; // line을 생성하지 않도록 컨트롤.
@@ -292,14 +292,17 @@ function Att(inputText) {
 function Mobiled(inputText){
         // 정규식 패턴: 〔로 시작하고 〕로 끝나는 패턴 찾기
         const pattern = /〔([^〔〕]+)〕/g;
-        
+        const pattern2 = /【([^【】]+)】/g;
+
             // 조건에 따라 패턴 처리
             if (mobile === 0) {
                 // 데스크톱: 패턴을 빈 문자열로 대체(삭제)
                 inputText = inputText.replace(pattern, '');
+                inputText = inputText.replace(pattern2, '$1');
             } else {
                 // 모바일: 패턴에서 〔〕 기호를 제거하고 내용만 유지
                 inputText = inputText.replace(pattern, '$1');
+                inputText = inputText.replace(pattern2, '');
             }
         return inputText
 }
