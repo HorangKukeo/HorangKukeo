@@ -26,9 +26,9 @@
     <button id="submit-button" class="buttons" onclick="submitAnswers()" style = "display: none">제출하기</button>
     <button id="answer-button" class="buttons" onclick="AnswerSheet()" style = "display: none">답지보기</button>
     <button id="next" class="buttons" onclick="loadExcelAndParse()" style = "display: none">다음 불러오기</button>
-    <button id="preq" class="buttons" onclick="preQuestion()">이전</button>
-    <button id="submitq" class="buttons" onclick="submitAnswers()">제출</button>
-    <button id="nextq" class="buttons" onclick="nextQuestion()">다음</button>
+    <button id="preq" class="buttons" onclick="preQuestion()" style = "display: none">이전</button>
+    <button id="submitq" class="buttons" onclick="submitAnswers()" style = "display: none">제출</button>
+    <button id="nextq" class="buttons" onclick="nextQuestion()" style = "display: none">다음</button>
 </body>
 <script src="js/pagemake.js"></script>
 <script src="js/PassageControl.js"></script>
@@ -46,15 +46,15 @@
 <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 <script>
 let mobile = 1;
-let type = 'topdown';
+let type = 'onebyone';
 let firstcheck = 0; // 첫 문항을 확인하고 저장합니다.
 let nowQ = 0; // 현재 문항 번호를 추적합니다.
 let nowP = 0; // 현재 passage를 추적합니다.
 let firstP = 0; // 첫 passage를 확인하고 저장합니다.
 var studentname = '신성식';
 var schoolname = '중3A';
-var excelName = '문법Q';
-var sheetName = '문장의 짜임 1-2';
+var excelName = '문학Q';
+var sheetName = '산수유나무의 농사';
 let footerpagenum = 0;
 
 document.getElementById("preq").style.display = "none";
@@ -152,7 +152,9 @@ if (type === "onebyone") {
     document.getElementById("preq").style.display = "inline-block";
     document.getElementById("nextq").style.display = "inline-block";
 }
-
+if (mobile == 1){
+    document.getElementById("submitq").style.display = "inline-block";
+}
 //R1, R2, Logo 설정
 let R1 = "이름";
 let R2 = "점수";
