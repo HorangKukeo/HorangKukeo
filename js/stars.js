@@ -25,6 +25,7 @@ function stars(passageWithLineBreaks){
                                     <span class="hint-text">${hint}</span>
                                     <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
                                 </span>`;
+                                console.log(questionHTML);
                 }else{
                     let inputSize;
                     if(mobile == 0){

@@ -58,7 +58,6 @@ function parseAndDisplayPassage(index) {
 
         let tables = tablemaker(combinedContent);
         tables.classList.add('tables');
-        console.log(tables);
 
         let tableHTML = tables.outerHTML; // 또는 tables.innerHTML;
         const parser = new DOMParser();
@@ -126,6 +125,79 @@ function parseAndDisplayPassage(index) {
                 div.style.display = "none";
               });
         }
+
+                // 이벤트 연결
+                passageContext.querySelectorAll('.hint-container').forEach(container => {
+                    const input = container.querySelector('input');
+                    container.addEventListener('click', function () {
+                        input.focus();
+                    });
+        
+                    input.addEventListener('blur', function () {
+                        const userAnswer = this.value;
+                        userAnswers[container.id].userAnswer = userAnswer;
+                    });
+        
+                    input.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            const userAnswer = this.value;
+                            userAnswers[container.id].userAnswer = userAnswer;
+                            this.blur();
+                        }
+                    });
+                });
+        
+                passageContext.querySelectorAll('.input-container').forEach(container => {
+                    const input = container.querySelector('input');
+                    container.addEventListener('click', function () {
+                        input.focus();
+                    });
+        
+                    input.addEventListener('blur', function () {
+                        const userAnswer = this.value;
+                        userAnswers[container.id].userAnswer = userAnswer;
+                    });
+        
+                    input.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            const userAnswer = this.value;
+                            userAnswers[container.id].userAnswer = userAnswer;
+                            this.blur();
+                        }
+                    });
+                });
+        
+                passageContext.querySelectorAll('.choice-container .choice-option').forEach(option => {
+                    option.addEventListener('click', function () {
+                        const container = option.parentElement;
+                        container.querySelectorAll('.choice-option').forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+        
+                        const selectedAnswer = option.textContent;
+                        userAnswers[container.id].userAnswer = selectedAnswer;
+                    });
+                });
+        
+                passageContext.querySelectorAll('.choice-container .choice-options').forEach(option => {
+                    option.addEventListener('click', function () {
+                        const container = option.parentElement;
+                        const selectedAnswer = option.textContent;
+                
+                        // 이미 선택된 경우 선택 해제
+                        if (option.classList.contains('selected')) {
+                            option.classList.remove('selected');
+                            userAnswers[container.id].userAnswer = userAnswers[container.id].userAnswer.filter(
+                                answer => answer !== selectedAnswer
+                            );
+                        } else {
+                            // 새로 선택된 경우 추가
+                            option.classList.add('selected');
+                            userAnswers[container.id].userAnswer.push(selectedAnswer);
+                        }
+                    });
+                });
+                //이벤트 연결 끝
+
     }else if(allPassages[index][0] =='diaq'){
 
         // 지문을 줄 단위로 분리
@@ -813,9 +885,8 @@ function parseAndDisplayPassage(index) {
                     option.classList.add('selected');
                     userAnswers[container.id].userAnswer.push(selectedAnswer);
                 }
-        
-                console.log(userAnswers); // 현재 선택 상태 확인
             });
         });
+        //이벤트 연결 끝
     }
 }
