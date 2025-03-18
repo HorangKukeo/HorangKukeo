@@ -478,6 +478,7 @@ function parseAndDisplayPassage(index) {
             }else if(allPassages[index][0] === 'A') {
                 passageContext.style.textIndent = "calc(0 / 16 * 1em)";
                 passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
+                passageContext.style.marginBottom = "calc(10 / 16 * 1em)";
                 
                 const mainPara = document.createElement('div');
                 mainPara.innerHTML = passageContext.innerHTML
@@ -613,7 +614,7 @@ function parseAndDisplayPassage(index) {
                 }else{
                     passageBox.style.display = 'none';
                 }
-            }else if(allPassages[index][0].startsWith('A')){
+            }else if(allPassages[index][0].startsWith('A') || allPassages[index][0].startsWith('OA')){
                 passageBox.setAttribute('contextType', 'passage');
                     if (nowP !== 0){
                     passageBox.style.display = 'none';

@@ -36,6 +36,49 @@
     white-space: nowrap; /* 줄바꿈 방지 */
 }
 
+
+.attContainer .attUU{
+    text-indent: 0;
+    border-radius: calc(5 / 16 * var(--base));
+    display: inline-block; /* block에서 inline-block으로 변경 */
+    text-align: right;
+    font-size: calc(10 / 16 * var(--base));
+    font-weight: bold;
+    color: #007bff;
+    padding-left: calc(3 / 16 * var(--base));
+    padding-right: calc(3 / 16 * var(--base));
+    position: absolute;
+    bottom: 100%;            /* attU의 아래쪽을 부모의 위쪽에 맞춤 */
+    margin-bottom: calc(25 / 16 * var(--base));
+    margin-right: calc(17 / 16 * var(--base));
+    z-index: 100; /* 다른 요소 위로 표시 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+    height: auto;
+    left: 50%;   /* 부모의 좌측을 기준으로 설정 */
+    transform: translateX(-50%);
+    z-index: 100;
+    white-space: nowrap;
+    height: auto;
+}
+
+.attContainer .attUU::before {
+    content: '';
+    position: absolute;
+    /* bottom을 0으로 유지하여 attUU의 바닥에 맞춤 */
+    bottom: 15%;
+    /* right: 50%로 설정하여 부모 요소의 중앙에서 시작 */
+    right: 50%;
+    /* X축 이동 없이(border-right가 중앙에 오도록) Y축만 조정 */
+    transform: translateY(100%);
+    width: calc(15 / 16 * var(--base)); 
+    height: 65%;
+    /* border-top이 attUU의 border-bottom에 오도록 위치 설정됨 */
+    border-right: calc(2 / 16 * var(--base)) solid var(--blue);
+    background-color: transparent;
+}
+
+
+
 .attContainer .attUR{
     text-indent: 0; /* 들여쓰기 초기화 */
     /*border: calc(1 / 16 * var(--base)) dotted #007bff;*/
@@ -120,13 +163,11 @@
     background-color: transparent;
 }
 
-  .attContainer .attUUR{
-    text-indent: 0; /* 들여쓰기 초기화 */
-    /*border: calc(1 / 16 * var(--base)) dotted #007bff;*/
-    /*background-color: #FFFFFF;*/
+  .attContainer .attUUL{
+    text-indent: 0;
     border-radius: calc(5 / 16 * var(--base));
     display: inline-block; /* block에서 inline-block으로 변경 */
-    text-align: left;
+    text-align: right;
     font-size: calc(10 / 16 * var(--base));
     font-weight: bold;
     color: #007bff;
@@ -135,32 +176,29 @@
     position: absolute;
     bottom: 100%;            /* attU의 아래쪽을 부모의 위쪽에 맞춤 */
     margin-bottom: calc(25 / 16 * var(--base));
-    margin-left: calc(15 / 16 * var(--base));
-    
-    left: 50%;               /* 부모 가로 기준의 50% 지점 */
-    transform: translateX(0%); /* 수평 중앙 정렬 보정 */
+    margin-right: calc(17 / 16 * var(--base));
     z-index: 100; /* 다른 요소 위로 표시 */
     white-space: nowrap; /* 줄바꿈 방지 */
     height: auto;
+    left: 50%;   /* 부모의 좌측을 기준으로 설정 */
+    transform: translateX(calc(-100% - calc(15 / 16 * var(--base))));
+    z-index: 100;
+    white-space: nowrap;
+    height: auto;
 }
 
-.attContainer .attUUR::before {
+.attContainer .attUUL::before {
     content: '';
     position: absolute;
-    /* 원하는 위치. 예: 수직 중앙, 왼쪽에 붙이기 */
-    top: 150%;
-    margin-left: calc(-22 / 16 * var(--base));
+    top: 100%;
+    /* 기존 margin-left 대신 오른쪽 기준의 오프셋을 설정 */
+    right: calc(-16 / 16 * var(--base));
     transform: translateY(-50%);
     width: calc(15 / 16 * var(--base)); 
-    height: calc(35 / 16 * var(--base));
-    
-    /* 테두리는 top, left만 실선/점선 등으로 적용, 나머지는 none(또는 transparent) */
+    height: 100%;
     border-top: calc(2 / 16 * var(--base)) solid var(--blue);
-    border-left: calc(2 / 16 * var(--base)) solid var(--blue);
-    border-right: none;
-    border-bottom: none;
-    
-    /* 배경색을 넣고 싶다면 지정 가능 (없으면 투명) */
+    border-right: calc(2 / 16 * var(--base)) solid var(--blue);
+    /* 필요 시 border-top, border-right 속성은 그대로 유지하거나 조정 */
     background-color: transparent;
   }
 
