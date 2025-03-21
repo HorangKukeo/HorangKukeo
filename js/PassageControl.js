@@ -319,7 +319,7 @@ function parseAndDisplayPassage(index) {
         heightCalculator(passageBox.offsetHeight);
 
     }else if(allPassages[index][0] == 'split'){
-        console.log(allPassages[index][0]);
+        
     }else{
         // 지문을 줄 단위로 분리
         const lines = passage.split('\n');
@@ -550,7 +550,7 @@ function parseAndDisplayPassage(index) {
             }else if(allPassages[index][0] === 'A') {
                 passageContext.style.textIndent = "calc(0 / 16 * 1em)";
                 passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
-                passageContext.style.marginBottom = "calc(10 / 16 * 1em)";
+                passageContext.style.marginBottom = "calc(25 / 16 * 1em)";
                 
                 const mainPara = document.createElement('div');
                 mainPara.innerHTML = passageContext.innerHTML
