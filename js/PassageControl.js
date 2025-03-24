@@ -519,6 +519,11 @@ function parseAndDisplayPassage(index) {
                 passageContext.style.marginLeft = "calc(70 / 16 * 1em)";
                 
                 passageContext.style.width = "85%";
+
+                if(mobile == 1){
+                    passageContext.style.marginLeft = "calc(45 / 16 * 1em)";
+                }
+
                 const nummarks = document.querySelectorAll('.nummark_small');
                 if (nummarks.length === 0) {
                     // 요소가 없을 경우 처리
@@ -540,6 +545,9 @@ function parseAndDisplayPassage(index) {
                 EMum = 0;
                 passageEMum = 0;
                 passageContext.style.width = "85%";
+                if(mobile == 1){
+                    passageContext.style.marginLeft = "calc(45 / 16 * 1em)";
+                }
                 const nummark = document.createElement('span');
                 nummark.textContent = `${EMum+1}.`;
                 nummark.className = 'nummark_small';

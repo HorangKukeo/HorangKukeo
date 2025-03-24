@@ -46,21 +46,24 @@
 <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 <script>
 let mobile = 1;
-let type = 'onebyone';
+let type = 'topdown';
 let firstcheck = 0; // 첫 문항을 확인하고 저장합니다.
 let nowQ = 0; // 현재 문항 번호를 추적합니다.
 let nowP = 0; // 현재 passage를 추적합니다.
 let firstP = 0; // 첫 passage를 확인하고 저장합니다.
 var studentname = '신성식';
 var schoolname = '중3A';
-var excelName = '문학Q';
-var sheetName = '내가 사랑하는 사람';
+var excelName = '문법Q';
+var sheetName = '음운의 변동 공식2';
 let footerpagenum = 0;
 
 document.getElementById("preq").style.display = "none";
 document.getElementById("nextq").style.display = "none";
 
 function preQuestion(){
+    if(type !== 'onebyone'){
+        return;
+    }
     if(firstcheck < nowQ){
         if(document.getElementById(`psgbox_${nowQ - 1}`).getAttribute('contextType') === 'passage'){
             let closestPassage = null;
@@ -88,6 +91,9 @@ function preQuestion(){
     }
 }
 function nextQuestion(){
+    if(type !== 'onebyone'){
+        return;
+    }
     if(nowQ < psgnum){
         if(document.getElementById(`psgbox_${nowQ + 1}`).getAttribute('contextType') === 'passage'){
             document.getElementById(`psgbox_${nowP}`).style.display = 'none';
@@ -340,7 +346,23 @@ let sheetTitle_sub; //시트 소제목   저장
 
                     return banktData;
                 }
-    
+            // 1. mobile == 0인 경우: mob_로 시작하는 항목 전체 삭제
+            if (mobile === 0) {
+            allPassages = allPassages.filter(passage => !passage[0].startsWith('mob_'));
+            allPassages.forEach(passage => {
+                    if (passage[0].startsWith('des_')) {
+                    passage[0] = passage[0].substring(4); // 'mob_' 길이(4)만큼 제거
+                    }
+                });
+            }// 2. mobile == 1인 경우: mob_ 접두사만 제거
+            else if (mobile === 1) {
+                allPassages = allPassages.filter(passage => !passage[0].startsWith('des_'));
+                allPassages.forEach(passage => {
+                    if (passage[0].startsWith('mob_')) {
+                    passage[0] = passage[0].substring(4); // 'mob_' 길이(4)만큼 제거
+                    }
+                });
+            }
             passagenum = allPassages.length;
                 try{
                     if(pagenum != 0);{
