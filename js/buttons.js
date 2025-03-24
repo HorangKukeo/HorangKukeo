@@ -41,6 +41,7 @@ function normalizeAnswer(answer) {
 
 // 제출 버튼 클릭 시 동작
 function submitAnswers() {
+    local_Remove();
     Object.keys(userAnswers).forEach((key) => {
         const answerData = userAnswers[key];
         

@@ -46,15 +46,15 @@
 <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 <script>
 let mobile = 1;
-let type = 'topdown';
+let type = 'onebyone';
 let firstcheck = 0; // 첫 문항을 확인하고 저장합니다.
 let nowQ = 0; // 현재 문항 번호를 추적합니다.
 let nowP = 0; // 현재 passage를 추적합니다.
 let firstP = 0; // 첫 passage를 확인하고 저장합니다.
 var studentname = '신성식';
 var schoolname = '중3A';
-var excelName = '문법Q';
-var sheetName = '음운의 변동 공식2';
+var excelName = '문학Q';
+var sheetName = '산속에서';
 let footerpagenum = 0;
 
 document.getElementById("preq").style.display = "none";
@@ -406,55 +406,7 @@ let sheetTitle_sub; //시트 소제목   저장
                     });
                 }
             }
-            // 로컬스토리지 기능
-            try {
-                localStorage.setItem('test', 'test');
-                localStorage.removeItem('test');
-            } catch (e) {
-                return; // localStorage 사용 불가 시 함수 종료
-            }
-            
-            // 만료 시간과 함께 저장하는 함수 (3시간 = 10,800,000ms)
-            function setWithExpiry(key, value) {
-                const TTL = 3 * 60 * 60 * 1000; // 3시간
-                const item = {
-                    value: value,
-                    expiry: new Date().getTime() + TTL
-                };
-                localStorage.setItem(key, JSON.stringify(item));
-            }
-
-            // 만료 확인하며 가져오는 함수
-            function getWithExpiry(key) {
-                const itemStr = localStorage.getItem(key);
-                if (!itemStr) return null;
-                
-                const item = JSON.parse(itemStr);
-                if (new Date().getTime() > item.expiry) {
-                    localStorage.removeItem(key);
-                    return null;
-                }
-                return item.value;
-            }
-
-            // 모든 userinput 타입 input 요소 선택
-            const inputs = document.querySelectorAll('input[data-type="userinput"]');
-            
-            // 각 input에 고유 식별자 부여하고 이벤트 리스너 설정
-            inputs.forEach((input, index) => {
-                const storageKey = 'input_' + index;
-                
-                // 저장된 값 복원
-                const savedValue = getWithExpiry(storageKey);
-                if (savedValue !== null) {
-                    input.value = savedValue;
-                }
-                
-                // 입력 시 자동 저장
-                input.addEventListener('input', function() {
-                    setWithExpiry(storageKey, this.value);
-                });
-            });
+            answer_reload();
 
 
         } catch (error) {
