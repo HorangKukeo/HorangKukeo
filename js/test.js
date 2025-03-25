@@ -383,3 +383,27 @@ function local_Remove() {
     
     return keysToRemove.length; // 삭제된 항목 수 반환
 }
+
+// 이미지 경로 결정 함수
+function getImagePath(relativePath) {
+    // Electron 환경인지 확인
+    if (window.electron || typeof process !== 'undefined' && process.versions && process.versions.electron) {
+        // Electron 환경 - exe 파일과 같은 디렉토리의 image 폴더 사용
+        const path = window.require('path');
+        const app = window.require('@electron/remote').app || window.require('electron').remote.app;
+        
+        // 앱 실행 디렉토리 (exe 파일 위치)
+        const appPath = app.getAppPath();
+        const exePath = path.dirname(app.getPath('exe'));
+        
+        // 개발환경인지 패키징된 환경인지 확인
+        const isPackaged = app.isPackaged;
+        
+        // 패키징된 환경이면 exe 파일 위치, 아니면 개발 환경의 경로 사용
+        const basePath = isPackaged ? exePath : appPath;
+        return path.join(basePath, 'image', relativePath);
+    } else {
+        // 일반 웹 환경 - HTML 파일과 같은 디렉토리의 image 폴더 사용
+        return `image/${relativePath}`;
+    }
+}

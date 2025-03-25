@@ -82,14 +82,21 @@ function parseAndDisplayPassage(index) {
         passageContext.style.alignItems = 'center'; // 세로 중앙 정렬 (필요 시)
         passageContext.style.display = 'flex';
 
-        const passageBox = document.createElement('div');
-        passageBox.classList.add('passage-box');
-        passageBox.setAttribute('id', `psgbox_${psgnum + 1}`);
-        passageBox.appendChild(passageContext);
-        psgnum++;
-        passageContext.setAttribute('inAnswer', `${inAnswer}`);
-        passageContext.setAttribute('id', `psg_${psgnum}`);
-        
+        let passageBox;
+                // type이 onebyone인 경우 N(문항 번호) passageBox의 display를 none으로 바꿈.
+                if(type == 'onebyone'){
+                        passageBox = document.getElementById(`psgbox_${psgnum}`);
+                        passageBox.appendChild(passageContext);
+                }else{
+                        passageBox = document.createElement('div');
+                        passageBox.classList.add('passage-box');
+                        passageBox.setAttribute('id', `psgbox_${psgnum + 1}`);
+                        passageBox.appendChild(passageContext);
+                        psgnum++;
+                        passageContext.setAttribute('inAnswer', `${inAnswer}`);
+                        passageContext.setAttribute('id', `psg_${psgnum}`);
+                }
+
         const parentElement = document.getElementById(`passage_${pagenum}`);
         if (doubled == 1) {
             // doubled가 1이면, id가 "double_${doublenum}_L" 인 요소를 찾음
