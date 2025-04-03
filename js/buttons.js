@@ -148,7 +148,7 @@ function submitAnswers() {
                 });
             } else if (container.dataset.type === 'bb') {
                 // (예) 복수 정답 객관식 문제
-                const choiceOptions = Array.from(container.querySelectorAll('.choice-option'));
+                const choiceOptions = Array.from(container.querySelectorAll('.choice-options'));
                 const selectedOptions = choiceOptions.filter(opt => opt.classList.contains('selected'));
                 const correctOptions = choiceOptions.filter(opt => {
                     const text = opt.textContent.trim();

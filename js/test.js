@@ -12,7 +12,19 @@ function tablemaker(passage) {
 
         if (cells) {
             cells.forEach((cellContent, cellIndex) => {
-                const content = cellContent.slice(1, -1); // {} 제거
+                let content = cellContent.slice(1, -1); // {} 제거
+                let fixedwidth = 0;
+                const regex = /^ψ(\d+)ψ/;
+                const match = content.match(regex);
+                
+                if (match) {
+                    // number 부분 추출하여 fixedwidth에 설정
+                    fixedwidth = parseInt(match[1]);
+                    
+                    // content에서 ψnumberψ 부분 제거
+                    content = content.replace(regex, '');
+                }
+
                 let cell;
                 
 
@@ -97,6 +109,9 @@ function tablemaker(passage) {
                 if (cell) {
                     // 셀 스타일
                     cell.classList.add('cells');
+                        if (fixedwidth !== 0) {
+                            cell.style.width = `calc(${fixedwidth} / 16 * var(--base))`;
+                        }
                     row.classList.add('rows');
                     row.appendChild(cell);
                 }
@@ -125,7 +140,7 @@ function answer_reload() {
     // 유틸리티 함수 전역으로 설정
     // 만료 시간과 함께 저장하는 함수 (3시간 = 10,800,000ms)
     setWithExpiry = function(key, value) {
-        const TTL = 3 * 60 * 60 * 1000; // 3시간
+        const TTL = 300 * 60 * 60 * 1000; // 3시간
         const item = {
             value: value,
             expiry: new Date().getTime() + TTL
@@ -183,7 +198,7 @@ function answer_reload() {
 
     // 기존 코드에서 input 처리 부분만 수정
     inputs.forEach((input, index) => {
-        const storageKey = 'input_' + index;
+        const storageKey = 'input_' + studentname + '_' + sheetName + '_' + index;
         
         // 저장된 값 복원
         const savedValue = getWithExpiry(storageKey);
@@ -194,7 +209,6 @@ function answer_reload() {
             // 2. userAnswers 직접 업데이트 - 이 부분이 핵심
             const questionContainer = findQuestionContainer(input);
             if (questionContainer && questionContainer.id) {
-                
                 // userAnswers 직접 업데이트
                 if (userAnswers[questionContainer.id]) {
                     userAnswers[questionContainer.id].userAnswer = savedValue;
@@ -260,109 +274,103 @@ function choice_reload() {
         const containerId = container.id;
         if (!containerId) return; // ID가 없으면 건너뜀
         
-        // 컨테이너 내 모든 선택 옵션
-        const options = container.querySelectorAll('.choice-option');
+        // B 타입(단일 선택)과 BB 타입(복수 선택) 구분하여 처리
+        const singleOptions = container.querySelectorAll('.choice-option');
+        const multiOptions = container.querySelectorAll('.choice-options');
         
-        // 각 옵션에 클릭 이벤트 핸들러 추가 (기존 핸들러 보존)
-        options.forEach(option => {
-            // 기존 클릭 핸들러 보존
-            const originalClickHandler = option.onclick;
-            
-            option.onclick = function(event) {
-                // 기존 핸들러가 있으면 실행
-                if (originalClickHandler) {
-                    originalClickHandler.call(this, event);
-                }
+        // 저장소 키 생성 (studentname과 sheetName 전역변수 사용)
+        const storageKey = `choice_${studentname}_${sheetName}_${containerId}`;
+        
+        // 단일 선택 타입 (B) 처리
+        if (container.dataset.type === 'b' && singleOptions.length > 0) {
+            // 각 옵션에 클릭 이벤트 핸들러 추가 (기존 핸들러 보존)
+            singleOptions.forEach(option => {
+                // 기존 클릭 핸들러 보존
+                const originalClickHandler = option.onclick;
                 
-                // 단일 선택 문제인 경우(data-type="b")
-                if (container.dataset.type === 'b') {
+                option.onclick = function(event) {
+                    // 기존 핸들러가 있으면 실행
+                    if (originalClickHandler) {
+                        originalClickHandler.call(this, event);
+                    }
+                    
                     // 같은 컨테이너 내 모든 옵션에서 selected 제거
-                    options.forEach(opt => opt.classList.remove('selected'));
+                    singleOptions.forEach(opt => opt.classList.remove('selected'));
                     // 클릭된 옵션에만 selected 추가
                     option.classList.add('selected');
                     
                     // 선택 상태 저장
-                    const selectedIndex = Array.from(options).indexOf(option);
-                    setWithExpiry(`choice_${containerId}`, selectedIndex);
+                    const selectedIndex = Array.from(singleOptions).indexOf(option);
+                    setWithExpiry(storageKey, selectedIndex);
                     
                     // userAnswers 업데이트
                     if (userAnswers[containerId]) {
                         userAnswers[containerId].userAnswer = option.textContent.trim();
                     }
-                }
-                // 복수 선택 문제인 경우(data-type="bb")
-                else if (container.dataset.type === 'bb') {
-                    // 클릭된 옵션의 selected 상태 토글
-                    option.classList.toggle('selected');
-                    
-                    // 선택된 모든 옵션의 인덱스 배열 저장
-                    const selectedIndices = Array.from(options)
-                        .map((opt, idx) => opt.classList.contains('selected') ? idx : -1)
-                        .filter(idx => idx !== -1);
-                    
-                    setWithExpiry(`choice_${containerId}`, selectedIndices);
-                    
-                    // userAnswers 업데이트 (선택된 모든 옵션 텍스트)
-                    if (userAnswers[containerId]) {
-                        const selectedTexts = Array.from(options)
-                            .filter(opt => opt.classList.contains('selected'))
-                            .map(opt => opt.textContent.trim());
-                        
-                        userAnswers[containerId].userAnswer = selectedTexts;
-                    }
-                }
-            };
-        });
-        
-        // 저장된 선택 상태 복원
-        const savedChoice = getWithExpiry(`choice_${containerId}`);
-        if (savedChoice !== null) {
-            // 단일 선택 문제
-            if (container.dataset.type === 'b' && typeof savedChoice === 'number') {
-                if (options[savedChoice]) {
+                };
+            });
+            
+            // 저장된 선택 상태 복원 (B 타입)
+            const savedChoice = getWithExpiry(storageKey);
+            if (savedChoice !== null && typeof savedChoice === 'number') {
+                if (singleOptions[savedChoice]) {
                     // 모든 옵션에서 selected 제거
-                    options.forEach(opt => opt.classList.remove('selected'));
+                    singleOptions.forEach(opt => opt.classList.remove('selected'));
                     // 저장된 인덱스의 옵션에 selected 추가
-                    options[savedChoice].classList.add('selected');
+                    singleOptions[savedChoice].classList.add('selected');
                     
                     // userAnswers 업데이트
                     if (userAnswers[containerId]) {
-                        userAnswers[containerId].userAnswer = options[savedChoice].textContent.trim();
+                        userAnswers[containerId].userAnswer = singleOptions[savedChoice].textContent.trim();
                     }
                     
                     // 이벤트 발생시켜 다른 코드에도 알림
                     const clickEvent = new MouseEvent('click', { bubbles: true });
-                    options[savedChoice].dispatchEvent(clickEvent);
+                    singleOptions[savedChoice].dispatchEvent(clickEvent);
                 }
             }
-            // 복수 선택 문제
-            else if (container.dataset.type === 'bb' && Array.isArray(savedChoice)) {
-                // 모든 옵션에서 selected 제거
-                options.forEach(opt => opt.classList.remove('selected'));
-                
-                // 선택된 텍스트 배열 준비
-                const selectedTexts = [];
-                
-                // 저장된 인덱스의 옵션들에 selected 추가
-                savedChoice.forEach(index => {
-                    if (options[index]) {
-                        options[index].classList.add('selected');
-                        selectedTexts.push(options[index].textContent.trim());
+        }
+        // 복수 선택 타입 (BB) 처리
+        else if (container.dataset.type === 'bb' && multiOptions.length > 0) {
+            // 복수 선택 옵션에 저장 이벤트 추가
+            multiOptions.forEach(option => {
+                // 클릭 이벤트 후 로컬스토리지 저장 로직 추가
+                option.addEventListener('click', function() {
+                    // 저장 작업은 이벤트 처리 후 실행 (setTimeout으로 지연)
+                    setTimeout(() => {
+                        // 현재 선택된 모든 인덱스 배열 생성
+                        const selectedIndices = Array.from(multiOptions)
+                            .map((opt, idx) => opt.classList.contains('selected') ? idx : -1)
+                            .filter(idx => idx !== -1);
                         
-                        // 이벤트 발생시켜 다른 코드에도 알림
-                        const clickEvent = new MouseEvent('click', { bubbles: true });
-                        options[index].dispatchEvent(clickEvent);
+                        // 인덱스 배열 저장
+                        setWithExpiry(storageKey, selectedIndices);
+                    }, 0);
+                });
+            });
+            
+            // 저장된 선택 상태 복원 (BB 타입)
+            const savedChoice = getWithExpiry(storageKey);
+            if (savedChoice !== null && Array.isArray(savedChoice)) {
+                // 초기 상태에서는 모든 선택 해제
+                multiOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // 저장된 각 인덱스에 대해 클릭 이벤트 발생
+                savedChoice.forEach(index => {
+                    if (multiOptions[index]) {
+                        // 직접 클래스 추가하지 않고 클릭 이벤트로 처리 (외부 핸들러 활용)
+                        const clickEvent = new MouseEvent('click', {
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        multiOptions[index].dispatchEvent(clickEvent);
                     }
                 });
-                
-                // userAnswers 업데이트
-                if (userAnswers[containerId]) {
-                    userAnswers[containerId].userAnswer = selectedTexts;
-                }
             }
         }
     });
 }
+
 
 // localStorage 데이터 초기화 함수
 function local_Remove() {

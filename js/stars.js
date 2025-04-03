@@ -1,4 +1,5 @@
 const starsregex = /\*(\w+)\*\{(.*?)\}/g;
+let tablestar;
 
 function stars(passageWithLineBreaks){
     let replacedPassage = passageWithLineBreaks.replace(starsregex, (match, type, content) => {
@@ -17,37 +18,50 @@ function stars(passageWithLineBreaks){
                     return questionHTML;
                 }
 
-            if (qndisplay == 0){
-                const inputSize =  Math.round(Math.max(answer.length, 2)*1.7);
+                let effectiveLength = 0;
+                for (const char of answer) {
+                effectiveLength += (char === ' ' ? 0.3 : 1);
+                }
+                let minimums;
+                let inputSize;
+                let hintwidth;
+                let multiple;
+                let fontSize;
 
-                questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                    <span class="question-number">${questionNumber}</span>
-                                    <span class="hint-text">${hint}</span>
-                                    <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                </span>`;
-                                
+                if (qndisplay == 0){
+                    minimums = 2.5;
+                    hintwidth = 68;
                 }else{
-                    let inputSize;
-                    if(mobile == 0){
-                        let effectiveLength = 0;
-                        for (const char of answer) {
-                        effectiveLength += (char === ' ' ? 0.3 : 1);
-                        }
-                        inputSize = Math.round(Math.max(effectiveLength, 2) * 14);
-                    }else if(mobile == 1){
-                        let effectiveLength = 0;
-                        for (const char of answer) {
-                        effectiveLength += (char === ' ' ? 0.3 : 1);
-                        }
-                        inputSize = Math.round(Math.max(effectiveLength, 2) * 14);
+                    minimums = 1.5;
+                    hintwidth = 85;
+                }
+                
+                if (mobile == 0){ //desktop 모드에서
+                    if (tablestar == 0){ //table이 아닌 일반적인 경우
+                        multiple = 15;
+                        fontSize = 12;
+                    }else{ //table이 사용된 경우
+                        multiple = 11;
+                        fontSize = 10;
                     }
+                    
+                }else{
+                    if (tablestar == 0){ //table이 아닌 일반적인 경우
+                        multiple = 14;
+                        fontSize = 11;
+                    }else{ //table이 사용된 경우
+                        multiple = 11;
+                        fontSize = 10;
+                    }
+                }
+
+                    inputSize = Math.round(Math.max(effectiveLength, minimums) * multiple);
 
                     questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
                                         <span class="question-number">${questionNumber}</span>
-                                        <span class="hint-text" style="width: 85%;">${hint}</span>
-                                        <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));"/>
+                                        <span class="hint-text" style="width: ${hintwidth}%;">${hint}</span>
+                                        <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base)); font-size: calc(${fontSize} / 16 * var(--base));"/>
                                     </span>`;
-                }
         } else if (type === 'fa') { //초성형 문제
             const [hint, answer0] = content.split('_');
             const [answer, size] = answer0.split('@');
@@ -59,40 +73,49 @@ function stars(passageWithLineBreaks){
                 return questionHTML;
             }
 
+
+            let effectiveLength = 0;
+            for (const char of answer) {
+            effectiveLength += (char === ' ' ? 0.3 : 1);
+            }
+            let inputSize;
+            let hintwidth;
+            let multiple;
+            let fontSize;
+
             if (qndisplay == 0){
-                const inputSize =  Math.round(size*1.7);
+                hintwidth = 68;
+            }else{
+                hintwidth = 85;
+            }
+            
+            if (mobile == 0){ //desktop 모드에서
+                if (tablestar == 0){ //table이 아닌 일반적인 경우
+                    multiple = 15;
+                    fontSize = 12;
+                }else{ //table이 사용된 경우
+                    multiple = 11;
+                    fontSize = 10;
+                }
+                
+            }else{
+                if (tablestar == 0){ //table이 아닌 일반적인 경우
+                    multiple = 14;
+                    fontSize = 11;
+                }else{ //table이 사용된 경우
+                    multiple = 11;
+                    fontSize = 10;
+                }
+            }
+
+                inputSize = size * multiple;
 
                 questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
                                     <span class="question-number">${questionNumber}</span>
-                                    <span class="hint-text">${hint}</span>
-                                    <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
+                                    <span class="hint-text" style="width: ${hintwidth}%;">${hint}</span>
+                                    <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base)); font-size: calc(${fontSize} / 16 * var(--base));"/>
                                 </span>`;
-                }else{
-                    const inputSize =  Math.round(size*1.4);
 
-                    questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="a">
-                                        <span class="question-number">${questionNumber}</span>
-                                        <span class="hint-text" style="width: 85%;">${hint}</span>
-                                        <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                    </span>`;
-                }
-        } else if (type === 'sa') { //초성형 문제
-            const [hint, answer] = content.split('_');
-            const inputId = `input-${questionNumber}`;
-            userAnswers[inputId] = { userAnswer: '', correctAnswer: answer };
-            if (noneQuestion == 1){
-                questionHTML = `<span class="Bolding">${answer}</span>`;
-                globalQuestionCounter++;
-                return questionHTML;
-            }
-
-            const inputSize =  Math.round(Math.max(hint.length, 3)*1.7);
-
-            questionHTML = `<span class="hint-container-small" id="${inputId}" data-answer="${answer}" data-type="a">
-                                <span class="question-number">${questionNumber}</span>
-                                <span class="hint-text">${hint}</span>
-                                <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                            </span>`;
         } else if (type === 'b') {
             const options = content.split('@');
             const choiceId = `choice-${questionNumber}`;
@@ -147,12 +170,50 @@ function stars(passageWithLineBreaks){
                 globalQuestionCounter++;
                 return questionHTML;
             }
-            const inputSize =  Math.max(content.length, 1)*14;
-            questionHTML = `<span class="input-container" id="${inputId}" data-answer="${content}" data-type="c" >
-            <span class="question-number">${questionNumber}</span>
-            <span class="hint-text" style = "display: none;">${content}</span>
-            <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));""/>
-            </span>`;
+            let effectiveLength = 0;
+            for (const char of content) {
+            effectiveLength += (char === ' ' ? 0.3 : 1);
+            }
+            let minimums;
+            let inputSize;
+            let hintwidth;
+            let multiple;
+            let fontSize;
+
+            if (qndisplay == 0){
+                minimums = 2.5;
+                hintwidth = 68;
+            }else{
+                minimums = 1.5;
+                hintwidth = 85;
+            }
+            
+            if (mobile == 0){ //desktop 모드에서
+                if (tablestar == 0){ //table이 아닌 일반적인 경우
+                    multiple = 15;
+                    fontSize = 12;
+                }else{ //table이 사용된 경우
+                    multiple = 11;
+                    fontSize = 10;
+                }
+                
+            }else{
+                if (tablestar == 0){ //table이 아닌 일반적인 경우
+                    multiple = 14;
+                    fontSize = 11;
+                }else{ //table이 사용된 경우
+                    multiple = 11;
+                    fontSize = 10;
+                }
+            }
+
+                inputSize = Math.round(Math.max(effectiveLength, minimums) * multiple);
+
+                questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${content}" data-type="c">
+                                    <span class="question-number">${questionNumber}</span>
+                                    <span class="hint-text" style="width: ${hintwidth}%; display: none;">${content}</span>
+                                    <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base)); font-size: calc(${fontSize} / 16 * var(--base));"/>
+                                </span>`;
         } else if (type === 'fc') { //초성형 문제
             const [answer, size] = content.split('@');
             const inputId = `input-${questionNumber}`;
@@ -163,26 +224,48 @@ function stars(passageWithLineBreaks){
                 return questionHTML;
             }
 
-            if (qndisplay == 0){
-                const inputSize = size*1.5;
-
-                questionHTML = `<span class="input-container" id="${inputId}" data-answer="${answer}" data-type="c">
-                                    <span class="question-number">${questionNumber}</span>
-                                    <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                                </span>`;
-            }else{
-                let inputSize;
-                if(mobile == 0){
-                    inputSize = size * 13;
-                }else if(mobile == 1){
-                    inputSize = size * 13;
+            let effectiveLength = 0;
+                for (const char of answer) {
+                effectiveLength += (char === ' ' ? 0.3 : 1);
                 }
-                questionHTML = `<span class="input-container" id="${inputId}" data-answer="${answer}" data-type="c" >
-                                    <span class="question-number">${questionNumber}</span>
-                                    <span class="hint-text" style = "display: none;">${answer}</span>
-                                    <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base));""/>
-                                </span>`;
-            }
+                let inputSize;
+                let hintwidth;
+                let multiple;
+                let fontSize;
+
+                if (qndisplay == 0){
+                    hintwidth = 68;
+                }else{
+                    hintwidth = 85;
+                }
+                
+                if (mobile == 0){ //desktop 모드에서
+                    if (tablestar == 0){ //table이 아닌 일반적인 경우
+                        multiple = 15;
+                        fontSize = 12;
+                    }else{ //table이 사용된 경우
+                        multiple = 11;
+                        fontSize = 10;
+                    }
+                    
+                }else{
+                    if (tablestar == 0){ //table이 아닌 일반적인 경우
+                        multiple = 14;
+                        fontSize = 11;
+                    }else{ //table이 사용된 경우
+                        multiple = 11;
+                        fontSize = 10;
+                    }
+                }
+
+                    inputSize = size * multiple;
+
+                    questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${answer}" data-type="c">
+                                        <span class="question-number">${questionNumber}</span>
+                                        <span class="hint-text" style="width: ${hintwidth}%; display: none;">${answer}</span>
+                                        <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base)); font-size: calc(${fontSize} / 16 * var(--base));"/>
+                                    </span>`;
+
         } else if (type === 'cc') {
             const inputId = `input-${questionNumber}`;
             userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
@@ -191,13 +274,50 @@ function stars(passageWithLineBreaks){
                 globalQuestionCounter++;
                 return questionHTML;
             }
+            let effectiveLength = 0;
+            for (const char of content) {
+            effectiveLength += (char === ' ' ? 0.3 : 1);
+            }
+            let minimums;
+            let inputSize;
+            let hintwidth;
+            let multiple;
+            let fontSize;
 
-            const inputSize =  Math.round(Math.max(content.length, 1)*1.5);
+            if (qndisplay == 0){
+                minimums = 2.5;
+                hintwidth = 68;
+            }else{
+                minimums = 1.5;
+                hintwidth = 85;
+            }
+            
+            if (mobile == 0){ //desktop 모드에서
+                if (tablestar == 0){ //table이 아닌 일반적인 경우
+                    multiple = 15;
+                    fontSize = 12;
+                }else{ //table이 사용된 경우
+                    multiple = 11;
+                    fontSize = 10;
+                }
+                
+            }else{
+                if (tablestar == 0){ //table이 아닌 일반적인 경우
+                    multiple = 14;
+                    fontSize = 11;
+                }else{ //table이 사용된 경우
+                    multiple = 11;
+                    fontSize = 10;
+                }
+            }
 
-            questionHTML = `<span class="input-container" id="${inputId}" data-answer="${content}" data-type="c" style="margin-left: 0px;">
-                                <span class="question-number">${questionNumber}</span>
-                                <input type="text" placeholder="" data-type="userinput" size="${inputSize}"/>
-                            </span>`;
+                inputSize = Math.round(Math.max(effectiveLength, minimums) * multiple);
+
+                questionHTML = `<span class="hint-container" id="${inputId}" data-answer="${content}" data-type="c" style="margin-left: 0px;">
+                                    <span class="question-number">${questionNumber}</span>
+                                    <span class="hint-text" style="width: ${hintwidth}%; display: none;">${content}</span>
+                                    <input type="text" placeholder="" data-type="userinput" style="width: calc(${inputSize} / 16 * var(--base)); font-size: calc(${fontSize} / 16 * var(--base));"/>
+                                </span>`;
         } else if (type === 'd') {
             const inputId = `input-${questionNumber}`;
             userAnswers[inputId] = { userAnswer: '', correctAnswer: content };
@@ -226,12 +346,21 @@ function stars(passageWithLineBreaks){
                 const dimgposi = thisImageInfo.position;
 
                 let dimgsize;
+                
                 if (thisImageInfo.size == 'big'){
                     dimgsize = 350;
                 }else if (thisImageInfo.size == 'mid'){
                     dimgsize = 200;
+                }else if (thisImageInfo.size == 'small'){
+                    dimgsize = 140;
+                }else if (thisImageInfo.size == ''){
+                    dimgsize = 200;
                 }else{
-                    dimgsize = 160;
+                    if(Number(thisImageInfo.size) >= 700){
+                        dimgsize = 700;
+                    }else{
+                        dimgsize = thisImageInfo.size;
+                    }
                 }
                 if(mobile == 0){
                 questionHTML = `

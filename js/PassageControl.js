@@ -36,7 +36,7 @@ function parseAndDisplayPassage(index) {
         
 
     }else if(allPassages[index][0] =='table'){
-
+        tablestar = 1;
         const lines = passage.split('\n');
         
         let bracket = 'none';
@@ -328,6 +328,7 @@ function parseAndDisplayPassage(index) {
     }else if(allPassages[index][0] == 'split'){
         
     }else{
+        tablestar = 0;
         // 지문을 줄 단위로 분리
         const lines = passage.split('\n');
         
@@ -420,9 +421,18 @@ function parseAndDisplayPassage(index) {
                 submark.textContent = '#';
                 submark.className = 'submark';
                 passageContext.prepend(submark);
-
+            }else if (allPassages[index][0] === 'BP') {
+                passageContext.style.lineHeight = "3.5";
             }else if (allPassages[index][0] === 'BB') {
                 passageContext.style.textIndent = "calc(0 / 16 * 1em)";
+            }else if(allPassages[index][0] === 'BD') {
+                passageContext.style.textIndent = "calc(-50 / 16 * 1em)";
+                passageContext.style.paddingLeft = "calc(40 / 16 * 1em)";
+                passageContext.style.width = "90%";
+            }else if(allPassages[index][0] === 'BE') {
+                passageContext.style.textIndent = "calc(-60 / 16 * 1em)";
+                passageContext.style.paddingLeft = "calc(60 / 16 * 1em)";
+                passageContext.style.width = "85%";
                 
             }else if(allPassages[index][0] === 'D') {
                 passageContext.style.textIndent = "calc(-50 / 16 * 1em)";
@@ -524,7 +534,7 @@ function parseAndDisplayPassage(index) {
                 passageContext.style.textIndent = "calc(-50 / 16 * 1em)";
                 passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
                 passageContext.style.marginLeft = "calc(70 / 16 * 1em)";
-                
+                passageContext.style.marginBottom = `calc(${gap} / 16 * 1em)`;
                 passageContext.style.width = "85%";
 
                 if(mobile == 1){
@@ -549,6 +559,7 @@ function parseAndDisplayPassage(index) {
                 passageContext.style.textIndent = "calc(-50 / 16 * 1em)";
                 passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
                 passageContext.style.marginLeft = "calc(70 / 16 * 1em)";
+                passageContext.style.marginBottom = `calc(${gap} / 16 * 1em)`;
                 EMum = 0;
                 passageEMum = 0;
                 passageContext.style.width = "85%";
@@ -573,6 +584,20 @@ function parseAndDisplayPassage(index) {
                 mainPara.classList.add('mainPara');
                 passageContext.style.width = "85%";
                 mainPara.style.lineHeight = "2";
+                passageContext.appendChild(mainPara);
+
+            }else if(allPassages[index][0] === 'OA') {
+                passageContext.style.textIndent = "calc(0 / 16 * 1em)";
+                passageContext.style.paddingLeft = "calc(0 / 16 * 1em)";
+                passageContext.style.marginBottom = "calc(25 / 16 * 1em)";
+                
+                const mainPara = document.createElement('div');
+                mainPara.innerHTML = passageContext.innerHTML
+                passageContext.innerHTML = '';
+                mainPara.classList.add('mainPara');
+                passageContext.style.width = "85%";
+                mainPara.style.lineHeight = "2";
+                mainPara.style.paddingLeft = "calc(30 / 16 * 1em)";
                 passageContext.appendChild(mainPara);
 
             }else if(allPassages[index][0] === 'AP') {

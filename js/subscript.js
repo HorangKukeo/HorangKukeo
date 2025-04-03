@@ -144,6 +144,7 @@ function undered(inputText) {
     const underRegex = /\{\_(.*?)\_\}/g;
     const circleRegex = /\{\○(.*?)\○\}/g;
     const rectangleRegex = /\{\□(.*?)\□\}/g;
+    const triRegex = /\{\△(.*?)\△\}/g;
     const highlightRegex = /\{\▷(.*?)\◁\}/g;
     const cancelRegex = /\{\!(.*?)\!\}/g;
 
@@ -158,6 +159,10 @@ function undered(inputText) {
 
     processedText = processedText.replace(rectangleRegex, (match, content) => {
         return `<span class="rectangled">${content}</span>`;
+    });
+
+    processedText = processedText.replace(triRegex, (match, content) => {
+        return `<span class="triangled">${content}</span>`;
     });
 
     processedText = processedText.replace(highlightRegex, (match, content) => {
