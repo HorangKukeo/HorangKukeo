@@ -46,15 +46,15 @@
 <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 <script>
 let mobile = 1;
-let type = 'onebyone';
+let type = 'topdown';
 let firstcheck = 0; // 첫 문항을 확인하고 저장합니다.
 let nowQ = 0; // 현재 문항 번호를 추적합니다.
 let nowP = 0; // 현재 passage를 추적합니다.
 let firstP = 0; // 첫 passage를 확인하고 저장합니다.
 var studentname = '신성식';
 var schoolname = '중3A';
-var excelName = '문학Q';
-var sheetName = '산속에서';
+var excelName = '문법Q';
+var sheetName = '음운의 변동 1-1';
 let footerpagenum = 0;
 
 document.getElementById("preq").style.display = "none";
@@ -446,7 +446,7 @@ let sheetTitle_sub; //시트 소제목   저장
                     const imgId = `img${maxIamge++}`;
                     // 1) imageInfoMap에 저장
                     imageInfoMap[imgId] = {
-                        src: 'image/'  + imgUrl,
+                        src: './image/'  + imgUrl,
                         caption: imgCaption,
                         size: imgSize,
                         position: imgPosition
