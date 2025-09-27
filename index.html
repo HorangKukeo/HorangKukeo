@@ -3,72 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문법 RPG</title>
+    <title>문법 RPG - 로그인</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <h1>⚔️ 문법 RPG: 맞춤법의 용사 ⚔️</h1>
-
-        <div class="stats-box" id="player-box">
-            <h2>용사 (나)</h2>
-            <div class="stat">
-                <span>LV:</span>
-                <span id="player-level">1</span>
+        <h1>⚔️ 문법 RPG ⚔️</h1>
+        <form id="login-form">
+            <h2>로그인</h2>
+            <div class="input-group">
+                <label for="username">아이디</label>
+                <input type="text" id="username" name="username" required>
             </div>
-            <div class="hp-bar-container">
-                <span>HP:</span>
-                <div class="bar-background">
-                    <div id="player-hp-bar" class="bar"></div>
-                </div>
-                <span id="player-hp-text">50 / 50</span>
+            <div class="input-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" required>
             </div>
-            <div class="exp-bar-container">
-                <span>EXP:</span>
-                <div class="bar-background">
-                    <div id="player-exp-bar" class="bar"></div>
-                </div>
-                <span id="player-exp-text">0 / 10</span>
-            </div>
-        </div>
-
-        <div class="stats-box" id="monster-box">
-            <h2 id="monster-name"></h2>
-            <div class="hp-bar-container">
-                <span>HP:</span>
-                <div class="bar-background">
-                    <div id="monster-hp-bar" class="bar"></div>
-                </div>
-                <span id="monster-hp-text"></span>
-            </div>
-        </div>
-
-        <div id="question-area">
-            <p id="question-text"></p>
-        </div>
-
-        <div id="action-buttons">
-            </div>
-
-        <div id="continue-container">
-            <button id="continue-button" class="attack-btn hidden">계속하기</button>
-        </div>
-
-        <div id="message-log">
-            <p>야생의 문법 몬스터가 나타났다!</p>
-        </div>
+            <button type="submit" class="login-btn">게임 시작</button>
+        </form>
     </div>
 
-    <div id="game-over" class="hidden">
-        <h2>GAME OVER</h2>
-        <button id="restart-button">다시 시작</button>
-    </div>
-    <div id="game-clear" class="hidden">
-        <h2>VICTORY!</h2>
-        <p>모든 문법 몬스터를 물리쳤습니다!</p>
-        <button id="restart-button-clear">다시 하기</button>
-    </div>
-
-    <script src="game.js"></script>
+    <script src="login.js"></script>
 </body>
 </html>

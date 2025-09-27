@@ -12,137 +12,68 @@ body {
 }
 
 #game-container {
-    width: 800px;
+    width: 500px; /* 로그인 창에 맞게 너비 조정 */
     border: 3px solid #666;
-    padding: 20px;
+    padding: 30px;
     background-color: #2b2b2b;
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    text-align: center;
 }
 
 h1 {
-    text-align: center;
     color: #ffc107;
     border-bottom: 2px solid #666;
-    padding-bottom: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
 }
 
-.stats-box {
-    border: 2px solid #666;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+h2 {
+    margin-bottom: 20px;
+    color: #ddd;
 }
 
-#player-box { background-color: #3c4c7c; }
-#monster-box { background-color: #7c3c3c; }
-
-.hp-bar-container, .exp-bar-container {
+/* 로그인 폼 스타일 */
+#login-form {
     display: flex;
-    align-items: center;
-    margin-top: 5px;
+    flex-direction: column;
 }
 
-.bar-background {
-    flex-grow: 1;
-    height: 20px;
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
     background-color: #444;
-    border: 1px solid #111;
-    border-radius: 10px;
-    margin: 0 10px;
-    overflow: hidden;
-}
-
-.bar {
-    height: 100%;
-    transition: width 0.5s ease-in-out;
-    border-radius: 8px;
-}
-
-#player-hp-bar { background-color: #4caf50; }
-#monster-hp-bar { background-color: #f44336; }
-#player-exp-bar { background-color: #2196f3; }
-
-#question-area {
-    background-color: #333;
-    border: 2px dashed #666;
-    padding: 20px;
-    text-align: center;
-    font-size: 1.2em;
-    margin: 20px 0;
-}
-
-#action-buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin: 20px 0;
-}
-
-/* '계속하기' 버튼을 담는 컨테이너 스타일 추가 */
-#continue-container {
-    margin: 20px 0;
-}
-
-.attack-btn {
-    background-color: #4a4a4a;
+    border: 1px solid #666;
     color: white;
-    border: 2px solid #777;
+    font-family: inherit;
+    font-size: 1em;
+    border-radius: 5px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+}
+
+.login-btn {
+    background-color: #4caf50; /* 로그인 버튼 색상 변경 */
+    color: white;
+    border: none;
     padding: 15px;
     font-family: inherit;
     font-size: 1.1em;
     cursor: pointer;
     border-radius: 5px;
-    transition: all 0.2s;
+    transition: background-color 0.2s;
 }
 
-.attack-btn:hover {
-    background-color: #ffc107;
-    color: #1a1a1a;
-    border-color: #ffc107;
-}
-
-/* 🔥 변경점: 비활성화된 버튼에 대한 스타일 추가 */
-.attack-btn:disabled {
-    background-color: #333; /* 배경을 어둡게 */
-    color: #666;           /* 글자색을 흐리게 */
-    border-color: #444;     /* 테두리색도 어둡게 */
-    cursor: not-allowed;    /* 마우스 커서를 '금지' 모양으로 변경 */
-}
-
-
-#message-log {
-    background-color: #111;
-    border: 2px solid #666;
-    height: 60px;
-    padding: 10px;
-    overflow-y: auto;
-    text-align: center;
-    font-size: 1.1em;
-}
-
-.hidden {
-    display: none !important;
-}
-
-#game-over, #game-clear {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-size: 3em;
-}
-
-#restart-button, #restart-button-clear {
-    margin-top: 20px;
-    padding: 15px 30px;
-    font-size: 0.5em;
-    cursor: pointer;
+.login-btn:hover {
+    background-color: #45a049;
 }
