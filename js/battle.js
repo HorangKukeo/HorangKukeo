@@ -1,36 +1,46 @@
-// === DOM 요소 가져오기 ===
-const monsterImageEl = document.getElementById('monster-image');
-const infoBtn = document.getElementById('info-btn');
-const infoModal = document.getElementById('info-modal');
-const infoList = document.getElementById('info-list');
-const monsterNameEl = document.getElementById('monster-name');
-const monsterHpBar = document.getElementById('monster-hp-bar');
-const monsterHpText = document.getElementById('monster-hp-text');
-const playerNameEl = document.getElementById('player-name');
-const playerHpBar = document.getElementById('player-hp-bar');
-const playerHpText = document.getElementById('player-hp-text');
-const playerMpBar = document.getElementById('player-mp-bar');
-const playerMpText = document.getElementById('player-mp-text');
-const messageBox = document.getElementById('message-box');
-const messageTextEl = document.getElementById('message-text');
-const quizBox = document.getElementById('quiz-box');
-const quizTextEl = document.getElementById('quiz-text');
-const quizAnswersEl = document.getElementById('quiz-answers');
-const actionMenu = document.getElementById('action-menu');
-const actionButtons = document.querySelectorAll('.action-btn');
-const gameOverEl = document.getElementById('game-over');
-const dungeonClearEl = document.getElementById('dungeon-clear');
-const finalRewardsEl = document.getElementById('final-rewards');
-const returnToMainBtn = document.getElementById('return-to-main-btn');
-const modalBackdrop = document.getElementById('modal-backdrop');
-const skillModal = document.getElementById('skill-modal');
-const skillList = document.getElementById('skill-list');
-const itemModal = document.getElementById('item-modal');
-const itemList = document.getElementById('item-list');
-const victoryModal = document.getElementById('victory-modal');
-const victoryMessageEl = document.getElementById('victory-message');
-const continueBattleBtn = document.getElementById('continue-battle-btn');
-const equippedCardsEl = document.getElementById('equipped-cards');
+(function() {
+const battleModeContainer = document.querySelector('#battle-mode-container');
+
+    // --- 게임 영역 내부 요소들 ---
+    // 게임의 핵심 UI는 battleModeContainer 안의 #game-container에서 찾습니다.
+    const gameContainer = battleModeContainer.querySelector('#game-container');
+    const monsterImageEl = gameContainer.querySelector('#monster-image');
+    const infoBtn = gameContainer.querySelector('#info-btn');
+    const monsterNameEl = gameContainer.querySelector('#monster-name');
+    const monsterHpBar = gameContainer.querySelector('#monster-hp-bar');
+    const monsterHpText = gameContainer.querySelector('#monster-hp-text');
+    const playerNameEl = gameContainer.querySelector('#player-name');
+    const playerHpBar = gameContainer.querySelector('#player-hp-bar');
+    const playerHpText = gameContainer.querySelector('#player-hp-text');
+    const playerMpBar = gameContainer.querySelector('#player-mp-bar');
+    const playerMpText = gameContainer.querySelector('#player-mp-text');
+    const messageBox = gameContainer.querySelector('#message-box');
+    const messageTextEl = gameContainer.querySelector('#message-text');
+    const quizBox = gameContainer.querySelector('#quiz-box');
+    const quizTextEl = gameContainer.querySelector('#quiz-text');
+    const quizAnswersEl = gameContainer.querySelector('#quiz-answers');
+    const actionMenu = gameContainer.querySelector('#action-menu');
+    const actionButtons = gameContainer.querySelectorAll('.action-btn');
+    const equippedCardsEl = gameContainer.querySelector('#equipped-cards');
+    
+    // --- 모달 등 게임 영역 외부 요소들 ---
+    // 모달 창들은 battleModeContainer 바로 아래에 있으므로 여기서 찾습니다.
+    const infoModal = battleModeContainer.querySelector('#info-modal');
+    const infoList = battleModeContainer.querySelector('#info-list');
+    const gameOverEl = battleModeContainer.querySelector('#game-over');
+    const dungeonClearEl = battleModeContainer.querySelector('#dungeon-clear');
+    const finalRewardsEl = battleModeContainer.querySelector('#final-rewards');
+    const returnToMainBtn = battleModeContainer.querySelector('#return-to-main-btn');
+    const modalBackdrop = battleModeContainer.querySelector('#modal-backdrop');
+    const skillModal = battleModeContainer.querySelector('#skill-modal');
+    const skillList = battleModeContainer.querySelector('#skill-list');
+    const itemModal = battleModeContainer.querySelector('#item-modal');
+    const itemList = battleModeContainer.querySelector('#item-list');
+    const victoryModal = battleModeContainer.querySelector('#victory-modal');
+    const victoryMessageEl = battleModeContainer.querySelector('#victory-message');
+    const continueBattleBtn = battleModeContainer.querySelector('#continue-battle-btn');
+    const gameOverMessageEl = battleModeContainer.querySelector('#game-over-message');
+    const returnToMainFromGameOverBtn = battleModeContainer.querySelector('#return-to-main-from-gameover-btn');
 
 // === 데이터 로딩 (localStorage에서) ===
 const cardDB = JSON.parse(localStorage.getItem('cardDB')) || [];
@@ -234,7 +244,33 @@ function handleAction(action) {
 }
 function checkBattleEnd() {
     updateUI();
-    if (player.hp <= 0) { gameOverEl.classList.remove('hidden'); return; }
+    if (player.hp <= 0) {
+        // [수정 시작] 게임 오버 로직 구체화
+        // 1. 페널티 계산 (1~10% 사이의 랜덤 값)
+        const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100; // 0.01 ~ 0.1
+        const goldPenalty = Math.floor(player.gold * penaltyRate);
+        const pointsPenalty = Math.floor(player.points.partsOfSpeech * penaltyRate);
+
+        // 2. 페널티 적용
+        player.gold -= goldPenalty;
+        player.points.partsOfSpeech -= pointsPenalty;
+
+        // 3. 변경된 유저 데이터 저장 (던전 보상은 더하지 않음)
+        let finalUserData = JSON.parse(localStorage.getItem('userData'));
+        finalUserData.gold = player.gold;
+        finalUserData.points.partsOfSpeech = player.points.partsOfSpeech;
+        localStorage.setItem('userData', JSON.stringify(finalUserData));
+        if (finalUserData.id) {
+            uploadUserData(finalUserData.id);
+        }
+
+        // 4. 게임 오버 메시지 표시
+        gameOverMessageEl.textContent = `전투에서 패배하여 골드 ${goldPenalty} G와 품사 포인트 ${pointsPenalty} P를 잃었습니다.`;
+        
+        gameOverEl.classList.remove('hidden'); 
+        return; 
+        // [수정 끝]
+    }
     if (currentMonster.hp <= 0) {
         const goldReward = parseInt(currentMonster.goldReward, 10) || 0;
         const pointReward = parseInt(currentMonster.pointReward, 10) || 0;
@@ -404,8 +440,20 @@ function initGame() {
         } else {
             console.error("저장할 사용자 ID가 없습니다.");
         }
-        window.location.href = 'main.html';
+
+        // 페이지 이동 대신, main.js의 endBattle 함수를 호출
+        if (window.endBattle) {
+            window.endBattle();
+        }
     });
+
+    returnToMainFromGameOverBtn.addEventListener('click', () => {
+        // 보상을 더하는 로직 없이, 단순히 전투 창을 닫는 함수만 호출합니다.
+        if (window.endBattle) {
+            window.endBattle();
+        }
+    });
+
     infoBtn.addEventListener('click', () => {
         let cardListHTML = '';
         player.equippedCards.forEach(cardId => {
@@ -430,3 +478,4 @@ function initGame() {
 }
 
 initGame();
+})();

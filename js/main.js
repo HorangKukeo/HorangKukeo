@@ -32,7 +32,7 @@ const gachaConfirmBtn = document.getElementById('gacha-confirm-btn');
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003'];
 
 function setupDefaultUserData() {
     if (!localStorage.getItem('userData')) {
@@ -233,14 +233,83 @@ function openDungeonModal() {
             card.className = 'dungeon-card';
             card.innerHTML = `<h2>${dungeon.name}</h2><p>테마: ${dungeon.area}</p><p>권장 레벨: ${dungeon.recommendedLevel}</p>`;
             card.addEventListener('click', () => {
-                localStorage.setItem('selectedDungeonId', dungeon.id);
-                window.location.href = 'battle.html';
+                modalBackdrop.classList.add('hidden');
+                dungeonModal.classList.add('hidden');
+                startBattle(dungeon.id);
             });
             dungeonListEl.appendChild(card);
         });
     }
     modalBackdrop.classList.remove('hidden');
     dungeonModal.classList.remove('hidden');
+}
+
+function endBattle() {
+    const battleContainer = document.getElementById('battle-mode-container');
+    
+    // [추가] 전투 BGM을 찾아 정지
+    const battleBGM = battleContainer.querySelector('#bgm-battle');
+    if (battleBGM) {
+        battleBGM.pause();
+    }
+    
+    battleContainer.innerHTML = '';
+    battleContainer.style.display = 'none';
+
+    document.getElementById('battle-style')?.remove();
+    document.getElementById('battle-script')?.remove();
+
+    // [수정] 메인 BGM 다시 재생
+    document.getElementById('bgm-main')?.play();
+
+    displayUserData();
+}
+// endBattle 함수를 battle.js에서 호출할 수 있도록 전역 함수로 등록
+window.endBattle = endBattle;
+
+// 전투 시작 함수
+async function startBattle(dungeonId) {
+    localStorage.setItem('selectedDungeonId', dungeonId);
+    const battleContainer = document.getElementById('battle-mode-container');
+    battleContainer.innerHTML = '<h2>Loading...</h2>';
+    battleContainer.style.display = 'flex'; // 'block' 대신 'flex'로 변경
+
+    // [수정] 메인 BGM 정지
+    document.getElementById('bgm-main')?.pause();
+
+    try {
+        const response = await fetch('battle.html');
+        if (!response.ok) throw new Error('battle.html을 불러올 수 없습니다.');
+        const battleHtmlText = await response.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(battleHtmlText, 'text/html');
+        battleContainer.innerHTML = doc.body.innerHTML;
+
+        // [추가] 전투 BGM을 찾아 재생
+        const battleBGM = battleContainer.querySelector('#bgm-battle');
+        if (battleBGM) {
+            battleBGM.volume = 0.2;
+            battleBGM.play();
+        }
+
+        const battleStyle = document.createElement('link');
+        battleStyle.id = 'battle-style';
+        battleStyle.rel = 'stylesheet';
+        battleStyle.href = 'battlestyle.css';
+        document.head.appendChild(battleStyle);
+
+        const battleScript = document.createElement('script');
+        battleScript.id = 'battle-script';
+        battleScript.src = 'js/battle.js';
+        battleScript.defer = true;
+        document.body.appendChild(battleScript);
+
+    } catch (error) {
+        console.error("전투 시작 중 오류 발생:", error);
+        alert("전투 화면을 불러오는 데 실패했습니다.");
+        endBattle();
+    }
 }
 
 async function initializeMainScreen() {

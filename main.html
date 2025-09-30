@@ -93,13 +93,14 @@
             <button class="modal-close-btn">닫기</button>
         </div>
     </div>
-    
-    <audio id="bgm" src="music/main-theme.mp3" loop></audio>
+    <div id="battle-mode-container"></div>
+
+    <audio id="bgm-main" src="music/main-theme.mp3" loop></audio>
     <script>
-        // 사용자가 페이지의 아무 곳이나 처음 클릭하면 음악을 재생하고, 그 후에는 이벤트를 제거합니다.
         document.body.addEventListener('click', function playMusic() {
-            const bgm = document.getElementById('bgm');
-            bgm.volume = 0.4; // 볼륨을 20%로 설정
+            // [수정] id를 "bgm-main"으로 변경
+            const bgm = document.getElementById('bgm-main');
+            bgm.volume = 0.4;
             bgm.play();
             document.body.removeEventListener('click', playMusic);
         });

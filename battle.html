@@ -86,7 +86,14 @@
         </div>
     </div>
 
-    <div id="game-over" class="modal hidden"><h2>GAME OVER</h2></div>
+    <div id="game-over" class="modal hidden">
+        <div class="modal-window" style="text-align: center;">
+            <h2 style="color: #c74343; font-family: var(--font-pixel); font-size: 3em;">GAME OVER</h2>
+            <p id="game-over-message" style="margin: 20px 0;"></p>
+            <button id="return-to-main-from-gameover-btn" class="return-to-main-btn" style="background-color: #7c3c7c; border-color: #b981b9;">메인 화면으로 돌아가기</button>
+        </div>
+    </div>
+
     <div id="dungeon-clear" class="modal hidden">
         <div class="modal-window" style="width: auto;">
             <h2>던전 클리어!</h2>
@@ -96,16 +103,7 @@
         </div>
     </div>
 
-    <audio id="bgm" src="music/battle-theme.mp3" loop></audio>
-    <script>
-        // 사용자가 페이지의 아무 곳이나 처음 클릭하면 음악을 재생하고, 그 후에는 이벤트를 제거합니다.
-        document.body.addEventListener('click', function playMusic() {
-            const bgm = document.getElementById('bgm');
-            bgm.volume = 0.2; // 볼륨을 20%로 설정
-            bgm.play();
-            document.body.removeEventListener('click', playMusic);
-        });
-    </script>
+    <audio id="bgm-battle" src="music/battle-theme.mp3" loop></audio>
 
     <script src="js/common.js"></script>
     <script src="js/battle.js"></script>
