@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문법 RPG - 메인</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="main-container">
+        <div id="player-status-container">
+            <div class="player-portrait">
+                <img src="img/player.png" alt="Player Portrait">
+            </div>
+            <div class="player-info">
+                <h2 id="user-nickname"></h2>
+                <div class="status-bar">
+                    <span class="label">HP</span>
+                    <div class="bar-background"><div id="player-hp-bar" class="bar hp"></div></div>
+                    <span id="player-hp-text" class="value"></span>
+                </div>
+                <div class="status-bar">
+                    <span class="label">MP</span>
+                    <div class="bar-background"><div id="player-mp-bar" class="bar mp"></div></div>
+                    <span id="player-mp-text" class="value"></span>
+                </div>
+                <div class="stats-grid">
+                    <p>💰 골드: <span id="user-gold"></span> G</p>
+                    <p>🅿️ 품사 포인트: <span id="user-pos-points"></span> P</p>
+                </div>
+                <div class="player-actions">
+                    <button id="card-view-btn" class="view-btn">카드 보기</button>
+                    <button id="item-view-btn" class="view-btn">아이템 보기</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-content-container">
+            <p id="loading-message">게임 데이터를 불러오는 중...</p>
+            <div id="main-menu" class="hidden">
+                <button id="explore-btn" class="main-menu-btn">🗺️ 탐험하기</button>
+                <button id="shop-btn" class="main-menu-btn">🛍️ 상점</button>
+                <button id="gacha-btn" class="main-menu-btn">✨ 카드 뽑기</button>
+            </div>
+        </div>
+
+    <div id="modal-backdrop" class="hidden">
+        <div id="card-management-modal" class="modal-window hidden">
+            <h3>카드 관리</h3>
+            <div class="card-management-container">
+                <div class="card-section">
+                    <h4>장착한 카드 (최대 4개)</h4>
+                    <div id="equipped-card-manage-list" class="card-list"></div>
+                </div>
+                <div class="card-section">
+                    <h4>소유한 카드</h4>
+                    <div id="owned-card-manage-list" class="card-list"></div>
+                </div>
+            </div>
+            <button class="modal-close-btn">닫기</button>
+        </div>
+        
+        <div id="item-view-modal" class="modal-window hidden">
+            <h3>소유 아이템</h3>
+            <div id="item-view-list" class="item-list"></div>
+            <button class="modal-close-btn">닫기</button>
+        </div>
+
+        <div id="dungeon-modal" class="modal-window hidden">
+            <h3>탐험할 던전을 선택하세요</h3>
+            <div id="dungeon-list"></div>
+            <button class="modal-close-btn">닫기</button>
+        </div>
+
+        <div id="shop-modal" class="modal-window hidden">
+            <h3>🛍️ 상점</h3>
+            <p>보유 골드: <span id="shop-user-gold"></span> G</p>
+            <div id="shop-item-list" class="item-list">
+                </div>
+            <button class="modal-close-btn">닫기</button>
+        </div>
+        <div id="gacha-modal" class="modal-window hidden">
+            <h3>✨ 카드 뽑기</h3>
+            <div id="gacha-pack-list">
+                </div>
+            <div id="gacha-result-view" class="hidden" style="text-align: center;">
+                <h4>🎉 축하합니다! 🎉</h4>
+                <p>아래 카드를 획득했습니다!</p>
+                <div id="gacha-result-card" style="border: 2px solid var(--accent-color); padding: 20px; margin: 10px auto; width: 200px; border-radius: 10px;">
+                    </div>
+                <button id="gacha-confirm-btn">확인</button>
+            </div>
+            <button class="modal-close-btn">닫기</button>
+        </div>
+    </div>
+    
+    <audio id="bgm" src="music/main-theme.mp3" loop></audio>
+    <script>
+        // 사용자가 페이지의 아무 곳이나 처음 클릭하면 음악을 재생하고, 그 후에는 이벤트를 제거합니다.
+        document.body.addEventListener('click', function playMusic() {
+            const bgm = document.getElementById('bgm');
+            bgm.volume = 0.4; // 볼륨을 20%로 설정
+            bgm.play();
+            document.body.removeEventListener('click', playMusic);
+        });
+    </script>
+
+    <script src="js/common.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

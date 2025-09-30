@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문법 RPG - 전투</title>
+    <link rel="stylesheet" href="battlestyle.css">
+</head>
+<body>
+    <div id="game-container">
+        <div class="character-box" id="monster-box">
+            <div class="character-info">
+                <h2 id="monster-name"></h2>
+                <div class="hp-bar-container">
+                    <div class="bar-background">
+                        <div id="monster-hp-bar" class="bar hp"></div>
+                    </div>
+                    <span id="monster-hp-text"></span>
+                </div>
+            </div>
+            <div class="character-img-container">
+                <img id="monster-image" src="img/monster-idle.png" alt="몬스터">
+            </div>
+        </div>
+
+        <div class="character-box" id="player-box">
+             <div class="character-img-container">
+                <img id="player-image" src="img/player.png" alt="플레이어">
+            </div>
+            <div class="character-info">
+                <div class="player-header">
+                    <h2 id="player-name">용사</h2>
+                    <button id="info-btn">내 정보</button>
+                </div>
+                <div class="hp-bar-container">
+                    <span class="stat-label">HP:</span>
+                    <div class="bar-background">
+                        <div id="player-hp-bar" class="bar hp"></div>
+                    </div>
+                    <span id="player-hp-text" class="stat-text"></span>
+                </div>
+                <div class="hp-bar-container">
+                    <span class="stat-label">MP:</span>
+                    <div class="bar-background">
+                        <div id="player-mp-bar" class="bar mp"></div>
+                    </div>
+                    <span id="player-mp-text" class="stat-text"></span>
+                </div>
+                <div id="equipped-cards">
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ui-area">
+            <div id="message-box" class="box"><p id="message-text"></p></div>
+            <div id="quiz-box" class="box hidden">
+                <p id="quiz-text"></p>
+                <div id="quiz-answers"></div>
+            </div>
+        </div>
+        
+        <div id="action-menu" class="box">
+            <button class="action-btn" data-action="attack">공격</button>
+            <button class="action-btn" data-action="skill">스킬</button>
+            <button class="action-btn" data-action="item">아이템</button>
+            <button class="action-btn" data-action="flee">도망가기</button>
+        </div>
+    </div>
+
+    <div id="modal-backdrop" class="hidden">
+        <div id="skill-modal" class="modal-window hidden">
+            <h3>스킬 선택</h3><div id="skill-list"></div><button class="modal-close-btn">닫기</button>
+        </div>
+        <div id="item-modal" class="modal-window hidden">
+            <h3>아이템 선택</h3><div id="item-list"></div><button class="modal-close-btn">닫기</button>
+        </div>
+        <div id="victory-modal" class="modal-window hidden">
+            <h3>전투 승리!</h3><p id="victory-message"></p><button id="continue-battle-btn">계속하기</button>
+        </div>
+        <div id="info-modal" class="modal-window hidden">
+            <h3>내 정보</h3><div id="info-list"></div><button class="modal-close-btn">닫기</button>
+        </div>
+    </div>
+
+    <div id="game-over" class="modal hidden"><h2>GAME OVER</h2></div>
+    <div id="dungeon-clear" class="modal hidden">
+        <div class="modal-window" style="width: auto;">
+            <h2>던전 클리어!</h2>
+            <p>이번 탐험에서 획득한 보상입니다.</p>
+            <div id="final-rewards"></div>
+            <button id="return-to-main-btn">메인 화면으로 돌아가기</button>
+        </div>
+    </div>
+
+    <audio id="bgm" src="music/battle-theme.mp3" loop></audio>
+    <script>
+        // 사용자가 페이지의 아무 곳이나 처음 클릭하면 음악을 재생하고, 그 후에는 이벤트를 제거합니다.
+        document.body.addEventListener('click', function playMusic() {
+            const bgm = document.getElementById('bgm');
+            bgm.volume = 0.2; // 볼륨을 20%로 설정
+            bgm.play();
+            document.body.removeEventListener('click', playMusic);
+        });
+    </script>
+
+    <script src="js/common.js"></script>
+    <script src="js/battle.js"></script>
+</body>
+</html>
