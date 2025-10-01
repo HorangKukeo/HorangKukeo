@@ -149,13 +149,15 @@ body {
     
     /* 장착 카드 슬롯 크기 조절 */
     #equipped-cards {
-        grid-template-columns: repeat(4, 1fr); /* 2x2 대신 4x1 유지 */
-        gap: 4px;
+        /* [수정] 4열 그리드 대신 1열 그리드로 변경하여 세로로 쌓이도록 함 */
+        grid-template-columns: 1fr;
+        gap: 5px; /* 간격을 조금 더 줌 */
     }
 
     .card-slot {
-        height: 25px;
-        font-size: 0.7em;
+        /* [수정] 너비가 넓어졌으므로 높이와 폰트를 살짝 키워 가독성 확보 */
+        height: 30px;
+        font-size: 0.8em;
     }
 
     /* UI 영역과 액션 메뉴 여백 조절 */

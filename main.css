@@ -272,4 +272,37 @@ body {
 }
 
 /* 모바일 */
-@media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr;
+    }
+
+    /* [해결책 1] 카드 도감 모달 전체가 스크롤되도록 설정 */
+    #card-dex-modal.modal-window {
+        max-height: 85vh; /* 모달의 최대 높이를 화면의 85%로 제한 */
+        overflow-y: auto;  /* 내용이 길어지면 모달 전체를 스크롤 */
+        width: 95%;        /* 모바일에서는 너비를 거의 꽉 채움 */
+    }
+
+    /* [추가 개선] 필터 버튼을 세로가 아닌 가로로 배치하여 공간 효율성 증대 */
+    .dex-content-wrapper {
+        flex-direction: column; /* 필터와 도감을 위아래로 쌓음 */
+    }
+
+    #dex-filter-buttons {
+        flex-direction: row;   /* 버튼들을 가로로 나열 */
+        flex-wrap: wrap;       /* 공간이 부족하면 줄바꿈 */
+        justify-content: center; /* 버튼들을 중앙 정렬 */
+    }
+    
+    .dex-filter-btn {
+        padding: 8px 10px;
+        font-size: 0.9em;
+    }
+    
+    /* [해결책 2] 한 줄에 여러 카드가 표시되도록 너비 조절 */
+    .card-grid {
+        /* 카드의 최소 너비를 100px로 줄여 한 줄에 2~3개 표시되도록 함 */
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
