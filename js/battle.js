@@ -100,31 +100,82 @@ function updateUI() {
 }
 function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]];} return array;}
 function showMessage(text, callback) {messageBox.classList.remove('hidden');quizBox.classList.add('hidden');messageTextEl.textContent = text;if (callback) { setTimeout(callback, 1500); }}
-function parseQuestion(questionString) {
+function parseQuestion(questionString, questionType) {
     const parts = questionString.split('⊥');
-    const questionData = {
-        prompt: parts[0],
-        context: parts[1],
-        choices: [parts[2], parts[3], parts[4], parts[5]],
-    };
-    questionData.correctAnswer = questionData.choices[parseInt(parts[6], 10) - 1];
+    const questionData = { type: questionType }; // type을 객체에 포함
+
+    if (questionType === '1') { // 타입 1: 객관식
+        questionData.prompt = parts[0];
+        questionData.context = parts[1];
+        questionData.choices = [parts[2], parts[3], parts[4], parts[5]];
+        // 정답 인덱스가 유효한지 확인
+        const correctIndex = parseInt(parts[6], 10) - 1;
+        if (correctIndex >= 0 && correctIndex < questionData.choices.length) {
+            questionData.correctAnswer = questionData.choices[correctIndex];
+        } else {
+            // 잘못된 데이터에 대한 방어 코드
+            questionData.correctAnswer = questionData.choices[0]; 
+        }
+    } else if (questionType === '2') { // 타입 2: 주관식
+        questionData.prompt = parts[0];
+        questionData.context = parts[1];
+        questionData.correctAnswer = parts[2]; // 정답 문자열
+    }
+    
     return questionData;
 }
 function showQuiz(question, callback) {
     messageBox.classList.add('hidden');
     quizBox.classList.remove('hidden');
     onQuizComplete = callback;
+
     const displayContext = question.context.replace(/@(.*?)@/g, '<u>$1</u>');
     quizTextEl.innerHTML = `${question.prompt}<br><br>"${displayContext}"`;
-    quizAnswersEl.innerHTML = '';
-    const shuffledChoices = shuffleArray([...question.choices]);
-    shuffledChoices.forEach(choice => {
-        const button = document.createElement('button');
-        button.className = 'quiz-btn';
-        button.textContent = choice;
-        button.onclick = () => handleQuizAnswer(choice === question.correctAnswer);
-        quizAnswersEl.appendChild(button);
-    });
+    
+    // UI 요소 가져오기
+    const quizAnswers = quizBox.querySelector('#quiz-answers');
+    const shortAnswerArea = quizBox.querySelector('#quiz-short-answer-area');
+    const shortAnswerInput = quizBox.querySelector('#short-answer-input');
+    const shortAnswerSubmitBtn = quizBox.querySelector('#short-answer-submit-btn');
+
+    if (question.type === '1') { // 타입 1: 객관식 UI 표시
+        quizAnswers.classList.remove('hidden');
+        shortAnswerArea.classList.add('hidden');
+        quizAnswers.innerHTML = '';
+        
+        const shuffledChoices = shuffleArray([...question.choices]);
+        shuffledChoices.forEach(choice => {
+            const button = document.createElement('button');
+            button.className = 'quiz-btn';
+            button.textContent = choice;
+            button.onclick = () => handleQuizAnswer(choice === question.correctAnswer);
+            quizAnswers.appendChild(button);
+        });
+
+    } else if (question.type === '2') { // 타입 2: 주관식 UI 표시
+        quizAnswers.classList.add('hidden');
+        shortAnswerArea.classList.remove('hidden');
+        
+        shortAnswerInput.value = '';
+        shortAnswerInput.focus();
+        
+        const submitAnswer = () => {
+            const userAnswer = shortAnswerInput.value.trim();
+            handleQuizAnswer(userAnswer === question.correctAnswer);
+        };
+
+        // 기존 이벤트 리스너 제거 (중복 방지)
+        shortAnswerSubmitBtn.onclick = null;
+        shortAnswerInput.onkeypress = null;
+
+        // 새 이벤트 리스너 추가
+        shortAnswerSubmitBtn.onclick = submitAnswer;
+        shortAnswerInput.onkeypress = (event) => {
+            if (event.key === 'Enter') {
+                submitAnswer();
+            }
+        };
+    }
 }
 function handleQuizAnswer(isCorrect) {document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = true);if (onQuizComplete) { onQuizComplete(isCorrect); }}
 function toggleActionMenu(enabled) { actionButtons.forEach(btn => btn.disabled = !enabled); }
@@ -141,10 +192,11 @@ function generateMonsters() {
             const questionsData = questionDB.find(q => q.id === monsterData.questionId);
             const newMonster = { ...monsterData };
             if (questionsData) {
-                newMonster.quizBank = Object.keys(questionsData).filter(key => key.startsWith('question')).map(key => questionsData[key]).filter(q => q);
+                // [수정] quizBank 대신 questionSet으로 문제 덩어리 전체를 저장
+                newMonster.questionSet = questionsData;
             } else {
                 console.error(`몬스터 '${newMonster.name}'(ID: ${id})에 대한 Question DB(ID: ${newMonster.questionId})를 찾을 수 없습니다.`);
-                newMonster.quizBank = [];
+                newMonster.questionSet = { type: '1', quizBank: [] }; // 기본값 설정
             }
             return newMonster;
         }
@@ -159,14 +211,17 @@ function startEnemyTurn() {
     toggleActionMenu(false);
     setMonsterImage('idle');
     showMessage("몬스터의 턴입니다.", () => {
-        if (!currentMonster.quizBank || currentMonster.quizBank.length === 0) {
+        const questionKeys = Object.keys(currentMonster.questionSet).filter(k => k.startsWith('question') && currentMonster.questionSet[k]);
+        if (!questionKeys || questionKeys.length === 0) {
             showMessage("몬스터가 낼 문제가 없어 행동을 하지 못합니다.", checkBattleEnd);
             return;
         }
+        const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
+        const rawQuestion = currentMonster.questionSet[randomKey];
+        const questionType = currentMonster.questionSet.type; // 타입 가져오기
+        const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
         const monsterSkills = [currentMonster.skillId1, currentMonster.skillId2, currentMonster.skillId3].filter(id => id).map(id => skillDB.find(s => s.id === id)).filter(skill => skill && parseInt(currentMonster.mp) >= parseInt(skill.mpCost));
         const willUseSkill = monsterSkills.length > 0 && Math.random() < 0.5;
-        const rawQuestion = currentMonster.quizBank[Math.floor(Math.random() * currentMonster.quizBank.length)];
-        const question = parseQuestion(rawQuestion);
         if (willUseSkill) {
             const skillToUse = monsterSkills[Math.floor(Math.random() * monsterSkills.length)];
             currentMonster.mp -= parseInt(skillToUse.mpCost);
@@ -209,12 +264,16 @@ function handleAction(action) {
     if (turn !== 'player' || isActionInProgress) return;
     isActionInProgress = true;
     toggleActionMenu(false);
-    if (!currentMonster.quizBank || currentMonster.quizBank.length === 0) {
+    const questionKeys = Object.keys(currentMonster.questionSet).filter(k => k.startsWith('question') && currentMonster.questionSet[k]);
+    if (!questionKeys || questionKeys.length === 0) {
         showMessage("몬스터가 낼 문제가 없습니다! (DB 확인 필요)", () => { startPlayerTurn(); });
         return;
     }
-    const rawQuestion = currentMonster.quizBank[Math.floor(Math.random() * currentMonster.quizBank.length)];
-    const question = parseQuestion(rawQuestion);
+    const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
+    const rawQuestion = currentMonster.questionSet[randomKey];
+    const questionType = currentMonster.questionSet.type; // 타입 가져오기
+    const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
+
     switch(action) {
         case 'attack':
             showQuiz(question, (isCorrect) => {
@@ -303,8 +362,11 @@ function openSkillMenu() {
 function useSkill(skill) {
     closeModal();
     isActionInProgress = true;
-    const rawQuestion = currentMonster.quizBank[Math.floor(Math.random() * currentMonster.quizBank.length)];
-    const question = parseQuestion(rawQuestion);
+    const questionKeys = Object.keys(currentMonster.questionSet).filter(k => k.startsWith('question') && currentMonster.questionSet[k]);
+    const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
+    const rawQuestion = currentMonster.questionSet[randomKey];
+    const questionType = currentMonster.questionSet.type; // 타입 가져오기
+    const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
     showQuiz(question, (isCorrect) => {
         player.mp -= skill.mpCost;
         if (isCorrect) {

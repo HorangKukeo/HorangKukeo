@@ -1,4 +1,11 @@
 // === DOM 요소 가져오기 ===
+const cardDexModal = document.getElementById('card-dex-modal');
+const equippedCardsSection = document.getElementById('equipped-cards-section');
+const cardDexSection = document.getElementById('card-dex-section');
+const cardDetailModal = document.getElementById('card-detail-modal');
+const detailCardName = document.getElementById('detail-card-name');
+const detailCardContent = document.getElementById('detail-card-content');
+const dexFilterButtons = document.getElementById('dex-filter-buttons');
 const loadingMessageEl = document.getElementById('loading-message');
 const dungeonListEl = document.getElementById('dungeon-list');
 const userNicknameEl = document.getElementById('user-nickname');
@@ -29,6 +36,8 @@ const gachaPackList = document.getElementById('gacha-pack-list');
 const gachaResultView = document.getElementById('gacha-result-view');
 const gachaResultCard = document.getElementById('gacha-result-card');
 const gachaConfirmBtn = document.getElementById('gacha-confirm-btn');
+const detailModalCloseBtn = document.getElementById('detail-modal-close-btn');
+let currentDexPage = '1-20';
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
@@ -64,7 +73,7 @@ async function fetchAndStoreGameData() {
         };
 
         // 카드 DB 로딩
-        const cards = parseDB(data.Cards, ['id', 'name', 'hpBonus', 'mpBonus', 'attackBonus', 'skillId']);
+        const cards = parseDB(data.Cards, ['id', 'name', 'hpBonus', 'mpBonus', 'attackBonus', 'skillId', 'description']);
         cards.forEach(card => {
             card.hpBonus = parseInt(card.hpBonus, 10) || 0;
             card.mpBonus = parseInt(card.mpBonus, 10) || 0;
@@ -138,65 +147,148 @@ function displayUserData() {
     playerMpBar.style.width = '100%';
 }
 
-function openCardManagementModal() {
+/////////////////////CARD//////////////////////////
+function openCardDetailModal(cardId) {
+    const cardDB = JSON.parse(localStorage.getItem('cardDB'));
+    const skillDB = JSON.parse(localStorage.getItem('skillDB'));
+    const card = cardDB.find(c => c.id === cardId);
+    if (!card) return;
+
+    const skill = skillDB.find(s => s.id === card.skillId);
+    const skillName = skill ? skill.name : "없음";
+
+    detailCardName.textContent = card.name;
+    detailCardContent.innerHTML = `
+        <p><strong>HP 보너스:</strong> ${card.hpBonus}</p>
+        <p><strong>MP 보너스:</strong> ${card.mpBonus}</p>
+        <p><strong>공격력 보너스:</strong> ${card.attackBonus}</p>
+        <p><strong>사용 스킬:</strong> ${skillName}</p>
+        <p class="description">"${card.description || '아직 알려진 바가 없다.'}"</p>
+    `;
+
+    openModal(cardDetailModal);
+}
+
+function renderCardDex() {
     const userData = JSON.parse(localStorage.getItem('userData'));
     const cardDB = JSON.parse(localStorage.getItem('cardDB'));
-    equippedCardManageList.innerHTML = '';
-    ownedCardManageList.innerHTML = '';
+    const skillDB = JSON.parse(localStorage.getItem('skillDB'));
+
+    equippedCardsSection.innerHTML = '';
+    cardDexSection.innerHTML = '';
+
+    // 카드 아이템 HTML을 생성하는 헬퍼 함수
+    const createCardHTML = (card, isEquipped) => {
+        const skill = skillDB.find(s => s.id === card.skillId);
+        const skillName = skill ? skill.name : "없음";
+        
+        let actionsHTML = '';
+        if (isEquipped) {
+            actionsHTML = `<button onclick="unequipCard('${card.id}')">해제</button>`;
+        } else {
+            actionsHTML = `<button onclick="equipCard('${card.id}')" ${userData.equippedCards.length >= 4 ? 'disabled' : ''}>장착</button>`;
+        }
+        actionsHTML += `<button onclick="openCardDetailModal('${card.id}')">자세히 보기</button>`;
+
+        return `
+            <div class="card-item">
+                <div class="card-name">${card.name}</div>
+                <div class="card-stats">
+                    <p>HP: ${card.hpBonus}</p><p>MP: ${card.mpBonus}</p>
+                    <p>ATK: ${card.attackBonus}</p><p>SKL: ${skillName}</p>
+                </div>
+                <div class="card-actions">${actionsHTML}</div>
+            </div>
+        `;
+    };
+    
+    // 장착된 카드 섹션 채우기 (기존과 동일)
     userData.equippedCards.forEach(cardId => {
         const card = cardDB.find(c => c.id === cardId);
         if (card) {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'card-list-item';
-            itemEl.innerHTML = `<span>${card.name}</span>`;
-            const unequipBtn = document.createElement('button');
-            unequipBtn.textContent = '해제';
-            unequipBtn.onclick = () => unequipCard(cardId);
-            itemEl.appendChild(unequipBtn);
-            equippedCardManageList.appendChild(itemEl);
+            equippedCardsSection.innerHTML += createCardHTML(card, true);
         }
     });
-    userData.ownedCards.forEach(cardId => {
-        if (!userData.equippedCards.includes(cardId)) {
-            const card = cardDB.find(c => c.id === cardId);
-            if (card) {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'card-list-item';
-                itemEl.innerHTML = `<span>${card.name}</span>`;
-                const equipBtn = document.createElement('button');
-                equipBtn.textContent = '장착';
-                if (userData.equippedCards.length >= 4) {
-                    equipBtn.disabled = true;
-                }
-                equipBtn.onclick = () => equipCard(cardId);
-                itemEl.appendChild(equipBtn);
-                ownedCardManageList.appendChild(itemEl);
+    for (let i = userData.equippedCards.length; i < 4; i++) {
+        equippedCardsSection.innerHTML += `<div class="card-item locked"><div class="card-name">비어있음</div></div>`;
+    }
+
+    // 도감 섹션 채우기 (새로운 로직)
+    const [start, end] = currentDexPage.split('-').map(Number);
+
+    for (let i = start; i <= end; i++) {
+        const cardId = 'C' + String(i).padStart(3, '0');
+        const card = cardDB.find(c => c.id === cardId);
+
+        if (card) {
+            const isOwned = userData.ownedCards.includes(card.id);
+            const isEquipped = userData.equippedCards.includes(card.id);
+
+            if (isOwned) {
+                cardDexSection.innerHTML += createCardHTML(card, isEquipped);
+            } else {
+                // 소유하지 않은 카드
+                cardDexSection.innerHTML += `
+                    <div class="card-item locked">
+                        <div class="card-name">???</div>
+                        <div class="card-stats">
+                            <p>HP: ???</p><p>MP: ???</p>
+                            <p>ATK: ???</p><p>SKL: ???</p>
+                        </div>
+                    </div>
+                `;
             }
         }
+    }
+    
+    // 현재 페이지에 맞는 필터 버튼에 active 클래스 적용
+    dexFilterButtons.querySelectorAll('.dex-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.range === currentDexPage) {
+            btn.classList.add('active');
+        }
     });
-    modalBackdrop.classList.remove('hidden');
-    cardManagementModal.classList.remove('hidden');
 }
+
+// 도감 모달을 여는 함수 (초기화 역할)
+function openCardDexModal() {
+    currentDexPage = '1-20'; // 열 때마다 기본 페이지로 초기화
+    renderCardDex(); // 내용물 그리기
+    openModal(cardDexModal); // 모달 보이기
+}
+
 function equipCard(cardId) {
     const userData = JSON.parse(localStorage.getItem('userData'));
     if (userData.equippedCards.length < 4) {
-        userData.equippedCards.push(cardId);
-        localStorage.setItem('userData', JSON.stringify(userData));
-        uploadUserData(userData.id);
-        openCardManagementModal();
-        displayUserData();
+        if (!userData.equippedCards.includes(cardId)) {
+            userData.equippedCards.push(cardId);
+            localStorage.setItem('userData', JSON.stringify(userData));
+            uploadUserData(userData.id);
+            renderCardDex(); // [수정] 모달을 다시 여는 대신, 내용물만 새로고침
+            displayUserData();
+        }
     } else {
         alert("카드는 최대 4개까지만 장착할 수 있습니다.");
     }
 }
+
 function unequipCard(cardId) {
     let userData = JSON.parse(localStorage.getItem('userData'));
     userData.equippedCards = userData.equippedCards.filter(id => id !== cardId);
     localStorage.setItem('userData', JSON.stringify(userData));
     uploadUserData(userData.id);
-    openCardManagementModal();
+    renderCardDex(); // [수정] 모달을 다시 여는 대신, 내용물만 새로고침
     displayUserData();
 }
+
+//////////////////////////////////////////////////////
+
+// openModal 헬퍼 함수 추가 (또는 기존 함수 활용)
+function openModal(modal) {
+    modalBackdrop.classList.remove('hidden');
+    modal.classList.remove('hidden');
+}
+
 function openItemViewModal() {
     const userData = JSON.parse(localStorage.getItem('userData'));
     const itemDB = JSON.parse(localStorage.getItem('itemDB'));
@@ -231,7 +323,7 @@ function openDungeonModal() {
         visibleDungeons.forEach(dungeon => {
             const card = document.createElement('div');
             card.className = 'dungeon-card';
-            card.innerHTML = `<h2>${dungeon.name}</h2><p>테마: ${dungeon.area}</p><p>권장 레벨: ${dungeon.recommendedLevel}</p>`;
+            card.innerHTML = `<h2>${dungeon.name}</h2><p>테마: ${dungeon.area}</p><p>난이도: ${dungeon.recommendedLevel}</p>`;
             card.addEventListener('click', () => {
                 modalBackdrop.classList.add('hidden');
                 dungeonModal.classList.add('hidden');
@@ -327,7 +419,7 @@ async function initializeMainScreen() {
     displayUserData();
 
     // 이벤트 리스너 설정
-    cardViewBtn.addEventListener('click', openCardManagementModal);
+    cardViewBtn.addEventListener('click', openCardDexModal);
     itemViewBtn.addEventListener('click', openItemViewModal);
     exploreBtn.addEventListener('click', openDungeonModal);
     gachaBtn.addEventListener('click', openGachaModal);
@@ -348,16 +440,29 @@ async function initializeMainScreen() {
         }
     });
 
+    detailModalCloseBtn.addEventListener('click', () => {
+    cardDetailModal.classList.add('hidden'); // 상세보기 창만 닫음
+    });
+
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             modalBackdrop.classList.add('hidden');
-            cardManagementModal.classList.add('hidden');
+            cardDexModal.classList.add('hidden');
+            cardDetailModal.classList.add('hidden');
             itemViewModal.classList.add('hidden');
             dungeonModal.classList.add('hidden');
             shopModal.classList.add('hidden');
             gachaModal.classList.add('hidden');
+            cardDetailModal.classList.add('hidden');
         });
     });
+
+    dexFilterButtons.addEventListener('click', (event) => {
+    if (event.target.classList.contains('dex-filter-btn')) {
+        currentDexPage = event.target.dataset.range;
+        renderCardDex(); // 선택된 페이지로 도감 내용 다시 그리기
+    }
+});
 }
 
 function openShopModal() {

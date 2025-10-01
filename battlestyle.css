@@ -187,3 +187,25 @@ body {
         min-width: 0; /* PC에서 설정된 최소 너비 제한을 제거 */
     }
 }
+
+#quiz-short-answer-area {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#short-answer-input {
+    flex-grow: 1;
+    padding: 15px;
+    background-color: #444;
+    border: 2px solid #777;
+    color: white;
+    font-family: inherit;
+    font-size: 1.1em;
+    border-radius: 5px;
+}
+
+#short-answer-submit-btn {
+    width: auto; /* 너비 자동 조절 */
+    flex-shrink: 0; /* 줄어들지 않음 */
+}

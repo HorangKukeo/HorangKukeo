@@ -45,19 +45,38 @@
         </div>
 
     <div id="modal-backdrop" class="hidden">
-        <div id="card-management-modal" class="modal-window hidden">
-            <h3>카드 관리</h3>
-            <div class="card-management-container">
-                <div class="card-section">
-                    <h4>장착한 카드 (최대 4개)</h4>
-                    <div id="equipped-card-manage-list" class="card-list"></div>
-                </div>
-                <div class="card-section">
-                    <h4>소유한 카드</h4>
-                    <div id="owned-card-manage-list" class="card-list"></div>
+        <div id="card-dex-modal" class="modal-window hidden">
+            <h3>🎴 카드 도감 및 장착</h3>
+            
+            <div class="card-section">
+                <h4>장착한 카드 (최대 4개)</h4>
+                <div id="equipped-cards-section" class="card-grid">
+                    </div>
+            </div>
+
+            <div class="card-section">
+                <h4>카드 도감</h4>
+                <div class="dex-content-wrapper">
+                    <div id="dex-filter-buttons">
+                        <button class="dex-filter-btn active" data-range="1-20">1-20</button>
+                        <button class="dex-filter-btn" data-range="21-40">21-40</button>
+                        <button class="dex-filter-btn" data-range="41-60">41-60</button>
+                        <button class="dex-filter-btn" data-range="61-80">61-80</button>
+                        <button class="dex-filter-btn" data-range="81-100">81-100</button>
+                    </div>
+                    <div id="card-dex-section" class="card-grid dex">
+                        </div>
                 </div>
             </div>
+
             <button class="modal-close-btn">닫기</button>
+        </div>
+
+        <div id="card-detail-modal" class="modal-window hidden">
+            <h3 id="detail-card-name"></h3>
+            <div id="detail-card-content">
+                </div>
+            <button id="detail-modal-close-btn">닫기</button>
         </div>
         
         <div id="item-view-modal" class="modal-window hidden">

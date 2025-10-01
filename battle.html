@@ -57,10 +57,16 @@
 
         <div id="ui-area">
             <div id="message-box" class="box"><p id="message-text"></p></div>
-            <div id="quiz-box" class="box hidden">
-                <p id="quiz-text"></p>
-                <div id="quiz-answers"></div>
-            </div>
+                <div id="quiz-box" class="box hidden">
+                    <p id="quiz-text"></p>
+                    
+                    <div id="quiz-answers"></div>
+
+                    <div id="quiz-short-answer-area" class="hidden">
+                        <input type="text" id="short-answer-input" placeholder="정답을 입력하세요...">
+                        <button id="short-answer-submit-btn" class="quiz-btn">제출</button>
+                    </div>
+                </div>
         </div>
         
         <div id="action-menu" class="box">

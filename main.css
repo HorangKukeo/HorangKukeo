@@ -143,5 +143,133 @@ body {
     align-items: center;
 }
 
+.card-section {
+    margin-bottom: 20px;
+    background-color: rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 5px;
+}
+.card-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    min-height: 80px;
+}
+.card-grid.dex {
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
+.card-item {
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #333;
+    text-align: center;
+    font-size: 0.9em;
+    display: flex;
+    flex-direction: column;
+}
+.card-item.locked {
+    filter: grayscale(100%) brightness(0.6);
+    background-color: #222;
+}
+
+.card-item .card-name {
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.card-item .card-stats {
+    flex-grow: 1;
+    text-align: left;
+    font-size: 0.85em;
+    border-top: 1px solid var(--border-color);
+    margin-top: 5px;
+    padding-top: 5px;
+}
+.card-item .card-stats p {
+    margin: 2px 0;
+}
+
+.card-item .card-actions {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.card-item .card-actions button {
+    width: 100%;
+    padding: 4px;
+    font-size: 0.8em;
+    cursor: pointer;
+}
+
+#detail-card-content p {
+    margin: 5px 0;
+    line-height: 1.6;
+}
+#detail-card-content strong {
+    color: var(--accent-color);
+}
+#detail-card-content .description {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+    font-style: italic;
+    color: #ccc;
+}
+
+#card-detail-modal {
+    position: absolute; /* [수정] flexbox 흐름에서 벗어나 자유롭게 배치되도록 설정 */
+    top: 50%;           /* [추가] 화면 세로 중앙에 위치 */
+    left: 50%;          /* [추가] 화면 가로 중앙에 위치 */
+    transform: translate(-50%, -50%); /* [추가] 자신의 크기만큼 위치 보정하여 완벽한 중앙 정렬 */
+    z-index: 110;       /* 다른 모달보다 위에 표시되도록 유지 */
+}
+
+.dex-content-wrapper {
+    display: flex;
+    gap: 15px;
+}
+
+#dex-filter-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.dex-filter-btn {
+    padding: 10px 15px;
+    font-size: 1em;
+    font-family: var(--font-main);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #444;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+.dex-filter-btn.active, .dex-filter-btn:hover {
+    background-color: var(--accent-color);
+    color: #111;
+    border-color: var(--accent-color);
+    font-weight: bold;
+}
+
+#card-dex-section {
+    flex-grow: 1; /* 필터 버튼을 제외한 나머지 공간을 모두 차지 */
+}
+
 /* 모바일 */
 @media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
