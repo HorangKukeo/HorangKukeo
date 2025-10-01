@@ -64,9 +64,15 @@ let isActionInProgress = false;
 
 // === 헬퍼 및 UI 함수 ===
 function calculatePlayerStats() {
-    player.maxHp = player.baseHp;
-    player.maxMp = player.baseMp;
-    player.attack = player.baseAttack;
+    const ownedCardCount = player.ownedCards.length;
+    const collectionHpBonus = ownedCardCount * 1;
+    const collectionMpBonus = Math.round(ownedCardCount * 0.5);
+    const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+    player.maxHp = player.baseHp + collectionHpBonus;
+    player.maxMp = player.baseMp + collectionMpBonus;
+    player.attack = player.baseAttack + collectionAttackBonus;
+
     player.equippedCards.forEach(cardId => {
         const card = cardDB.find(c => c.id === cardId);
         if (card) {
@@ -179,7 +185,11 @@ function showQuiz(question, callback) {
 }
 function handleQuizAnswer(isCorrect) {document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = true);if (onQuizComplete) { onQuizComplete(isCorrect); }}
 function toggleActionMenu(enabled) { actionButtons.forEach(btn => btn.disabled = !enabled); }
-function setMonsterImage(state) { monsterImageEl.src = `img/monster-${state}.png`;}
+function setMonsterImage(state) {
+    // 현재 몬스터의 img 속성 값을 가져오고, 만약 없다면 기본값으로 'monster'를 사용
+    const imgBaseName = currentMonster.img || 'monster';
+    monsterImageEl.src = `img/${imgBaseName}-${state}.png`;
+}
 function openModal(modal) { modalBackdrop.classList.remove('hidden'); modal.classList.remove('hidden'); }
 function closeModal() { modalBackdrop.classList.add('hidden'); skillModal.classList.add('hidden'); itemModal.classList.add('hidden'); victoryModal.classList.add('hidden'); infoModal.classList.add('hidden'); }
 function generateMonsters() {
@@ -438,12 +448,25 @@ function initGame() {
         baseHp: userData.baseHp || 80,
         baseMp: userData.baseMp || 50,
         baseAttack: userData.baseAttack || 15,
+        ownedCards: userData.ownedCards || [], // [추가] 보유 카드 목록 추가
         equippedCards: userData.equippedCards || [],
         inventory: userData.inventory || {},
         gold: userData.gold || 0,
         points: userData.points || { partsOfSpeech: 0, sentenceComponents: 0 }
     };
+    
     calculatePlayerStats();
+
+    const playerImageEl = gameContainer.querySelector('#player-image');
+    let conditionsMet = 0;
+    // 아래 값들은 main.js와 동일하게 맞춰주어야 합니다.
+    if (player.maxHp >= 100) conditionsMet++;
+    if (player.maxMp >= 70) conditionsMet++;
+    if (player.attack >= 50) conditionsMet++;
+    if (player.equippedCards.length >= 4) conditionsMet++;
+    
+    playerImageEl.src = `img/player${conditionsMet}.png`;
+
     player.hp = player.maxHp;
     player.mp = player.maxMp;
 
@@ -524,11 +547,15 @@ function initGame() {
         });
         if (player.equippedCards.length === 0) cardListHTML = '<li>없음</li>';
         
+        // [수정] 도감 보너스를 포함하여 공격력 정보를 더 자세히 표시
+        const ownedCardCount = player.ownedCards.length;
+        const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+        const equippedAttackBonus = player.attack - player.baseAttack - collectionAttackBonus;
+
         infoList.innerHTML = `
-            <p><strong>공격력:</strong> ${player.attack} (${player.baseAttack} + ${player.attack - player.baseAttack})</p>
+            <p><strong>공격력:</strong> ${player.attack} (기본 ${player.baseAttack} + 도감 ${collectionAttackBonus} + 장착 카드 ${equippedAttackBonus})</p>
             <p><strong>골드:</strong> ${player.gold} G</p>
             <p><strong>품사 포인트:</strong> ${player.points.partsOfSpeech || 0} P</p>
-            <p><strong>문장 성분 포인트:</strong> ${player.points.sentenceComponents || 0} P</p>
             <p><strong>장착 카드:</strong></p>
             <ul>${cardListHTML}</ul>
         `;

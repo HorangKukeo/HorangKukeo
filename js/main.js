@@ -41,7 +41,7 @@ let currentDexPage = '1-20';
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004'];
 
 function setupDefaultUserData() {
     if (!localStorage.getItem('userData')) {
@@ -111,7 +111,7 @@ async function fetchAndStoreGameData() {
 
         // 기타 DB 로딩
         localStorage.setItem('dungeonDB', JSON.stringify(parseDB(data.Dungeons, ['id', 'name', 'area', 'recommendedLevel', 'monster1Id', 'monster2Id', 'monster3Id', 'monster4Id', 'monster5Id'])));
-        localStorage.setItem('monsterDB', JSON.stringify(parseDB(data.Monsters, ['id', 'name', 'level', 'hp', 'mp', 'attack', 'goldReward', 'pointReward', 'affiliation', 'questionId', 'skillId1', 'skillId2', 'skillId3'])));
+        localStorage.setItem('monsterDB', JSON.stringify(parseDB(data.Monsters, ['id', 'name', 'level', 'hp', 'mp', 'attack', 'goldReward', 'pointReward', 'affiliation', 'questionId', 'skillId1', 'skillId2', 'skillId3', 'img'])));
         localStorage.setItem('questionDB', JSON.stringify(parseDB(data.Questions, ['id', 'name', 'type', 'question1', 'question2', 'question3', 'question4', 'question5', 'question6', 'question7', 'question8', 'question9', 'question10', 'question11', 'question12', 'question13', 'question14', 'question15', 'question16', 'question17', 'question18', 'question19', 'question20'])));
         
         return true;
@@ -122,6 +122,8 @@ async function fetchAndStoreGameData() {
     }
 }
 
+// main.js의 displayUserData 함수를 아래 코드로 교체
+
 function displayUserData() {
     const userData = JSON.parse(localStorage.getItem('userData'));
     const cardDB = JSON.parse(localStorage.getItem('cardDB'));
@@ -129,15 +131,39 @@ function displayUserData() {
         document.body.innerHTML = "<h1>사용자 데이터를 불러오는 데 실패했습니다. 다시 로그인해주세요.</h1>";
         return;
     }
-    let maxHp = userData.baseHp;
-    let maxMp = userData.baseMp;
+
+    const playerPortraitImg = document.querySelector('.player-portrait img');
+
+    // --- [추가] 도감 보너스 계산 ---
+    const ownedCardCount = userData.ownedCards.length;
+    const collectionHpBonus = ownedCardCount * 1;
+    const collectionMpBonus = Math.round(ownedCardCount * 0.5);
+    const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+    // --- 스탯 계산 (도감 보너스 적용) ---
+    let maxHp = userData.baseHp + collectionHpBonus; // 베이스 스탯에 도감 보너스 추가
+    let maxMp = userData.baseMp + collectionMpBonus;
+    let totalAttack = userData.baseAttack + collectionAttackBonus;
+    
+    // 장착 카드 보너스 합산
     userData.equippedCards.forEach(cardId => {
         const card = cardDB.find(c => c.id === cardId);
         if (card) {
             maxHp += card.hpBonus;
             maxMp += card.mpBonus;
+            totalAttack += card.attackBonus;
         }
     });
+
+    // --- 조건 확인 및 이미지 변경 로직 (기존과 동일) ---
+    let conditionsMet = 0;
+    if (maxHp >= 100) conditionsMet++;
+    if (maxMp >= 70) conditionsMet++;
+    if (totalAttack >= 50) conditionsMet++;
+    if (userData.equippedCards.length >= 4) conditionsMet++;
+    playerPortraitImg.src = `img/player${conditionsMet}.png`;
+
+    // --- UI 표시 (기존과 동일) ---
     userNicknameEl.textContent = userData.nickname;
     userGoldEl.textContent = userData.gold;
     userPosPointsEl.textContent = userData.points.partsOfSpeech;
@@ -590,43 +616,53 @@ function drawCard(pack) {
             alert("품사 포인트가 부족합니다."); return;
         }
 
-        // 재화 차감
+        // 재화 우선 차감
         userData.gold -= pack.priceGold;
         userData.points.partsOfSpeech -= pack.pricePosPoints;
 
         // 카드 뽑기 실행
         const drawnCardId = drawCard(pack);
-        
-        // ======================= [수정된 로직 시작] =======================
-        let isDuplicate = userData.ownedCards.includes(drawnCardId); // 중복 카드인지 여부 확인
+        const isDuplicate = userData.ownedCards.includes(drawnCardId);
 
-        // 새로운 카드인 경우에만 소유 목록에 추가
-        if (!isDuplicate) {
+        // 결과 표시를 위한 UI 요소 가져오기
+        const drawnCard = cardDB.find(c => c.id === drawnCardId);
+        const resultTitle = gachaResultView.querySelector('h4');
+        const resultMessage = gachaResultView.querySelector('p');
+
+        if (isDuplicate) {
+            // [추가] 중복 카드일 경우의 처리
+            // 1. 환급액 계산 (60% 반올림)
+            const goldRefund = Math.round(pack.priceGold * 0.6);
+            const pointsRefund = Math.round(pack.pricePosPoints * 0.6);
+
+            // 2. 환급액 적용
+            userData.gold += goldRefund;
+            userData.points.partsOfSpeech += pointsRefund;
+
+            // 3. 결과 메시지 설정
+            resultTitle.textContent = '💧 이런... 이미 소유한 카드네요.💧';
+            resultMessage.innerHTML = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 60%인 ${goldRefund} G와 ${pointsRefund} P를 돌려받습니다.`;
+            
+        } else {
+            // 새로운 카드일 경우의 처리
             userData.ownedCards.push(drawnCardId);
+            resultTitle.textContent = '🎉 축하합니다! 🎉';
+            resultMessage.textContent = `'${drawnCard.name}' 카드를 새로 획득했습니다!`;
         }
 
-        // 데이터 저장 및 서버 업로드 (재화가 차감되었으므로 항상 실행)
+        // 변경된 데이터 저장 및 서버 업로드
         localStorage.setItem('userData', JSON.stringify(userData));
         if (userData.id) {
             uploadUserData(userData.id);
         }
         
-        // 결과 UI 표시
-        const drawnCard = cardDB.find(c => c.id === drawnCardId);
+        // 결과 화면 표시
         gachaPackList.classList.add('hidden');
         gachaResultView.classList.remove('hidden');
         gachaResultCard.innerHTML = `<strong>${drawnCard.name}</strong>`;
-
-        // 중복 여부에 따라 다른 메시지와 제목을 표시
-        const resultTitle = gachaResultView.querySelector('h4');
-        if (isDuplicate) {
-            resultTitle.textContent = '💧 이런... 이미 소유한 카드네요.💧';
-        } else {
-            resultTitle.textContent = '🎉 축하합니다! 🎉';
-        }
-        // ======================= [수정된 로직 끝] =======================
         
-        displayUserData(); // 메인 UI 갱신
+        // 메인 화면 UI 갱신 (변경된 골드/포인트 반영)
+        displayUserData();
     }
 
 
