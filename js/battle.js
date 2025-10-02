@@ -156,35 +156,66 @@ function updateUI() {
     });
 }
 function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]];} return array;}
-function showMessage(text, callback) {messageBox.classList.remove('hidden');quizBox.classList.add('hidden');messageTextEl.textContent = text;if (callback) { setTimeout(callback, 1500); }}
+function showMessage(text, explanationOrCallback, callback) {
+    messageBox.classList.remove('hidden');
+    quizBox.classList.add('hidden');
+    
+    // 두 번째 파라미터가 함수인지 문자열인지 판별
+    let explanation = '';
+    let finalCallback = null;
+    
+    if (typeof explanationOrCallback === 'function') {
+        // 기존 방식: showMessage(text, callback)
+        finalCallback = explanationOrCallback;
+    } else if (typeof explanationOrCallback === 'string') {
+        // 새 방식: showMessage(text, explanation, callback)
+        explanation = explanationOrCallback;
+        finalCallback = callback;
+    }
+    
+    let fullMessage = text;
+    if (explanation) {
+        fullMessage += `<br><br><div style="margin-top: 15px; padding: 10px; background-color: rgba(255,193,7,0.2); border-left: 3px solid var(--accent-color); text-align: left;"><strong>💡 해설:</strong> ${explanation}</div>`;
+    }
+    
+    messageTextEl.innerHTML = fullMessage;
+    
+    if (finalCallback) { 
+        setTimeout(finalCallback, explanation ? 2500 : 1500);
+    }
+}
+
+let currentQuestion = null;
 function parseQuestion(questionString, questionType) {
     const parts = questionString.split('⊥');
-    const questionData = { type: questionType }; // type을 객체에 포함
+    const questionData = { type: questionType };
 
-    if (questionType === '1') { // 타입 1: 객관식
+    if (questionType === '1') { // 객관식
         questionData.prompt = parts[0];
         questionData.context = parts[1];
         questionData.choices = [parts[2], parts[3], parts[4], parts[5]];
-        // 정답 인덱스가 유효한지 확인
         const correctIndex = parseInt(parts[6], 10) - 1;
         if (correctIndex >= 0 && correctIndex < questionData.choices.length) {
             questionData.correctAnswer = questionData.choices[correctIndex];
         } else {
-            // 잘못된 데이터에 대한 방어 코드
             questionData.correctAnswer = questionData.choices[0]; 
         }
-    } else if (questionType === '2') { // 타입 2: 주관식
+        questionData.explanation = parts[7] || ''; // 해설 추가
+    } else if (questionType === '2') { // 주관식
         questionData.prompt = parts[0];
         questionData.context = parts[1];
-        questionData.correctAnswer = parts[2]; // 정답 문자열
+        questionData.correctAnswer = parts[2];
+        questionData.explanation = parts[3] || ''; // 해설 추가
     }
     
     return questionData;
 }
+
 function showQuiz(question, callback) {
     messageBox.classList.add('hidden');
     quizBox.classList.remove('hidden');
     onQuizComplete = callback;
+    currentQuestion = question;
 
     const displayContext = question.context.replace(/@(.*?)@/g, '<u>$1</u>');
     quizTextEl.innerHTML = `${question.prompt}<br><br>"${displayContext}"`;
@@ -209,32 +240,51 @@ function showQuiz(question, callback) {
             quizAnswers.appendChild(button);
         });
 
-    } else if (question.type === '2') { // 타입 2: 주관식 UI 표시
-        quizAnswers.classList.add('hidden');
-        shortAnswerArea.classList.remove('hidden');
-        
-        shortAnswerInput.value = '';
-        shortAnswerInput.focus();
-        
-        const submitAnswer = () => {
-            const userAnswer = shortAnswerInput.value.trim();
-            handleQuizAnswer(userAnswer === question.correctAnswer);
-        };
+        } else if (question.type === '2') { // 타입 2: 주관식 UI 표시
+            quizAnswers.classList.add('hidden');
+            shortAnswerArea.classList.remove('hidden');
+            
+            shortAnswerInput.value = '';
+            shortAnswerInput.disabled = false; // 활성화
+            shortAnswerInput.focus();
+            
+            shortAnswerSubmitBtn.disabled = false; // 활성화
+            
+            const submitAnswer = () => {
+                const userAnswer = shortAnswerInput.value.trim();
+                handleQuizAnswer(userAnswer === question.correctAnswer);
+            };
 
-        // 기존 이벤트 리스너 제거 (중복 방지)
-        shortAnswerSubmitBtn.onclick = null;
-        shortAnswerInput.onkeypress = null;
+            // 기존 이벤트 리스너 제거 (중복 방지)
+            shortAnswerSubmitBtn.onclick = null;
+            shortAnswerInput.onkeypress = null;
 
-        // 새 이벤트 리스너 추가
-        shortAnswerSubmitBtn.onclick = submitAnswer;
-        shortAnswerInput.onkeypress = (event) => {
-            if (event.key === 'Enter') {
-                submitAnswer();
-            }
-        };
+            // 새 이벤트 리스너 추가
+            shortAnswerSubmitBtn.onclick = submitAnswer;
+            shortAnswerInput.onkeypress = (event) => {
+                if (event.key === 'Enter') {
+                    submitAnswer();
+                }
+            };
+        }
+}
+
+function handleQuizAnswer(isCorrect) {
+    // 객관식 버튼만 비활성화
+    const quizAnswersButtons = quizAnswersEl.querySelectorAll('.quiz-btn');
+    quizAnswersButtons.forEach(btn => btn.disabled = true);
+    
+    // 주관식 입력도 비활성화
+    const shortAnswerInput = quizBox.querySelector('#short-answer-input');
+    const shortAnswerSubmitBtn = quizBox.querySelector('#short-answer-submit-btn');
+    if (shortAnswerInput) shortAnswerInput.disabled = true;
+    if (shortAnswerSubmitBtn) shortAnswerSubmitBtn.disabled = true;
+    
+    if (onQuizComplete) { 
+        onQuizComplete(isCorrect);
     }
 }
-function handleQuizAnswer(isCorrect) {document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = true);if (onQuizComplete) { onQuizComplete(isCorrect); }}
+
 function toggleActionMenu(enabled) { actionButtons.forEach(btn => btn.disabled = !enabled); }
 function setMonsterImage(state) {
     // 현재 몬스터의 img 속성 값을 가져오고, 만약 없다면 기본값으로 'monster'를 사용
@@ -297,14 +347,14 @@ function startEnemyTurn() {
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
                     const finalDamage = Math.floor(damage * 0.5);
                     player.hp = Math.max(0, player.hp - finalDamage);
-                    showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, checkBattleEnd);
+                    showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, currentQuestion.explanation, checkBattleEnd);
 
                 } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
                     playSound('monster-skillheal-miss'); // [효과음 추가] (동일한 방해 효과음 사용)
                     await sleep(200);
                     const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, checkBattleEnd);
+                    showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, currentQuestion.explanation, checkBattleEnd);
                 }
 
             } else {
@@ -318,14 +368,14 @@ function startEnemyTurn() {
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
                     const finalDamage = damage;
                     player.hp = Math.max(0, player.hp - finalDamage);
-                    showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, checkBattleEnd);
+                    showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, currentQuestion.explanation, checkBattleEnd);
 
                 } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
                     playSound('monster-skillheal-hit'); // [효과음 추가]
                     await sleep(200);
                     const healAmount = parseInt(skillToUse.effect);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, checkBattleEnd);
+                    showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, currentQuestion.explanation, checkBattleEnd);
                 }
             }
             updateUI();
@@ -344,7 +394,7 @@ function enemyBasicAttack(question) {
             const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
-            showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, checkBattleEnd);
+            showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, currentQuestion.explanation, checkBattleEnd);
         } else {
             playSound('monster-attack-hit'); // [효과음 추가]
             await sleep(200);
@@ -352,7 +402,7 @@ function enemyBasicAttack(question) {
             shakeScreen();
             player.hp = Math.max(0, player.hp - parseInt(currentMonster.attack));
             updateUI();
-            showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, checkBattleEnd);
+            showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, currentQuestion.explanation, checkBattleEnd);
         }
     });
 }
@@ -380,12 +430,12 @@ function handleAction(action) {
                     setMonsterImage('hurt');
                     currentMonster.hp = Math.max(0, currentMonster.hp - player.attack);
                     updateUI();
-                    showMessage(`공격 성공! ${player.attack}의 데미지!`, checkBattleEnd);
+                    showMessage(`공격 성공! ${player.attack}의 데미지!`, currentQuestion.explanation, checkBattleEnd);
                 } else { 
                     playSound('player-attack-miss');
                     await sleep(200);
                     setMonsterImage('happy');
-                    showMessage("공격이 빗나갔다...", checkBattleEnd); 
+                    showMessage("공격이 빗나갔다...", currentQuestion.explanation, checkBattleEnd); 
                 }
             });
             break;
@@ -396,7 +446,7 @@ function handleAction(action) {
                 if (isCorrect && Math.random() < 0.5) {
                     showMessage("도망치는데 성공했다!", () => { window.location.href = 'main.html'; });
                 } else { 
-                    showMessage("도망칠 수 없었다...", checkBattleEnd); 
+                    showMessage("도망칠 수 없었다...", currentQuestion.explanation, checkBattleEnd); 
                 }
             });
             break;
@@ -478,12 +528,12 @@ function useSkill(skill) {
                 shakeScreen();
                 const damage = Math.floor(player.attack * skill.effect);
                 currentMonster.hp = Math.max(0, currentMonster.hp - damage);
-                showMessage(`${skill.name} 발동! ${damage}의 데미지!`, checkBattleEnd);
+                showMessage(`${skill.name} 발동! ${damage}의 데미지!`, currentQuestion.explanation, checkBattleEnd);
             } else if (skill.type === 2) {
                 playSound('player-skillheal-hit');
                 await sleep(200);
                 player.hp = Math.min(player.maxHp, player.hp + skill.effect);
-                showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, checkBattleEnd);
+                showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, currentQuestion.explanation, checkBattleEnd);
             }
         } else {
             setMonsterImage('happy');
@@ -494,7 +544,7 @@ function useSkill(skill) {
                     playSound('player-skillheal-miss');
                     await sleep(200);
                 }
-            showMessage("스킬 발동에 실패했다...", checkBattleEnd);
+            showMessage("스킬 발동에 실패했다...", currentQuestion.explanation, checkBattleEnd);
         }
         updateUI();
     });
@@ -691,4 +741,41 @@ function initGame() {
 }
 
 initGame();
+
+function runRandomTest(questionId, iterations = 100) {
+    // 1. 테스트할 문제 세트 찾기
+    const questionSet = questionDB.find(q => q.id === questionId);
+    if (!questionSet) {
+        console.error(`'${questionId}' ID를 가진 문제 세트를 찾을 수 없습니다.`);
+        return;
+    }
+
+    // 2. 유효한 문제 목록 생성 (게임 로직과 동일)
+    const questionKeys = Object.keys(questionSet).filter(k => k.startsWith('question') && questionSet[k]);
+    if (questionKeys.length === 0) {
+        console.error(`'${questionId}' 문제 세트에 유효한 문제가 없습니다.`);
+        return;
+    }
+
+    console.log(`--- 무작위 추출 테스트 시작 (총 ${iterations}회) ---`);
+    console.log(`테스트 대상: ${questionId} (유효 문항 수: ${questionKeys.length}개)`);
+    
+    // 3. 결과를 기록할 객체 초기화
+    const results = {};
+    questionKeys.forEach(key => { results[key] = 0; });
+
+    // 4. 지정된 횟수만큼 무작위 추출 시뮬레이션
+    for (let i = 0; i < iterations; i++) {
+        const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
+        results[randomKey]++;
+    }
+
+    // 5. 최종 결과 출력
+    console.log("--- 테스트 결과 ---");
+    console.log("각 문제가 선택된 횟수:");
+    console.table(results); // 결과를 표 형태로 깔끔하게 출력
+}
+// 테스트 함수를 브라우저 콘솔에서 직접 호출할 수 있도록 window 객체에 등록
+window.runRandomTest = runRandomTest;
+//runRandomTest('Q001', 10000);
 })();

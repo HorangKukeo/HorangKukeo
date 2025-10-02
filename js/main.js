@@ -37,11 +37,11 @@ const gachaResultView = document.getElementById('gacha-result-view');
 const gachaResultCard = document.getElementById('gacha-result-card');
 const gachaConfirmBtn = document.getElementById('gacha-confirm-btn');
 const detailModalCloseBtn = document.getElementById('detail-modal-close-btn');
-let currentDexPage = '1-20';
+let currentDexPage = '1-10';
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005'];
 
 async function fetchAndStoreGameData() {
     try {
@@ -708,5 +708,59 @@ function openGachaModal() {
     modalBackdrop.classList.remove('hidden');
     gachaModal.classList.remove('hidden');
 }
+
+/**
+ * 카드 뽑기 확률 시뮬레이션 테스트 함수
+ * @param {string} packId - 테스트할 카드팩의 ID (예: 'CP001')
+ * @param {number} iterations - 시도할 횟수
+ */
+function runGachaTest(packId, iterations = 10000) {
+    const cardPackDB = JSON.parse(localStorage.getItem('cardPackDB') || '[]');
+    const packToTest = cardPackDB.find(p => p.id === packId);
+    if (!packToTest) {
+        console.error(`'${packId}' ID를 가진 카드팩을 찾을 수 없습니다.`);
+        return;
+    }
+
+    const cardPool = JSON.parse(packToTest.cardPool);
+    const totalWeight = cardPool.reduce((sum, card) => sum + card.weight, 0);
+
+    console.log(`--- 카드 뽑기 시뮬레이션 테스트 시작 ---`);
+    console.log(`테스트 대상: ${packToTest.name} (${packId})`);
+    console.log(`총 시도 횟수: ${iterations}회`);
+    console.log(`-----------------------------------------`);
+
+    // 1. 예상 확률 및 기댓값 계산 및 출력
+    const expectedResults = {};
+    cardPool.forEach(card => {
+        const probability = (card.weight / totalWeight) * 100;
+        const expectedCount = (card.weight / totalWeight) * iterations;
+        expectedResults[card.cardId] = {
+            weight: card.weight,
+            'probability (%)': probability.toFixed(2),
+            'expected count': `~${Math.round(expectedCount)}`
+        };
+    });
+    console.log("▼ 카드별 가중치 및 예상 확률 ▼");
+    console.table(expectedResults);
+
+    // 2. 시뮬레이션 실행
+    const actualResults = {};
+    cardPool.forEach(card => { actualResults[card.cardId] = 0; });
+
+    for (let i = 0; i < iterations; i++) {
+        const drawnCardId = drawCard(packToTest);
+        if (actualResults.hasOwnProperty(drawnCardId)) {
+            actualResults[drawnCardId]++;
+        }
+    }
+
+    // 3. 실제 결과 출력
+    console.log(`▼ 실제 뽑기 결과 (${iterations}회) ▼`);
+    console.table(actualResults);
+}
+// 테스트 함수를 브라우저 콘솔에서 직접 호출할 수 있도록 window 객체에 등록
+window.runGachaTest = runGachaTest;
+
 
 initializeMainScreen();
