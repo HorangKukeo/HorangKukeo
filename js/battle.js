@@ -1,4 +1,11 @@
 (function() {
+    function playSound(soundName) {
+    // 경로와 확장자는 실제 파일에 맞게 수정해주세요.
+    const audio = new Audio(`sfx/${soundName}.mp3`);
+    audio.volume = 0.3; // 효과음 볼륨 (0.0 ~ 1.0)
+    audio.play();
+    }
+
 const battleModeContainer = document.querySelector('#battle-mode-container');
 
     // --- 게임 영역 내부 요소들 ---
@@ -61,6 +68,7 @@ let dungeonRewards = { gold: 0, points: { partsOfSpeech: 0 } };
 let turn = 'player';
 let onQuizComplete = null;
 let isActionInProgress = false;
+let isReturningToMain = false;
 
 // === 헬퍼 및 UI 함수 ===
 function calculatePlayerStats() {
@@ -236,19 +244,44 @@ function startEnemyTurn() {
             const skillToUse = monsterSkills[Math.floor(Math.random() * monsterSkills.length)];
             currentMonster.mp -= parseInt(skillToUse.mpCost);
             showQuiz(question, (isCorrect) => {
-                setMonsterImage(isCorrect ? 'hurt' : 'happy');
-                if (skillToUse.type == 1) {
+            if (isCorrect) {
+                // ========== 플레이어가 퀴즈를 맞혔을 경우 (방해 성공) ==========
+                setMonsterImage('hurt');
+
+                if (skillToUse.type == 1) { // 몬스터의 공격 스킬
+                    playSound('monster-skillat-miss'); // [효과음 추가]
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
-                    const finalDamage = isCorrect ? Math.floor(damage * 0.5) : damage;
+                    const finalDamage = Math.floor(damage * 0.5);
                     player.hp = Math.max(0, player.hp - finalDamage);
-                    showMessage(isCorrect ? `방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!` : `몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, checkBattleEnd);
-                } else if (skillToUse.type == 2) {
-                    const healAmount = isCorrect ? Math.floor(parseInt(skillToUse.effect) * 0.5) : parseInt(skillToUse.effect);
+                    showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, checkBattleEnd);
+
+                } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
+                    playSound('monster-skillheal-miss'); // [효과음 추가] (동일한 방해 효과음 사용)
+                    const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    showMessage(isCorrect ? `방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!` : `몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, checkBattleEnd);
+                    showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, checkBattleEnd);
                 }
-                updateUI();
-            });
+
+            } else {
+                // ========== 플레이어가 퀴즈를 틀렸을 경우 (방해 실패) ==========
+                setMonsterImage('happy');
+
+                if (skillToUse.type == 1) { // 몬스터의 공격 스킬
+                    playSound('monster-skillat-hit'); // [효과음 추가]
+                    const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
+                    const finalDamage = damage;
+                    player.hp = Math.max(0, player.hp - finalDamage);
+                    showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, checkBattleEnd);
+
+                } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
+                    playSound('monster-skillheal-hit'); // [효과음 추가]
+                    const healAmount = parseInt(skillToUse.effect);
+                    currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
+                    showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, checkBattleEnd);
+                }
+            }
+            updateUI();
+        });
         } else {
             enemyBasicAttack(question);
         }
@@ -258,12 +291,14 @@ function enemyBasicAttack(question) {
     showQuiz(question, (isCorrect) => {
         if (isCorrect) {
             setMonsterImage('hurt');
+            playSound('monster-attack-blocked'); // [효과음 추가]
             const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
             showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, checkBattleEnd);
         } else {
             setMonsterImage('happy');
+            playSound('monster-attack-hit'); // [효과음 추가]
             player.hp = Math.max(0, player.hp - parseInt(currentMonster.attack));
             updateUI();
             showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, checkBattleEnd);
@@ -288,11 +323,13 @@ function handleAction(action) {
         case 'attack':
             showQuiz(question, (isCorrect) => {
                 if (isCorrect) {
+                    playSound('player-attack-hit');
                     setMonsterImage('hurt');
                     currentMonster.hp = Math.max(0, currentMonster.hp - player.attack);
                     updateUI();
                     showMessage(`공격 성공! ${player.attack}의 데미지!`, checkBattleEnd);
                 } else { 
+                    playSound('player-attack-miss');
                     setMonsterImage('happy');
                     showMessage("공격이 빗나갔다...", checkBattleEnd); 
                 }
@@ -382,15 +419,22 @@ function useSkill(skill) {
         if (isCorrect) {
             setMonsterImage('hurt');
             if (skill.type === 1) {
+                playSound('player-skillat-hit');
                 const damage = Math.floor(player.attack * skill.effect);
                 currentMonster.hp = Math.max(0, currentMonster.hp - damage);
                 showMessage(`${skill.name} 발동! ${damage}의 데미지!`, checkBattleEnd);
             } else if (skill.type === 2) {
+                playSound('player-skillheal-hit');
                 player.hp = Math.min(player.maxHp, player.hp + skill.effect);
                 showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, checkBattleEnd);
             }
         } else {
             setMonsterImage('happy');
+                if (skill.type === 1){
+                    playSound('player-skillat-miss');
+                } else if (skill.type ===2){
+                    playSound('player-skillheal-miss');
+                }
             showMessage("스킬 발동에 실패했다...", checkBattleEnd);
         }
         updateUI();
@@ -425,11 +469,14 @@ function useItem(item) {
     player.inventory[item.id]--;
     if (item.type === 1) {
         player.hp = Math.min(player.maxHp, player.hp + item.value);
+        playSound('item-heal');
     } else if (item.type === 2) {
         player.mp = Math.min(player.maxMp, player.mp + item.value);
+        playSound('item-heal');
     } else if (item.type === 3) {
         setMonsterImage('hurt');
         currentMonster.hp = Math.max(0, currentMonster.hp - item.value);
+        playSound('item-damage');
     }
     updateUI();
     showMessage(`${item.name}을(를) 사용했다!`, checkBattleEnd);
@@ -461,6 +508,7 @@ function initGame() {
     let conditionsMet = 0;
     // 아래 값들은 main.js와 동일하게 맞춰주어야 합니다.
     if (player.maxHp >= 100) conditionsMet++;
+    if (player.maxHp >= 150) conditionsMet++;
     if (player.maxMp >= 70) conditionsMet++;
     if (player.attack >= 50) conditionsMet++;
     if (player.equippedCards.length >= 4) conditionsMet++;
@@ -514,21 +562,32 @@ function initGame() {
         }
     });
     returnToMainBtn.addEventListener('click', async () => {
-        const finalUserData = JSON.parse(localStorage.getItem('userData'));
-        finalUserData.gold += dungeonRewards.gold;
-        if (!finalUserData.points) finalUserData.points = {};
-        finalUserData.points.partsOfSpeech = (finalUserData.points.partsOfSpeech || 0) + dungeonRewards.points.partsOfSpeech;
-        finalUserData.inventory = player.inventory;
-        localStorage.setItem('userData', JSON.stringify(finalUserData));
-        if (finalUserData.id) {
-            await uploadUserData(finalUserData.id);
-        } else {
-            console.error("저장할 사용자 ID가 없습니다.");
-        }
+        // [수정] 중복 실행 방지 로직 추가
+        if (isReturningToMain) return; // 이미 로직이 실행 중이면 아무것도 하지 않음
+        isReturningToMain = true; // 로직 실행 시작 플래그 설정
+        returnToMainBtn.disabled = true; // 버튼을 즉시 비활성화
 
-        // 페이지 이동 대신, main.js의 endBattle 함수를 호출
-        if (window.endBattle) {
-            window.endBattle();
+        try {
+            const finalUserData = JSON.parse(localStorage.getItem('userData'));
+            finalUserData.gold += dungeonRewards.gold;
+            if (!finalUserData.points) finalUserData.points = {};
+            finalUserData.points.partsOfSpeech = (finalUserData.points.partsOfSpeech || 0) + dungeonRewards.points.partsOfSpeech;
+            finalUserData.inventory = player.inventory; // 이 부분이 누락되어 있었습니다. 추가합니다.
+            localStorage.setItem('userData', JSON.stringify(finalUserData));
+            
+            if (finalUserData.id) {
+                await uploadUserData(finalUserData.id);
+            } else {
+                console.error("저장할 사용자 ID가 없습니다.");
+            }
+        } catch (error) {
+            console.error("보상 저장 중 오류 발생:", error);
+            // 오류가 발생하더라도 창은 닫히도록 finally 블록으로 이동
+        } finally {
+            // 페이지 이동 대신, main.js의 endBattle 함수를 호출
+            if (window.endBattle) {
+                window.endBattle();
+            }
         }
     });
 

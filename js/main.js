@@ -43,20 +43,6 @@ let currentDexPage = '1-20';
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
 const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004'];
 
-function setupDefaultUserData() {
-    if (!localStorage.getItem('userData')) {
-        const defaultUserData = {
-            nickname: '문법용사',
-            baseHp: 80, baseMp: 50, baseAttack: 15,
-            gold: 1500, points: { partsOfSpeech: 120, sentenceComponents: 0 },
-            ownedCards: ['C001', 'C002', 'C003', 'C004', 'C005'],
-            equippedCards: ['C001'],
-            inventory: { 'I001': 2, 'I002': 2, 'I003': 1 },
-        };
-        localStorage.setItem('userData', JSON.stringify(defaultUserData));
-    }
-}
-
 async function fetchAndStoreGameData() {
     try {
         loadingMessageEl.textContent = "게임 데이터를 서버에서 불러오는 중...";
@@ -158,6 +144,7 @@ function displayUserData() {
     // --- 조건 확인 및 이미지 변경 로직 (기존과 동일) ---
     let conditionsMet = 0;
     if (maxHp >= 100) conditionsMet++;
+    if (maxHp >= 150) conditionsMet++;
     if (maxMp >= 70) conditionsMet++;
     if (totalAttack >= 50) conditionsMet++;
     if (userData.equippedCards.length >= 4) conditionsMet++;
@@ -208,17 +195,23 @@ function renderCardDex() {
         const skill = skillDB.find(s => s.id === card.skillId);
         const skillName = skill ? skill.name : "없음";
         
+        // [추가] 카드 ID에서 'C'를 제거하여 숫자만 추출
+        const cardNumber = card.id.replace('C', '');
+
         let actionsHTML = '';
         if (isEquipped) {
-            actionsHTML = `<button onclick="unequipCard('${card.id}')">해제</button>`;
+            actionsHTML = `<button class="unequip-btn" onclick="unequipCard('${card.id}')">해제</button>`;
         } else {
-            actionsHTML = `<button onclick="equipCard('${card.id}')" ${userData.equippedCards.length >= 4 ? 'disabled' : ''}>장착</button>`;
+            actionsHTML = `<button class="equip-btn" onclick="equipCard('${card.id}')" ${userData.equippedCards.length >= 4 ? 'disabled' : ''}>장착</button>`;
         }
-        actionsHTML += `<button onclick="openCardDetailModal('${card.id}')">자세히 보기</button>`;
+        actionsHTML += `<button class="detail-btn" onclick="openCardDetailModal('${card.id}')">자세히</button>`;
 
         return `
             <div class="card-item">
-                <div class="card-name">${card.name}</div>
+                <div class="card-header">
+                    <span class="card-name">${card.name}</span>
+                    <span class="card-number">#${cardNumber}</span>
+                </div>
                 <div class="card-stats">
                     <p>HP: ${card.hpBonus}</p><p>MP: ${card.mpBonus}</p>
                     <p>ATK: ${card.attackBonus}</p><p>SKL: ${skillName}</p>
@@ -228,7 +221,7 @@ function renderCardDex() {
         `;
     };
     
-    // 장착된 카드 섹션 채우기 (기존과 동일)
+    // 장착된 카드 섹션 채우기
     userData.equippedCards.forEach(cardId => {
         const card = cardDB.find(c => c.id === cardId);
         if (card) {
@@ -239,9 +232,8 @@ function renderCardDex() {
         equippedCardsSection.innerHTML += `<div class="card-item locked"><div class="card-name">비어있음</div></div>`;
     }
 
-    // 도감 섹션 채우기 (새로운 로직)
+    // 도감 섹션 채우기
     const [start, end] = currentDexPage.split('-').map(Number);
-
     for (let i = start; i <= end; i++) {
         const cardId = 'C' + String(i).padStart(3, '0');
         const card = cardDB.find(c => c.id === cardId);
@@ -256,7 +248,10 @@ function renderCardDex() {
                 // 소유하지 않은 카드
                 cardDexSection.innerHTML += `
                     <div class="card-item locked">
-                        <div class="card-name">???</div>
+                        <div class="card-header">
+                            <span class="card-name">???</span>
+                            <span class="card-number">#${String(i).padStart(3, '0')}</span>
+                        </div>
                         <div class="card-stats">
                             <p>HP: ???</p><p>MP: ???</p>
                             <p>ATK: ???</p><p>SKL: ???</p>
@@ -267,7 +262,7 @@ function renderCardDex() {
         }
     }
     
-    // 현재 페이지에 맞는 필터 버튼에 active 클래스 적용
+    // 필터 버튼 활성화 상태 업데이트
     dexFilterButtons.querySelectorAll('.dex-filter-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.range === currentDexPage) {

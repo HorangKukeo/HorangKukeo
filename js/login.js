@@ -22,7 +22,7 @@ loginForm.addEventListener('submit', async function(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(loginData),
         });
-        
+        console.log(response);
         if (!response.ok) {
             throw new Error('서버에서 응답을 받지 못했습니다.');
         }
@@ -46,6 +46,7 @@ loginForm.addEventListener('submit', async function(event) {
             window.location.href = 'main.html';
         } else {
             alert(result.message || "로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요.");
+            return;
         }
 
     } catch (error) {

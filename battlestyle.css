@@ -104,91 +104,7 @@ body {
 #return-to-main-btn:hover {
     background-color: #4a5c9a;
 }
-/* battlestyle.css 파일 맨 아래의 media query 부분을 아래 코드로 교체 */
 
-@media (max-width: 600px) {
-    /* [핵심] game-container가 화면 높이에 꽉 차도록 하고, 스크롤 대신 Grid로 내부를 재배치 */
-    #game-container {
-        min-height: 0;
-        height: 100%;
-        padding: 10px;
-        display: grid;
-        /* 몬스터/플레이어/UI(자동확장)/액션메뉴 순서로 4개의 행을 나눔 */
-        grid-template-rows: auto auto 1fr auto;
-    }
-
-    /* 캐릭터 박스 여백과 이미지 크기 줄여서 공간 확보 */
-    .character-box {
-        padding: 10px;
-        margin-bottom: 10px;
-        flex-direction: row; /* 세로 정렬 대신 가로 정렬 유지 */
-    }
-
-    #player-box {
-        flex-direction: row; /* 순서 반전은 제거 */
-    }
-
-    .character-img-container {
-        width: 80px;
-        height: 80px;
-        margin: 0 10px;
-    }
-
-    /* 폰트 및 바(bar) 높이 조절 */
-    h2 {
-        font-size: 1.2em;
-    }
-
-    .bar-background {
-        height: 18px;
-    }
-
-    .hp-bar-container .stat-text {
-        font-size: 0.9em;
-    }
-    
-    /* 장착 카드 슬롯 크기 조절 */
-    #equipped-cards {
-        /* [수정] 4열 그리드 대신 1열 그리드로 변경하여 세로로 쌓이도록 함 */
-        grid-template-columns: 1fr;
-        gap: 5px; /* 간격을 조금 더 줌 */
-    }
-
-    .card-slot {
-        /* [수정] 너비가 넓어졌으므로 높이와 폰트를 살짝 키워 가독성 확보 */
-        height: 30px;
-        font-size: 0.8em;
-    }
-
-    /* UI 영역과 액션 메뉴 여백 조절 */
-    .box {
-        padding: 15px;
-    }
-
-    #action-menu {
-        padding: 0; /* action-menu 자체의 패딩은 제거 */
-        border: none;
-        height: auto;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .action-btn {
-        font-size: 1em;
-        padding: 12px 5px; /* 세로 여백 늘리고 가로 여백 줄임 */
-    }
-    
-    /* 퀴즈 버튼 크기 조절 */
-    .quiz-btn {
-        padding: 12px;
-        font-size: 1em;
-    }
-
-    #dungeon-clear .modal-window {
-        width: 90%; /* 너비를 화면의 90%로 유연하게 설정 */
-        min-width: 0; /* PC에서 설정된 최소 너비 제한을 제거 */
-    }
-}
 
 #quiz-short-answer-area {
     display: flex;
@@ -210,4 +126,184 @@ body {
 #short-answer-submit-btn {
     width: auto; /* 너비 자동 조절 */
     flex-shrink: 0; /* 줄어들지 않음 */
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 0; /* 화면 전체를 활용 */
+    }
+
+    #game-container {
+        min-height: 0;
+        height: 100vh; /* 화면 전체 높이 사용 */
+        padding: 8px;
+        border-radius: 0; /* 모바일에서는 둥근 모서리 제거 */
+        border: none;
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 8px;
+    }
+
+    /* 캐릭터 박스 개선 */
+    .character-box {
+        padding: 8px;
+        margin-bottom: 0;
+        flex-direction: row;
+    }
+
+    .character-img-container {
+        width: 100px; /* 80px에서 증가 */
+        height: 100px;
+        margin: 0 8px;
+    }
+
+    /* 폰트 크기 증가 */
+    h2 {
+        font-size: 1.4em; /* 1.2em에서 증가 */
+    }
+
+    #info-btn {
+        padding: 8px 12px; /* 터치 영역 증가 */
+        font-size: 0.9em;
+    }
+
+    /* HP/MP 바 높이 증가 */
+    .bar-background {
+        height: 22px; /* 18px에서 증가 */
+    }
+
+    .hp-bar-container .stat-label {
+        font-size: 1.1em; /* 크기 증가 */
+        width: 40px;
+    }
+
+    .hp-bar-container .stat-text {
+        font-size: 1em;
+        width: 90px;
+    }
+    
+    /* 장착 카드 슬롯 개선 */
+    #equipped-cards {
+        grid-template-columns: 1fr; /* 2x2 그리드로 변경 */
+        gap: 6px;
+    }
+
+    .card-slot {
+        height: 35px; /* 높이 증가 */
+        font-size: 0.85em;
+        padding: 4px;
+    }
+
+    /* UI 영역 개선 */
+    .box {
+        padding: 12px;
+    }
+
+    /* 메시지 박스 폰트 크기 증가 */
+    #message-box {
+        font-size: 1em;
+    }
+
+    /* 퀴즈 텍스트 크기 증가 */
+    #quiz-text {
+        font-size: 1.1em; /* 가독성 향상 */
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+
+    /* 퀴즈 답안 그리드 - 세로 배치 */
+    #quiz-answers {
+        grid-template-columns: 1fr; /* 1열로 변경하여 버튼 크기 확보 */
+        gap: 8px;
+    }
+
+    /* 액션 메뉴 개선 */
+    #action-menu {
+        padding: 0;
+        border: none;
+        height: auto;
+        gap: 8px;
+        margin-top: 8px;
+        grid-template-columns: 1fr 1fr; /* 2x2 그리드 */
+    }
+
+    .action-btn {
+        font-size: 1.1em; /* 폰트 크기 증가 */
+        padding: 15px 8px; /* 터치 영역 증가 */
+        min-height: 50px; /* 최소 높이 보장 */
+    }
+    
+    /* 퀴즈 버튼 크기 증가 */
+    .quiz-btn, .menu-item-btn {
+        padding: 15px; /* 터치 영역 증가 */
+        font-size: 1em;
+        min-height: 50px; /* 최소 높이 보장 */
+    }
+
+    /* 주관식 입력 영역 개선 */
+    #quiz-short-answer-area {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    #short-answer-input {
+        padding: 15px;
+        font-size: 1.1em;
+    }
+
+    #short-answer-submit-btn {
+        width: 100%;
+        min-height: 50px;
+        font-size: 1.1em;
+    }
+
+    /* 모달 개선 */
+    .modal-window {
+        width: 90%;
+        padding: 15px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-window h3 {
+        font-size: 1.6em;
+        margin-bottom: 10px;
+    }
+
+    /* 모달 버튼 크기 증가 */
+    .modal-close-btn, #continue-battle-btn, #return-to-main-btn {
+        padding: 15px 20px;
+        font-size: 1.1em;
+        min-height: 50px;
+    }
+
+    /* 던전 클리어 모달 */
+    #dungeon-clear .modal-window {
+        width: 90%;
+        min-width: 0;
+    }
+
+    #dungeon-clear h2 {
+        font-size: 2em;
+    }
+
+    #final-rewards {
+        padding: 12px;
+    }
+
+    #final-rewards p {
+        font-size: 1.1em;
+        margin: 8px 0;
+    }
+
+    /* 정보 모달 */
+    #info-list p {
+        font-size: 1em;
+        line-height: 1.6;
+    }
+
+    /* 스킬/아이템 리스트 */
+    #skill-list, #item-list {
+        gap: 8px;
+    }
 }
