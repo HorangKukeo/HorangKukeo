@@ -1,9 +1,52 @@
 (function() {
+    const sfxCache = {}; // 오디오 객체를 저장할 저장소
+    const sfxToPreload = [ // 미리 불러올 효과음 파일 이름 목록
+        'player-attack-hit',
+        'player-attack-miss',
+        'player-skillat-hit',
+        'player-skillat-miss',
+        'player-skillheal-hit',
+        'player-skillheal-miss',
+        'monster-attack-hit',
+        'monster-attack-blocked',
+        'monster-skillat-hit',
+        'monster-skillat-miss',
+        'monster-skillheal-hit',
+        'monster-skillheal-miss',
+        'item-heal', 'item-damage'
+    ];
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function preloadSounds() {
+            sfxToPreload.forEach(soundName => {
+                const audio = new Audio(`sfx/${soundName}.mp3`);
+                audio.load(); // 파일을 미리 로드하도록 브라우저에 요청
+                sfxCache[soundName] = audio;
+            });
+        }
+
     function playSound(soundName) {
-    // 경로와 확장자는 실제 파일에 맞게 수정해주세요.
-    const audio = new Audio(`sfx/${soundName}.mp3`);
-    audio.volume = 0.3; // 효과음 볼륨 (0.0 ~ 1.0)
-    audio.play();
+        const audio = sfxCache[soundName];
+        if (audio) {
+            audio.currentTime = 0; // 소리를 처음부터 다시 재생
+            audio.volume = 0.5;
+            audio.play();
+        } else {
+            console.warn(`'${soundName}' 효과음을 찾을 수 없습니다.`);
+        }
+    }
+
+    function shakeScreen() {
+        // 흔들림 효과를 적용할 대상을 gameContainer로 지정
+        gameContainer.classList.add('shake');
+
+        // 애니메이션이 끝나면 'shake' 클래스를 자동으로 제거하여 다음을 준비
+        gameContainer.addEventListener('animationend', () => {
+            gameContainer.classList.remove('shake');
+        }, { once: true });
     }
 
 const battleModeContainer = document.querySelector('#battle-mode-container');
@@ -243,13 +286,14 @@ function startEnemyTurn() {
         if (willUseSkill) {
             const skillToUse = monsterSkills[Math.floor(Math.random() * monsterSkills.length)];
             currentMonster.mp -= parseInt(skillToUse.mpCost);
-            showQuiz(question, (isCorrect) => {
+            showQuiz(question, async (isCorrect) => {
             if (isCorrect) {
                 // ========== 플레이어가 퀴즈를 맞혔을 경우 (방해 성공) ==========
                 setMonsterImage('hurt');
 
                 if (skillToUse.type == 1) { // 몬스터의 공격 스킬
                     playSound('monster-skillat-miss'); // [효과음 추가]
+                    await sleep(200);
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
                     const finalDamage = Math.floor(damage * 0.5);
                     player.hp = Math.max(0, player.hp - finalDamage);
@@ -257,6 +301,7 @@ function startEnemyTurn() {
 
                 } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
                     playSound('monster-skillheal-miss'); // [효과음 추가] (동일한 방해 효과음 사용)
+                    await sleep(200);
                     const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
                     showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, checkBattleEnd);
@@ -268,6 +313,8 @@ function startEnemyTurn() {
 
                 if (skillToUse.type == 1) { // 몬스터의 공격 스킬
                     playSound('monster-skillat-hit'); // [효과음 추가]
+                    await sleep(200);
+                    shakeScreen();
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
                     const finalDamage = damage;
                     player.hp = Math.max(0, player.hp - finalDamage);
@@ -275,6 +322,7 @@ function startEnemyTurn() {
 
                 } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
                     playSound('monster-skillheal-hit'); // [효과음 추가]
+                    await sleep(200);
                     const healAmount = parseInt(skillToUse.effect);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
                     showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, checkBattleEnd);
@@ -288,17 +336,20 @@ function startEnemyTurn() {
     });
 }
 function enemyBasicAttack(question) {
-    showQuiz(question, (isCorrect) => {
+    showQuiz(question, async (isCorrect) => {
         if (isCorrect) {
-            setMonsterImage('hurt');
             playSound('monster-attack-blocked'); // [효과음 추가]
+            await sleep(200);
+            setMonsterImage('hurt');
             const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
             showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, checkBattleEnd);
         } else {
-            setMonsterImage('happy');
             playSound('monster-attack-hit'); // [효과음 추가]
+            await sleep(200);
+            setMonsterImage('happy');
+            shakeScreen();
             player.hp = Math.max(0, player.hp - parseInt(currentMonster.attack));
             updateUI();
             showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, checkBattleEnd);
@@ -321,15 +372,18 @@ function handleAction(action) {
 
     switch(action) {
         case 'attack':
-            showQuiz(question, (isCorrect) => {
+            showQuiz(question, async (isCorrect) => {
                 if (isCorrect) {
                     playSound('player-attack-hit');
+                    await sleep(200);
+                    shakeScreen();
                     setMonsterImage('hurt');
                     currentMonster.hp = Math.max(0, currentMonster.hp - player.attack);
                     updateUI();
                     showMessage(`공격 성공! ${player.attack}의 데미지!`, checkBattleEnd);
                 } else { 
                     playSound('player-attack-miss');
+                    await sleep(200);
                     setMonsterImage('happy');
                     showMessage("공격이 빗나갔다...", checkBattleEnd); 
                 }
@@ -414,17 +468,20 @@ function useSkill(skill) {
     const rawQuestion = currentMonster.questionSet[randomKey];
     const questionType = currentMonster.questionSet.type; // 타입 가져오기
     const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
-    showQuiz(question, (isCorrect) => {
+    showQuiz(question, async (isCorrect) => {
         player.mp -= skill.mpCost;
         if (isCorrect) {
             setMonsterImage('hurt');
             if (skill.type === 1) {
                 playSound('player-skillat-hit');
+                await sleep(200);
+                shakeScreen();
                 const damage = Math.floor(player.attack * skill.effect);
                 currentMonster.hp = Math.max(0, currentMonster.hp - damage);
                 showMessage(`${skill.name} 발동! ${damage}의 데미지!`, checkBattleEnd);
             } else if (skill.type === 2) {
                 playSound('player-skillheal-hit');
+                await sleep(200);
                 player.hp = Math.min(player.maxHp, player.hp + skill.effect);
                 showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, checkBattleEnd);
             }
@@ -432,8 +489,10 @@ function useSkill(skill) {
             setMonsterImage('happy');
                 if (skill.type === 1){
                     playSound('player-skillat-miss');
+                    await sleep(200);
                 } else if (skill.type ===2){
                     playSound('player-skillheal-miss');
+                    await sleep(200);
                 }
             showMessage("스킬 발동에 실패했다...", checkBattleEnd);
         }
@@ -463,20 +522,24 @@ function openItemMenu() {
     });
     openModal(itemModal);
 }
-function useItem(item) {
+async function useItem(item) {
     closeModal();
     isActionInProgress = true;
     player.inventory[item.id]--;
     if (item.type === 1) {
+        playSound('item-heal');
+        await sleep(200);
         player.hp = Math.min(player.maxHp, player.hp + item.value);
-        playSound('item-heal');
     } else if (item.type === 2) {
-        player.mp = Math.min(player.maxMp, player.mp + item.value);
         playSound('item-heal');
+        await sleep(200);
+        player.mp = Math.min(player.maxMp, player.mp + item.value);
     } else if (item.type === 3) {
+        playSound('item-damage');
+        await sleep(200);
         setMonsterImage('hurt');
         currentMonster.hp = Math.max(0, currentMonster.hp - item.value);
-        playSound('item-damage');
+        shakeScreen();
     }
     updateUI();
     showMessage(`${item.name}을(를) 사용했다!`, checkBattleEnd);
@@ -484,6 +547,8 @@ function useItem(item) {
 
 // === 게임 초기화 및 시작 ===
 function initGame() {
+    preloadSounds();
+
     if (!userData) {
         alert("사용자 정보를 불러올 수 없습니다. 메인 화면으로 돌아갑니다.");
         window.location.href = 'main.html';
