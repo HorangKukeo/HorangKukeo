@@ -11,6 +11,7 @@ const dungeonListEl = document.getElementById('dungeon-list');
 const userNicknameEl = document.getElementById('user-nickname');
 const userGoldEl = document.getElementById('user-gold');
 const userPosPointsEl = document.getElementById('user-pos-points');
+const userScPointsEl = document.getElementById('user-sc-points');
 const playerHpBar = document.getElementById('player-hp-bar');
 const playerHpText = document.getElementById('player-hp-text');
 const playerMpBar = document.getElementById('player-mp-bar');
@@ -41,7 +42,7 @@ let currentDexPage = '1-10';
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006'];
 
 async function fetchAndStoreGameData() {
     try {
@@ -87,10 +88,16 @@ async function fetchAndStoreGameData() {
         localStorage.setItem('itemDB', JSON.stringify(items));
         
         // [수정된 부분] 카드팩 DB 로딩 로직 추가
-        const cardPacks = parseDB(data.CardPacks, ['id', 'name', 'priceGold', 'pricePosPoints', 'description', 'forSale', 'cardPool']);
+        const cardPacks = parseDB(data.CardPacks, ['id', 'name', 'priceGold', 'pricePoints', 'description', 'forSale', 'cardPool']);
         cardPacks.forEach(pack => {
             pack.priceGold = parseInt(pack.priceGold, 10) || 0;
-            pack.pricePosPoints = parseInt(pack.pricePosPoints, 10) || 0;
+            try {
+                // pricePoints가 비어있으면 빈 객체{}, 아니면 JSON으로 파싱
+                pack.pricePoints = pack.pricePoints ? JSON.parse(pack.pricePoints) : {};
+            } catch (e) {
+                console.error(`카드팩(${pack.id})의 pricePoints JSON 파싱 오류:`, pack.pricePoints);
+                pack.pricePoints = {}; // 오류 발생 시 빈 객체로 처리
+            }
             pack.forSale = parseInt(pack.forSale, 10) || 0;
         });
         localStorage.setItem('cardPackDB', JSON.stringify(cardPacks));
@@ -107,8 +114,6 @@ async function fetchAndStoreGameData() {
         return false;
     }
 }
-
-// main.js의 displayUserData 함수를 아래 코드로 교체
 
 function displayUserData() {
     const userData = JSON.parse(localStorage.getItem('userData'));
@@ -153,7 +158,8 @@ function displayUserData() {
     // --- UI 표시 (기존과 동일) ---
     userNicknameEl.textContent = userData.nickname;
     userGoldEl.textContent = userData.gold;
-    userPosPointsEl.textContent = userData.points.partsOfSpeech;
+    userPosPointsEl.textContent = userData.points.partsOfSpeech || 0;
+    userScPointsEl.textContent = userData.points.sentenceComponents || 0;
     playerHpText.textContent = `${maxHp} / ${maxHp}`;
     playerHpBar.style.width = '100%';
     playerMpText.textContent = `${maxMp} / ${maxMp}`;
@@ -607,56 +613,91 @@ function drawCard(pack) {
         if (userData.gold < pack.priceGold) {
             alert("골드가 부족합니다."); return;
         }
-        if (userData.points.partsOfSpeech < pack.pricePosPoints) {
-            alert("품사 포인트가 부족합니다."); return;
+        const requiredPoints = pack.pricePoints || {};
+        for (const pointType in requiredPoints) {
+            const requiredAmount = requiredPoints[pointType];
+            const userAmount = userData.points[pointType] || 0;
+            if (userAmount < requiredAmount) {
+                alert("포인트가 부족합니다.");
+                return;
+            }
         }
 
-        // 재화 우선 차감
+        // 재화 차감
         userData.gold -= pack.priceGold;
-        userData.points.partsOfSpeech -= pack.pricePosPoints;
+        for (const pointType in requiredPoints) {
+            userData.points[pointType] -= requiredPoints[pointType];
+        }
 
-        // 카드 뽑기 실행
+        // 카드 뽑기 및 결과 처리
         const drawnCardId = drawCard(pack);
         const isDuplicate = userData.ownedCards.includes(drawnCardId);
-
-        // 결과 표시를 위한 UI 요소 가져오기
+        
         const drawnCard = cardDB.find(c => c.id === drawnCardId);
         const resultTitle = gachaResultView.querySelector('h4');
         const resultMessage = gachaResultView.querySelector('p');
 
         if (isDuplicate) {
-            // [추가] 중복 카드일 경우의 처리
-            // 1. 환급액 계산 (60% 반올림)
+            // [수정 시작] 환급 메시지 생성 로직 전체 변경
             const goldRefund = Math.round(pack.priceGold * 0.6);
-            const pointsRefund = Math.round(pack.pricePosPoints * 0.6);
+            let pointRefundMessages = []; // 포인트 환급 메시지만 따로 저장할 배열
+            
+            const pointTypeNames = {
+                partsOfSpeech: '품사 포인트',
+                sentenceComponents: '문장 성분 포인트'
+            };
 
-            // 2. 환급액 적용
+            // 환급액 적용
             userData.gold += goldRefund;
-            userData.points.partsOfSpeech += pointsRefund;
 
-            // 3. 결과 메시지 설정
+            for (const pointType in requiredPoints) {
+                const pointsRefund = Math.round(requiredPoints[pointType] * 0.6);
+                if (pointsRefund > 0) {
+                    const pointName = pointTypeNames[pointType] || pointType;
+                    // [수정] "이름 수치P" 순서로 메시지 생성
+                    pointRefundMessages.push(`${pointName} ${pointsRefund}P`);
+                    userData.points[pointType] += pointsRefund;
+                }
+            }
+            
             resultTitle.textContent = '💧 이런... 이미 소유한 카드네요.💧';
-            resultMessage.innerHTML = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 60%인 ${goldRefund} G와 ${pointsRefund} P를 돌려받습니다.`;
+
+            // 최종 메시지 조합
+            let finalMessage = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 60%인 `;
+            let refundParts = [];
+
+            if (goldRefund > 0) {
+                refundParts.push(`${goldRefund} G`);
+            }
+            if (pointRefundMessages.length > 0) {
+                // "품사 포인트 18P, 문장 성분 포인트 6P" 와 같이 조합
+                refundParts.push(pointRefundMessages.join(', '));
+            }
+
+            if (refundParts.length > 0) {
+                finalMessage += `${refundParts.join(', ')}를 돌려받습니다.`;
+            } else {
+                finalMessage = `'${drawnCard.name}' 카드를 이미 소유하고 있습니다.`;
+            }
+            
+            resultMessage.innerHTML = finalMessage;
+            // [수정 끝]
             
         } else {
-            // 새로운 카드일 경우의 처리
             userData.ownedCards.push(drawnCardId);
             resultTitle.textContent = '🎉 축하합니다! 🎉';
             resultMessage.textContent = `'${drawnCard.name}' 카드를 새로 획득했습니다!`;
         }
 
-        // 변경된 데이터 저장 및 서버 업로드
         localStorage.setItem('userData', JSON.stringify(userData));
         if (userData.id) {
             uploadUserData(userData.id);
         }
         
-        // 결과 화면 표시
         gachaPackList.classList.add('hidden');
         gachaResultView.classList.remove('hidden');
         gachaResultCard.innerHTML = `<strong>${drawnCard.name}</strong>`;
         
-        // 메인 화면 UI 갱신 (변경된 골드/포인트 반영)
         displayUserData();
     }
 
@@ -672,6 +713,11 @@ function openGachaModal() {
     const cardPackDB = JSON.parse(localStorage.getItem('cardPackDB') || '[]');
     
     gachaPackList.innerHTML = '';
+
+    const pointTypeNames = {
+        partsOfSpeech: '품사 포인트',
+        sentenceComponents: '문장 성분 포인트'
+    };
     
     const packsForSale = cardPackDB.filter(p => p.forSale === 1);
 
@@ -683,10 +729,28 @@ function openGachaModal() {
             packEl.className = 'dungeon-card'; // 기존 스타일 재활용
             packEl.style.cursor = 'default';
 
+            let priceStringParts = [];
+            if (pack.priceGold > 0) {
+                priceStringParts.push(`${pack.priceGold} G`);
+            }
+
+            const requiredPoints = pack.pricePoints || {};
+            const pointPrices = Object.keys(requiredPoints).map(key => {
+                const pointName = pointTypeNames[key] || key;
+                // [수정] "이름 수치P" 순서로 변경
+                return `${pointName} ${requiredPoints[key]}P`;
+            });
+
+            if (pointPrices.length > 0) {
+                priceStringParts.push(pointPrices.join(', '));
+            }
+            
+            const priceString = priceStringParts.join(' / ');
+
             packEl.innerHTML = `
                 <h2>${pack.name}</h2>
                 <p>${pack.description}</p>
-                <p><strong>가격:</strong> ${pack.priceGold} G / ${pack.pricePosPoints} P</p>
+                <p><strong>가격:</strong> ${priceString}</p>
             `;
             
             const purchaseBtn = document.createElement('button');
@@ -694,10 +758,20 @@ function openGachaModal() {
             purchaseBtn.className = 'login-btn'; // 기존 스타일 재활용
             purchaseBtn.style.marginTop = '10px';
 
-            if (userData.gold < pack.priceGold || userData.points.partsOfSpeech < pack.pricePosPoints) {
+            let canAfford = true;
+            if (userData.gold < pack.priceGold) {
+                canAfford = false;
+            }
+            for (const pointType in requiredPoints) {
+                if ((userData.points[pointType] || 0) < requiredPoints[pointType]) {
+                    canAfford = false;
+                    break;
+                }
+            }
+            if (!canAfford) {
                 purchaseBtn.disabled = true;
             }
-            
+
             purchaseBtn.onclick = () => purchaseCardPack(pack.id);
             
             packEl.appendChild(purchaseBtn);

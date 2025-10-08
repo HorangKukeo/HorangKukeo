@@ -21,10 +21,7 @@ function parseUserDataString(dataString) {
             baseMp: parseInt(parts[4], 10),
             baseAttack: parseInt(parts[5], 10),
             gold: parseInt(parts[6], 10),
-            points: {
-                partsOfSpeech: parseInt(parts[7], 10),
-                sentenceComponents: 0
-            },
+            points: parts[7] ? JSON.parse(parts[7]) : { partsOfSpeech: 0 },
             ownedCards: parts[8] ? parts[8].split(',').filter(id => id) : [],
             equippedCards: parts[9] ? parts[9].split(',').filter(id => id) : [],
             inventory: parts[10] ? JSON.parse(parts[10]) : {}
@@ -69,7 +66,7 @@ async function uploadUserData(userId) {
         baseMp: userData.baseMp,
         baseAttack: userData.baseAttack,
         gold: userData.gold,
-        points_partsOfSpeech: userData.points.partsOfSpeech,
+        points: JSON.stringify(userData.points),
         ownedCards: userData.ownedCards.join(','),
         equippedCards: userData.equippedCards.join(','),
         inventory: JSON.stringify(userData.inventory)

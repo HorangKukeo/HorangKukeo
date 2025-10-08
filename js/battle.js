@@ -107,7 +107,7 @@ let player = {};
 let monstersInDungeon = [];
 let currentMonster;
 let currentMonsterIndex = 0;
-let dungeonRewards = { gold: 0, points: { partsOfSpeech: 0 } };
+let dungeonRewards = { gold: 0, points: {} };
 let turn = 'player';
 let onQuizComplete = null;
 let isActionInProgress = false;
@@ -181,7 +181,7 @@ function showMessage(text, explanationOrCallback, callback) {
     messageTextEl.innerHTML = fullMessage;
     
     if (finalCallback) { 
-        setTimeout(finalCallback, explanation ? 2500 : 1500);
+        setTimeout(finalCallback, explanation ? 4000 : 1500);
     }
 }
 
@@ -455,7 +455,6 @@ function handleAction(action) {
 function checkBattleEnd() {
     updateUI();
     if (player.hp <= 0) {
-        // [수정 시작] 게임 오버 로직 구체화
         // 1. 페널티 계산 (1~10% 사이의 랜덤 값)
         const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100; // 0.01 ~ 0.1
         const goldPenalty = Math.floor(player.gold * penaltyRate);
@@ -485,8 +484,27 @@ function checkBattleEnd() {
         const goldReward = parseInt(currentMonster.goldReward, 10) || 0;
         const pointReward = parseInt(currentMonster.pointReward, 10) || 0;
         dungeonRewards.gold += goldReward;
-        dungeonRewards.points.partsOfSpeech += pointReward;
-        const rewardText = `보상으로 ${goldReward} 골드와 ${pointReward} 포인트를 획득했다!`;
+
+        let pointTypeKey = '';
+        let pointTypeName = '';
+
+        if (currentMonster.affiliation === '품사') {
+            pointTypeKey = 'partsOfSpeech';
+            pointTypeName = '품사';
+        } else if (currentMonster.affiliation === '문장 성분') {
+            pointTypeKey = 'sentenceComponents';
+            pointTypeName = '문장 성분';
+        }
+
+        if (pointTypeKey) {
+            // 만약 해당 포인트 종류가 처음 누적되는 것이라면, 초기화
+            if (!dungeonRewards.points[pointTypeKey]) {
+                dungeonRewards.points[pointTypeKey] = 0;
+            }
+            dungeonRewards.points[pointTypeKey] += pointReward;
+        }
+
+        const rewardText = `보상으로 ${goldReward} 골드와 ${pointTypeName} 포인트 ${pointReward} P를 획득했다!`;
         victoryMessageEl.innerHTML = `${currentMonster.name}를 쓰러트렸다!<br>${rewardText}`;
         openModal(victoryModal);
         return;
@@ -667,8 +685,31 @@ function initGame() {
         closeModal();
         currentMonsterIndex++;
         if (currentMonsterIndex >= monstersInDungeon.length) {
-            finalRewardsEl.innerHTML = `<p>💰 골드: ${dungeonRewards.gold} G</p><p>🅿️ 품사 포인트: ${dungeonRewards.points.partsOfSpeech} P</p>`;
+            // [수정 시작] 던전 클리어 시 최종 보상 표시 로직 변경
+            
+            // 표시할 HTML을 담을 변수
+            let rewardsHTML = `<p>💰 골드: ${dungeonRewards.gold} G</p>`;
+
+            // 포인트 종류 영문 key를 한글 이름으로 바꾸기 위한 객체
+            const pointTypeNames = {
+                partsOfSpeech: '품사 포인트',
+                sentenceComponents: '문장 성분 포인트'
+                // 나중에 새로운 포인트가 추가되면 여기에 추가하면 됩니다.
+            };
+
+            // dungeonRewards.points 객체에 있는 모든 포인트 종류를 순회
+            for (const pointType in dungeonRewards.points) {
+                const pointAmount = dungeonRewards.points[pointType];
+                // 해당 종류의 포인트를 1 이상 획득했을 경우에만 표시
+                if (pointAmount > 0) {
+                    const pointName = pointTypeNames[pointType] || pointType; // 한글 이름이 없으면 영문 key를 그대로 사용
+                    rewardsHTML += `<p>🅿️ ${pointName}: ${pointAmount} P</p>`;
+                }
+            }
+
+            finalRewardsEl.innerHTML = rewardsHTML;
             dungeonClearEl.classList.remove('hidden');
+            // [수정 끝]
         } else {
             currentMonster = setupMonster(monstersInDungeon[currentMonsterIndex]);
             monsterNameEl.textContent = currentMonster.name;
@@ -677,7 +718,6 @@ function initGame() {
         }
     });
     returnToMainBtn.addEventListener('click', async () => {
-        // [수정] 중복 실행 방지 로직 추가
         if (isReturningToMain) return; // 이미 로직이 실행 중이면 아무것도 하지 않음
         isReturningToMain = true; // 로직 실행 시작 플래그 설정
         returnToMainBtn.disabled = true; // 버튼을 즉시 비활성화
@@ -685,9 +725,22 @@ function initGame() {
         try {
             const finalUserData = JSON.parse(localStorage.getItem('userData'));
             finalUserData.gold += dungeonRewards.gold;
-            if (!finalUserData.points) finalUserData.points = {};
-            finalUserData.points.partsOfSpeech = (finalUserData.points.partsOfSpeech || 0) + dungeonRewards.points.partsOfSpeech;
-            finalUserData.inventory = player.inventory; // 이 부분이 누락되어 있었습니다. 추가합니다.
+
+            if (!finalUserData.points) {
+                finalUserData.points = {};
+                }
+
+            // dungeonRewards.points 객체에 있는 모든 포인트 종류를 순회하며 합산
+            for (const pointType in dungeonRewards.points) {
+                // finalUserData에 해당 포인트 종류가 없으면 0으로 초기화
+                if (!finalUserData.points[pointType]) {
+                    finalUserData.points[pointType] = 0;
+                }
+            // 누적된 보상 포인트를 더해줌
+            finalUserData.points[pointType] += dungeonRewards.points[pointType];
+            }
+        
+            finalUserData.inventory = player.inventory;
             localStorage.setItem('userData', JSON.stringify(finalUserData));
             
             if (finalUserData.id) {
