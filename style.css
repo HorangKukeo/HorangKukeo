@@ -34,9 +34,15 @@ h2 {
     color: #ddd;
 }
 
-#login-form {
+/* 폼 공통 스타일 */
+#login-form, #register-form {
     display: flex;
     flex-direction: column;
+}
+
+/* 회원가입 폼은 기본적으로 숨김 */
+#register-form {
+    display: none;
 }
 
 .input-group {
@@ -76,4 +82,21 @@ h2 {
 
 .login-btn:hover {
     background-color: #45a049;
+}
+
+/* 폼 전환 링크 스타일 */
+.form-switcher {
+    margin-top: 25px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.form-switcher a {
+    color: #ffc107;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.form-switcher a:hover {
+    text-decoration: underline;
 }
