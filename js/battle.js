@@ -295,19 +295,26 @@ function openModal(modal) { modalBackdrop.classList.remove('hidden'); modal.clas
 function closeModal() { modalBackdrop.classList.add('hidden'); skillModal.classList.add('hidden'); itemModal.classList.add('hidden'); victoryModal.classList.add('hidden'); infoModal.classList.add('hidden'); }
 function generateMonsters() {
     const selectedDungeon = dungeonDB.find(d => d.id === selectedDungeonId);
-    if (!selectedDungeon) { console.error("선택된 던전 정보 없음:", selectedDungeonId); monstersInDungeon = []; return; }
+    if (!selectedDungeon) { 
+        console.error("선택된 던전 정보 없음:", selectedDungeonId); 
+        monstersInDungeon = []; 
+        return; 
+    }
     const monsterIds = [selectedDungeon.monster1Id, selectedDungeon.monster2Id, selectedDungeon.monster3Id, selectedDungeon.monster4Id, selectedDungeon.monster5Id].filter(id => id);
     monstersInDungeon = monsterIds.map(id => {
         const monsterData = monsterDB.find(monster => monster.id === id);
         if (monsterData) {
             const questionsData = questionDB.find(q => q.id === monsterData.questionId);
             const newMonster = { ...monsterData };
+            
+            // ✨ 추가: 각 몬스터마다 독립적인 문제 사용 기록
+            newMonster.usedQuestions = [];
+            
             if (questionsData) {
-                // [수정] quizBank 대신 questionSet으로 문제 덩어리 전체를 저장
                 newMonster.questionSet = questionsData;
             } else {
                 console.error(`몬스터 '${newMonster.name}'(ID: ${id})에 대한 Question DB(ID: ${newMonster.questionId})를 찾을 수 없습니다.`);
-                newMonster.questionSet = { type: '1', quizBank: [] }; // 기본값 설정
+                newMonster.questionSet = { type: '1', quizBank: [] };
             }
             return newMonster;
         }
@@ -322,12 +329,12 @@ function startEnemyTurn() {
     toggleActionMenu(false);
     setMonsterImage('idle');
     showMessage("몬스터의 턴입니다.", () => {
-        const questionKeys = Object.keys(currentMonster.questionSet).filter(k => k.startsWith('question') && currentMonster.questionSet[k]);
-        if (!questionKeys || questionKeys.length === 0) {
+        const randomKey = getRandomQuestion();
+        if (!randomKey) {
             showMessage("몬스터가 낼 문제가 없어 행동을 하지 못합니다.", checkBattleEnd);
             return;
         }
-        const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
+
         const rawQuestion = currentMonster.questionSet[randomKey];
         const questionType = currentMonster.questionSet.type; // 타입 가져오기
         const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
@@ -406,16 +413,46 @@ function enemyBasicAttack(question) {
         }
     });
 }
+
+function getRandomQuestion() {
+    const questionSet = currentMonster.questionSet;
+    const allQuestionKeys = Object.keys(questionSet)
+        .filter(k => k.startsWith('question') && questionSet[k]);
+    
+    if (allQuestionKeys.length === 0) {
+        console.error("사용 가능한 문제가 없습니다!");
+        return null;
+    }
+    
+    // 현재 몬스터에서 아직 사용하지 않은 문제 찾기
+    const availableQuestions = allQuestionKeys.filter(
+        key => !currentMonster.usedQuestions.includes(key)
+    );
+    
+    // 사용 안 한 문제가 없으면 초기화
+    if (availableQuestions.length === 0) {
+        console.log(`${currentMonster.name}의 모든 문제를 사용했습니다. 문제 목록을 초기화합니다.`);
+        currentMonster.usedQuestions = [];
+        return getRandomQuestion();
+    }
+    
+    // 사용 안 한 문제 중에서 랜덤 선택
+    const randomKey = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+    currentMonster.usedQuestions.push(randomKey);
+    
+    return randomKey;
+}
+
 function handleAction(action) {
     if (turn !== 'player' || isActionInProgress) return;
     isActionInProgress = true;
     toggleActionMenu(false);
-    const questionKeys = Object.keys(currentMonster.questionSet).filter(k => k.startsWith('question') && currentMonster.questionSet[k]);
-    if (!questionKeys || questionKeys.length === 0) {
+
+    const randomKey = getRandomQuestion();
+    if (!randomKey) {
         showMessage("몬스터가 낼 문제가 없습니다! (DB 확인 필요)", () => { startPlayerTurn(); });
         return;
     }
-    const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
     const rawQuestion = currentMonster.questionSet[randomKey];
     const questionType = currentMonster.questionSet.type; // 타입 가져오기
     const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
@@ -531,8 +568,11 @@ function openSkillMenu() {
 function useSkill(skill) {
     closeModal();
     isActionInProgress = true;
-    const questionKeys = Object.keys(currentMonster.questionSet).filter(k => k.startsWith('question') && currentMonster.questionSet[k]);
-    const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
+    const randomKey = getRandomQuestion();
+    if (!randomKey) {
+        showMessage("몬스터가 낼 문제가 없습니다!", () => { startPlayerTurn(); });
+        return;
+    }
     const rawQuestion = currentMonster.questionSet[randomKey];
     const questionType = currentMonster.questionSet.type; // 타입 가져오기
     const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
@@ -794,6 +834,8 @@ function initGame() {
 }
 
 initGame();
+
+
 
 function runRandomTest(questionId, iterations = 100) {
     // 1. 테스트할 문제 세트 찾기
