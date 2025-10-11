@@ -307,8 +307,11 @@ function generateMonsters() {
             const questionsData = questionDB.find(q => q.id === monsterData.questionId);
             const newMonster = { ...monsterData };
             
-            // ✨ 추가: 각 몬스터마다 독립적인 문제 사용 기록
+            // ✨ 수정: 중복 방지용 배열
             newMonster.usedQuestions = [];
+            
+            // ✨ 추가: 출제 횟수 카운트용 객체
+            newMonster.questionCount = {};
             
             if (questionsData) {
                 newMonster.questionSet = questionsData;
@@ -431,7 +434,7 @@ function getRandomQuestion() {
     
     // 사용 안 한 문제가 없으면 초기화
     if (availableQuestions.length === 0) {
-        console.log(`${currentMonster.name}의 모든 문제를 사용했습니다. 문제 목록을 초기화합니다.`);
+        /*console.log(`${currentMonster.name}의 모든 문제를 사용했습니다. 문제 목록을 초기화합니다.`);*/
         currentMonster.usedQuestions = [];
         return getRandomQuestion();
     }
@@ -440,6 +443,18 @@ function getRandomQuestion() {
     const randomKey = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
     currentMonster.usedQuestions.push(randomKey);
     
+        // ✨ 추가: 출제 횟수 카운트
+    if (!currentMonster.questionCount[randomKey]) {
+        currentMonster.questionCount[randomKey] = 0;
+    }
+    currentMonster.questionCount[randomKey]++;
+    
+    /*// ✨ 추가: 콘솔에 현재 통계 출력
+    console.log(`%c[문제 출제] ${currentMonster.name}`, 'color: #4CAF50; font-weight: bold;');
+    console.log(`선택된 문제: ${randomKey} (${currentMonster.questionCount[randomKey]}번째 출제)`);
+    console.log(`남은 미출제 문제: ${availableQuestions.length - 1}개`);
+    console.table(currentMonster.questionCount);*/
+
     return randomKey;
 }
 
@@ -447,6 +462,15 @@ function handleAction(action) {
     if (turn !== 'player' || isActionInProgress) return;
     isActionInProgress = true;
     toggleActionMenu(false);
+
+    if (action === 'skill') {
+    openSkillMenu();
+    return;
+    }
+    if (action === 'item') {
+        openItemMenu();
+        return;
+    }
 
     const randomKey = getRandomQuestion();
     if (!randomKey) {
@@ -685,6 +709,7 @@ function initGame() {
     if (player.maxMp >= 70) conditionsMet++;
     if (player.attack >= 50) conditionsMet++;
     if (player.equippedCards.length >= 4) conditionsMet++;
+    if (player.equippedCards.length >= 2) conditionsMet++;
     
     playerImageEl.src = `img/player${conditionsMet}.png`;
 
@@ -723,6 +748,14 @@ function initGame() {
     }));
     continueBattleBtn.addEventListener('click', () => {
         closeModal();
+
+            /*/ ✨ 추가: 몬스터 처치 시 최종 통계 출력
+            console.log(`%c========== ${currentMonster.name} 처치! ==========`, 'color: #FF5722; font-weight: bold; font-size: 14px;');
+            console.log(`총 출제된 문제 수: ${Object.values(currentMonster.questionCount).reduce((sum, count) => sum + count, 0)}개`);
+            console.log('문제별 출제 횟수:');
+            console.table(currentMonster.questionCount);
+            console.log('====================================\n');*/
+            
         currentMonsterIndex++;
         if (currentMonsterIndex >= monstersInDungeon.length) {
             // [수정 시작] 던전 클리어 시 최종 보상 표시 로직 변경
@@ -753,6 +786,10 @@ function initGame() {
         } else {
             currentMonster = setupMonster(monstersInDungeon[currentMonsterIndex]);
             monsterNameEl.textContent = currentMonster.name;
+
+            // ✨ 추가: 새 몬스터 시작 알림
+            /*console.log(`%c========== 새 몬스터 등장: ${currentMonster.name} ==========`, 'color: #2196F3; font-weight: bold; font-size: 14px;');*/
+
             updateUI();
             startPlayerTurn();
         }
