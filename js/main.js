@@ -39,11 +39,18 @@ const gachaResultView = document.getElementById('gacha-result-view');
 const gachaResultCard = document.getElementById('gacha-result-card');
 const gachaConfirmBtn = document.getElementById('gacha-confirm-btn');
 const detailModalCloseBtn = document.getElementById('detail-modal-close-btn');
+const gachaCategoryListEl = document.getElementById('gacha-category-list');
 let currentDexPage = '1-10';
+
+const GACHA_CATEGORIES = {
+    '품사': ['CP001', 'CP002', 'CP003'],
+    '문장 성분': ['CP021', 'CP022', 'CP023']
+    // 추후 새로운 카테고리와 카드팩 ID를 여기에 추가하면 됩니다.
+};
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D021'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D021','D022','D023','D024','D025','D026'];
 
 async function fetchAndStoreGameData() {
     try {
@@ -281,7 +288,7 @@ function renderCardDex() {
 
 // 도감 모달을 여는 함수 (초기화 역할)
 function openCardDexModal() {
-    currentDexPage = '1-20'; // 열 때마다 기본 페이지로 초기화
+    currentDexPage = '1-10'; // 열 때마다 기본 페이지로 초기화
     renderCardDex(); // 내용물 그리기
     openModal(cardDexModal); // 모달 보이기
 }
@@ -737,57 +744,77 @@ function drawCard(pack) {
     }
 
 
-/**
- * 카드 뽑기 모달을 열고 판매중인 팩 목록을 표시하는 함수
- */
 function openGachaModal() {
-    gachaPackList.classList.remove('hidden');
-    gachaResultView.classList.add('hidden');
-    
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    const cardPackDB = JSON.parse(localStorage.getItem('cardPackDB') || '[]');
-    
+    // 1. 팩 목록과 결과 창은 숨기고, 카테고리 목록을 표시
+    gachaCategoryListEl.innerHTML = '';
     gachaPackList.innerHTML = '';
+    gachaPackList.classList.add('hidden');
+    gachaResultView.classList.add('hidden');
+
+    const cardPackDB = JSON.parse(localStorage.getItem('cardPackDB') || '[]');
+    const packsForSale = cardPackDB.filter(p => p.forSale === 1);
+    const packsForSaleIds = packsForSale.map(p => p.id);
+
+    // 2. 정의된 카테고리를 기반으로 버튼 생성
+    for (const categoryName in GACHA_CATEGORIES) {
+        const packIdsInCategory = GACHA_CATEGORIES[categoryName];
+        
+        // 해당 카테고리에 속한 팩 중 판매 중인 것이 하나라도 있는지 확인
+        const isCategoryActive = packIdsInCategory.some(id => packsForSaleIds.includes(id));
+
+        if (isCategoryActive) {
+            const button = document.createElement('button');
+            button.className = 'gacha-category-btn';
+            button.textContent = categoryName;
+            button.addEventListener('click', () => {
+                // 클릭한 버튼 활성화
+                document.querySelectorAll('.gacha-category-btn').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // 해당 카테고리의 팩 목록 렌더링
+                renderPacksByCategory(categoryName, packsForSale);
+            });
+            gachaCategoryListEl.appendChild(button);
+        }
+    }
+
+    // 3. 모달 열기
+    openModal(gachaModal);
+}
+
+// [추가] 카테고리별로 카드팩 목록을 생성하는 함수
+function renderPacksByCategory(categoryName, allPacksForSale) {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const packIdsInCategory = GACHA_CATEGORIES[categoryName];
+
+    // 선택된 카테고리에 해당하는 판매 중인 팩만 필터링
+    const packsToDisplay = allPacksForSale.filter(pack => packIdsInCategory.includes(pack.id));
+
+    gachaPackList.innerHTML = ''; // 이전 목록 초기화
 
     const pointTypeNames = {
         partsOfSpeech: '품사 포인트',
         sentenceComponents: '문장 성분 포인트'
     };
-    
-    const packsForSale = cardPackDB.filter(p => p.forSale === 1);
 
-    if (packsForSale.length === 0) {
-        gachaPackList.innerHTML = '<p>현재 판매 중인 카드팩이 없습니다.</p>';
+    if (packsToDisplay.length === 0) {
+        gachaPackList.innerHTML = '<p>해당 카테고리에서 판매 중인 팩이 없습니다.</p>';
     } else {
-        packsForSale.forEach(pack => {
+        packsToDisplay.forEach(pack => {
             const packEl = document.createElement('div');
             packEl.className = 'dungeon-card';
             packEl.style.cursor = 'default';
 
-            // 가격 문자열 생성
             let priceStringParts = [];
-            if (pack.priceGold > 0) {
-                priceStringParts.push(`${pack.priceGold} G`);
-            }
-
+            if (pack.priceGold > 0) priceStringParts.push(`${pack.priceGold} G`);
             const requiredPoints = pack.pricePoints || {};
-            const pointPrices = Object.keys(requiredPoints).map(key => {
-                const pointName = pointTypeNames[key] || key;
-                return `${pointName} ${requiredPoints[key]}P`;
-            });
-
-            if (pointPrices.length > 0) {
-                priceStringParts.push(pointPrices.join(', '));
-            }
-            
+            const pointPrices = Object.keys(requiredPoints).map(key => `${pointTypeNames[key] || key} ${requiredPoints[key]}P`);
+            if (pointPrices.length > 0) priceStringParts.push(pointPrices.join(', '));
             const priceString = priceStringParts.join(' / ');
 
-            // ✨ 추가: 카드팩의 모든 카드를 보유하고 있는지 체크
             const cardPool = JSON.parse(pack.cardPool);
             const allCardIds = cardPool.map(card => card.cardId);
-            const ownedCount = allCardIds.filter(cardId => 
-                userData.ownedCards.includes(cardId)
-            ).length;
+            const ownedCount = allCardIds.filter(cardId => userData.ownedCards.includes(cardId)).length;
             const totalCount = allCardIds.length;
             const hasAllCards = ownedCount === totalCount;
             const completionRate = Math.round((ownedCount / totalCount) * 100);
@@ -798,7 +825,6 @@ function openGachaModal() {
                 <p><strong>가격:</strong> ${priceString}</p>
             `;
             
-            // ✨ 추가: 진행도 표시
             const progressMsg = document.createElement('p');
             progressMsg.style.marginTop = '8px';
             progressMsg.style.marginBottom = '8px';
@@ -806,13 +832,12 @@ function openGachaModal() {
             progressMsg.style.fontWeight = 'bold';
             
             if (hasAllCards) {
-                progressMsg.style.color = '#4CAF50'; // 초록색 (완료)
+                progressMsg.style.color = '#4CAF50';
                 progressMsg.textContent = `📦 보유: ${ownedCount}/${totalCount} (${completionRate}%) - 컬렉션 완료!`;
             } else {
-                progressMsg.style.color = '#FFC107'; // 노란색 (진행중)
+                progressMsg.style.color = '#FFC107';
                 progressMsg.textContent = `📦 보유: ${ownedCount}/${totalCount} (${completionRate}%)`;
             }
-            
             packEl.appendChild(progressMsg);
             
             const purchaseBtn = document.createElement('button');
@@ -821,44 +846,33 @@ function openGachaModal() {
             purchaseBtn.style.marginTop = '10px';
 
             if (hasAllCards) {
-                // 모든 카드 보유 중 - 버튼 비활성화 + 메시지
                 purchaseBtn.disabled = true;
-                
                 const completedMsg = document.createElement('p');
                 completedMsg.style.marginTop = '10px';
                 completedMsg.style.color = '#999';
                 completedMsg.style.fontSize = '0.9em';
                 completedMsg.style.fontStyle = 'italic';
                 completedMsg.textContent = '* 해당 카드 팩에서 획득할 수 있는 모든 카드를 보유하고 있습니다.';
-                
                 packEl.appendChild(purchaseBtn);
                 packEl.appendChild(completedMsg);
             } else {
-                // 아직 획득 안 한 카드가 있음 - 재화 체크
                 let canAfford = true;
-                if (userData.gold < pack.priceGold) {
-                    canAfford = false;
-                }
+                if (userData.gold < pack.priceGold) canAfford = false;
                 for (const pointType in requiredPoints) {
                     if ((userData.points[pointType] || 0) < requiredPoints[pointType]) {
                         canAfford = false;
                         break;
                     }
                 }
-                if (!canAfford) {
-                    purchaseBtn.disabled = true;
-                }
-
+                if (!canAfford) purchaseBtn.disabled = true;
                 purchaseBtn.onclick = () => purchaseCardPack(pack.id);
                 packEl.appendChild(purchaseBtn);
             }
-            
             gachaPackList.appendChild(packEl);
         });
     }
 
-    modalBackdrop.classList.remove('hidden');
-    gachaModal.classList.remove('hidden');
+    gachaPackList.classList.remove('hidden'); // 숨겨져 있던 팩 목록을 보여줌
 }
 
 /**

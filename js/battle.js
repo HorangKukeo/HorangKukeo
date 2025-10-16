@@ -516,30 +516,49 @@ function handleAction(action) {
 function checkBattleEnd() {
     updateUI();
     if (player.hp <= 0) {
-        // 1. 페널티 계산 (1~10% 사이의 랜덤 값)
+        // 1. 페널티 계산을 위한 기본 설정
         const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100; // 0.01 ~ 0.1
         const goldPenalty = Math.floor(player.gold * penaltyRate);
-        const pointsPenalty = Math.floor(player.points.partsOfSpeech * penaltyRate);
+        
+        let pointsPenalty = 0;
+        let pointTypeKey = '';
+        let pointTypeName = '';
 
-        // 2. 페널티 적용
+        // 현재 몬스터의 소속(affiliation)에 따라 차감할 포인트 종류 결정
+        if (currentMonster.affiliation === '품사') {
+            pointTypeKey = 'partsOfSpeech';
+            pointTypeName = '품사';
+        } else if (currentMonster.affiliation === '문장 성분') {
+            pointTypeKey = 'sentenceComponents';
+            pointTypeName = '문장 성분';
+        }
+
+        // 2. 결정된 종류의 포인트를 대상으로 페널티 계산 및 적용
+        if (pointTypeKey && player.points[pointTypeKey] > 0) {
+            pointsPenalty = Math.floor(player.points[pointTypeKey] * penaltyRate);
+            player.points[pointTypeKey] -= pointsPenalty;
+        }
         player.gold -= goldPenalty;
-        player.points.partsOfSpeech -= pointsPenalty;
 
-        // 3. 변경된 유저 데이터 저장 (던전 보상은 더하지 않음)
+        // 3. 변경된 유저 데이터 저장
         let finalUserData = JSON.parse(localStorage.getItem('userData'));
         finalUserData.gold = player.gold;
-        finalUserData.points.partsOfSpeech = player.points.partsOfSpeech;
+        finalUserData.points = player.points; // 포인트 전체 객체를 업데이트
         localStorage.setItem('userData', JSON.stringify(finalUserData));
         if (finalUserData.id) {
             uploadUserData(finalUserData.id);
         }
 
-        // 4. 게임 오버 메시지 표시
-        gameOverMessageEl.textContent = `전투에서 패배하여 골드 ${goldPenalty} G와 품사 포인트 ${pointsPenalty} P를 잃었습니다.`;
+        // 4. 동적인 게임 오버 메시지 생성 및 표시
+        let penaltyMessage = `전투에서 패배하여 골드 ${goldPenalty} G`;
+        if (pointsPenalty > 0) {
+            penaltyMessage += `와 ${pointTypeName} 포인트 ${pointsPenalty} P`;
+        }
+        penaltyMessage += '를 잃었습니다.';
+        gameOverMessageEl.textContent = penaltyMessage;
         
         gameOverEl.classList.remove('hidden'); 
-        return; 
-        // [수정 끝]
+        return;
     }
     if (currentMonster.hp <= 0) {
         const goldReward = parseInt(currentMonster.goldReward, 10) || 0;

@@ -621,6 +621,27 @@ body {
     display: none;
 }
 
+.buy-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-family: inherit;
+    font-size: 1.5em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+#gacha-pack-list {
+    max-height: 50vh; /* 목록의 최대 높이를 화면 높이의 50%로 제한 */
+    overflow-y: auto;  /* 내용이 max-height를 넘어가면 세로 스크롤 자동 생성 */
+    padding: 10px;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 5px;
+    margin-bottom: 15px; /* 닫기 버튼과의 간격 확보 */
+}
+
 /* 모바일 반응형 스타일 추가 */
 @media (max-width: 768px) {
     #dungeon-category-list {
@@ -630,6 +651,46 @@ body {
         margin-bottom: 15px;
     }
     .dungeon-category-btn {
+        font-size: 1.1em;
+        padding: 12px 18px;
+    }
+}
+
+#gacha-category-list {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.gacha-category-btn {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    font-family: var(--font-main);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #444;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+.gacha-category-btn:hover, .gacha-category-btn.active {
+    background-color: var(--accent-color);
+    color: #111;
+    border-color: var(--accent-color);
+    font-weight: bold;
+}
+
+/* 모바일 반응형 스타일 추가 */
+@media (max-width: 768px) {
+    #gacha-category-list {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .gacha-category-btn {
         font-size: 1.1em;
         padding: 12px 18px;
     }
