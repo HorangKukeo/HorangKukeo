@@ -8,6 +8,7 @@ const detailCardContent = document.getElementById('detail-card-content');
 const dexFilterButtons = document.getElementById('dex-filter-buttons');
 const loadingMessageEl = document.getElementById('loading-message');
 const dungeonListEl = document.getElementById('dungeon-list');
+const dungeonCategoryListEl = document.getElementById('dungeon-category-list'); // [추가]
 const userNicknameEl = document.getElementById('user-nickname');
 const userGoldEl = document.getElementById('user-gold');
 const userPosPointsEl = document.getElementById('user-pos-points');
@@ -42,7 +43,7 @@ let currentDexPage = '1-10';
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D021'];
 
 async function fetchAndStoreGameData() {
     try {
@@ -340,28 +341,61 @@ function openItemViewModal() {
     itemViewModal.classList.remove('hidden');
 }
 
-// ✨ 수정됨: 누락되었던 openDungeonModal 함수 추가
 function openDungeonModal() {
     const allDungeons = JSON.parse(localStorage.getItem('dungeonDB') || '[]');
     const visibleDungeons = allDungeons.filter(dungeon => VISIBLE_DUNGEON_IDS.includes(dungeon.id));
-    if (!visibleDungeons || visibleDungeons.length === 0) {
-        dungeonListEl.innerHTML = "<p>현재 열린 던전이 없습니다.</p>";
+
+    // 1. 활성화된 던전에서 고유한 카테고리('area') 목록을 추출합니다.
+    const categories = [...new Set(visibleDungeons.map(dungeon => dungeon.area))];
+
+    // 2. 카테고리 버튼들을 생성합니다.
+    dungeonCategoryListEl.innerHTML = ''; // 이전 버튼들 초기화
+    categories.forEach(category => {
+        const button = document.createElement('button');
+        button.className = 'dungeon-category-btn';
+        button.textContent = category;
+        button.addEventListener('click', () => {
+            // 클릭한 버튼에 'active' 스타일 적용
+            document.querySelectorAll('.dungeon-category-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // 선택된 카테고리에 해당하는 던전 목록을 표시
+            renderDungeonsByCategory(category, visibleDungeons);
+        });
+        dungeonCategoryListEl.appendChild(button);
+    });
+
+    // 3. 던전 목록은 일단 비우고 숨깁니다.
+    dungeonListEl.innerHTML = '';
+    dungeonListEl.classList.add('hidden');
+
+    // 4. 모달 창을 엽니다.
+    openModal(dungeonModal);
+}
+
+function renderDungeonsByCategory(category, allVisibleDungeons) {
+    // 선택된 카테고리에 해당하는 던전만 필터링합니다.
+    const dungeonsToDisplay = allVisibleDungeons.filter(dungeon => dungeon.area === category);
+
+    if (!dungeonsToDisplay || dungeonsToDisplay.length === 0) {
+        dungeonListEl.innerHTML = "<p>해당 카테고리의 던전이 없습니다.</p>";
     } else {
-        dungeonListEl.innerHTML = '';
-        visibleDungeons.forEach(dungeon => {
+        dungeonListEl.innerHTML = ''; // 이전 목록 초기화
+        dungeonsToDisplay.forEach(dungeon => {
             const card = document.createElement('div');
             card.className = 'dungeon-card';
             card.innerHTML = `<h2>${dungeon.name}</h2><p>테마: ${dungeon.area}</p><p>난이도: ${dungeon.recommendedLevel}</p>`;
             card.addEventListener('click', () => {
-                modalBackdrop.classList.add('hidden');
-                dungeonModal.classList.add('hidden');
+            modalBackdrop.classList.add('hidden');
+            dungeonModal.classList.add('hidden'); 
                 startBattle(dungeon.id);
-            });
+            }); 
             dungeonListEl.appendChild(card);
         });
     }
-    modalBackdrop.classList.remove('hidden');
-    dungeonModal.classList.remove('hidden');
+
+    // 숨겨져 있던 던전 목록을 보여줍니다.
+    dungeonListEl.classList.remove('hidden');
 }
 
 function endBattle() {

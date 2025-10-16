@@ -587,3 +587,50 @@ body {
         .dex-filter-btn { min-width: 65px; padding: 8px 10px; font-size: 0.95em; }
     }
 }
+
+/* ========== [추가] 던전 카테고리 스타일 ========== */
+#dungeon-category-list {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.dungeon-category-btn {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    font-family: var(--font-main);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #444;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+.dungeon-category-btn:hover, .dungeon-category-btn.active {
+    background-color: var(--accent-color);
+    color: #111;
+    border-color: var(--accent-color);
+    font-weight: bold;
+}
+
+#dungeon-list.hidden {
+    display: none;
+}
+
+/* 모바일 반응형 스타일 추가 */
+@media (max-width: 768px) {
+    #dungeon-category-list {
+        flex-wrap: wrap; /* 버튼이 많아지면 다음 줄로 넘김 */
+        gap: 10px;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    .dungeon-category-btn {
+        font-size: 1.1em;
+        padding: 12px 18px;
+    }
+}
