@@ -13,10 +13,16 @@ const userNicknameEl = document.getElementById('user-nickname');
 const userGoldEl = document.getElementById('user-gold');
 const userPosPointsEl = document.getElementById('user-pos-points');
 const userScPointsEl = document.getElementById('user-sc-points');
+const userCardCountEl = document.getElementById('user-card-count');
 const playerHpBar = document.getElementById('player-hp-bar');
-const playerHpText = document.getElementById('player-hp-text');
+const playerHpValue = document.getElementById('player-hp-value');
+const playerHpDetails = document.getElementById('player-hp-details');
 const playerMpBar = document.getElementById('player-mp-bar');
-const playerMpText = document.getElementById('player-mp-text');
+const playerMpValue = document.getElementById('player-mp-value');
+const playerMpDetails = document.getElementById('player-mp-details');
+const playerAttackBar = document.getElementById('player-attack-bar');
+const playerAttackValue = document.getElementById('player-attack-value');
+const playerAttackDetails = document.getElementById('player-attack-details');
 const cardViewBtn = document.getElementById('card-view-btn');
 const itemViewBtn = document.getElementById('item-view-btn');
 const modalBackdrop = document.getElementById('modal-backdrop');
@@ -40,6 +46,10 @@ const gachaResultCard = document.getElementById('gacha-result-card');
 const gachaConfirmBtn = document.getElementById('gacha-confirm-btn');
 const detailModalCloseBtn = document.getElementById('detail-modal-close-btn');
 const gachaCategoryListEl = document.getElementById('gacha-category-list');
+const goalsBtn = document.getElementById('goals-btn');
+const growthGoalsModal = document.getElementById('growth-goals-modal');
+const goalsAchievedCountEl = document.getElementById('goals-achieved-count');
+const goalListEl = document.getElementById('goal-list');
 let currentDexPage = '1-10';
 
 const GACHA_CATEGORIES = {
@@ -133,46 +143,70 @@ function displayUserData() {
 
     const playerPortraitImg = document.querySelector('.player-portrait img');
 
-    // --- [추가] 도감 보너스 계산 ---
+    // --- 1. 기본 스탯 ---
+    const baseHp = userData.baseHp;
+    const baseMp = userData.baseMp;
+    const baseAttack = userData.baseAttack;
+
+    // --- 2. 도감(보유 카드) 보너스 계산 ---
     const ownedCardCount = userData.ownedCards.length;
     const collectionHpBonus = ownedCardCount * 1;
     const collectionMpBonus = Math.round(ownedCardCount * 0.5);
     const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
 
-    // --- 스탯 계산 (도감 보너스 적용) ---
-    let maxHp = userData.baseHp + collectionHpBonus; // 베이스 스탯에 도감 보너스 추가
-    let maxMp = userData.baseMp + collectionMpBonus;
-    let totalAttack = userData.baseAttack + collectionAttackBonus;
+    // --- 3. 장착 카드 보너스 계산 ---
+    let equippedHpBonus = 0;
+    let equippedMpBonus = 0;
+    let equippedAttackBonus = 0;
     
-    // 장착 카드 보너스 합산
     userData.equippedCards.forEach(cardId => {
         const card = cardDB.find(c => c.id === cardId);
         if (card) {
-            maxHp += card.hpBonus;
-            maxMp += card.mpBonus;
-            totalAttack += card.attackBonus;
+            equippedHpBonus += card.hpBonus;
+            equippedMpBonus += card.mpBonus;
+            equippedAttackBonus += card.attackBonus;
         }
     });
 
-    // --- 조건 확인 및 이미지 변경 로직 (기존과 동일) ---
+    // --- 4. 최종 스탯 계산 ---
+    const maxHp = baseHp + collectionHpBonus + equippedHpBonus;
+    const maxMp = baseMp + collectionMpBonus + equippedMpBonus;
+    const totalAttack = baseAttack + collectionAttackBonus + equippedAttackBonus;
+
+    // --- 5. 플레이어 이미지 변경 로직 ---
     let conditionsMet = 0;
-    if (maxHp >= 100) conditionsMet++;
-    if (maxHp >= 150) conditionsMet++;
-    if (maxMp >= 70) conditionsMet++;
-    if (totalAttack >= 50) conditionsMet++;
-    if (userData.equippedCards.length >= 4) conditionsMet++;
     if (userData.equippedCards.length >= 2) conditionsMet++;
+    if (userData.equippedCards.length >= 4) conditionsMet++;
+    if (maxHp >= 100) conditionsMet++;
+    if (maxHp >= 200) conditionsMet++;
+    if (maxMp >= 50) conditionsMet++;
+    if (maxMp >= 80) conditionsMet++;
+    if (totalAttack >= 40) conditionsMet++;
+    if (totalAttack >= 60) conditionsMet++;
+    
     playerPortraitImg.src = `img/player${conditionsMet}.png`;
 
-    // --- UI 표시 (기존과 동일) ---
+    // --- 6. UI 텍스트 표시 ---
     userNicknameEl.textContent = userData.nickname;
     userGoldEl.textContent = userData.gold;
     userPosPointsEl.textContent = userData.points.partsOfSpeech || 0;
     userScPointsEl.textContent = userData.points.sentenceComponents || 0;
-    playerHpText.textContent = `${maxHp} / ${maxHp}`;
+    
+    userCardCountEl.textContent = ownedCardCount;
+    
+    // [수정] HP 바 내부 텍스트 업데이트
     playerHpBar.style.width = '100%';
-    playerMpText.textContent = `${maxMp} / ${maxMp}`;
+    playerHpValue.textContent = maxHp;
+    playerHpDetails.textContent = `(기본 ${baseHp} + 도감 ${collectionHpBonus} + 장착 ${equippedHpBonus})`;
+
+    // [수정] MP 바 내부 텍스트 업데이트
     playerMpBar.style.width = '100%';
+    playerMpValue.textContent = maxMp;
+    playerMpDetails.textContent = `(기본 ${baseMp} + 도감 ${collectionMpBonus} + 장착 ${equippedMpBonus})`;
+
+    playerAttackBar.style.width = '100%'; // 공격력 바도 항상 100%로 표시 (값만 표시)
+    playerAttackValue.textContent = totalAttack;
+    playerAttackDetails.textContent = `(기본 ${baseAttack} + 도감 ${collectionAttackBonus} + 장착 ${equippedAttackBonus})`;
 }
 
 /////////////////////CARD//////////////////////////
@@ -317,10 +351,20 @@ function unequipCard(cardId) {
     displayUserData();
 }
 
-//////////////////////////////////////////////////////
+function closeModal() {
+    // 모든 모달창과 배경을 숨깁니다.
+    modalBackdrop.classList.add('hidden');
+    cardDexModal.classList.add('hidden');
+    cardDetailModal.classList.add('hidden');
+    itemViewModal.classList.add('hidden');
+    dungeonModal.classList.add('hidden'); // dungeonModal 포함 확인
+    shopModal.classList.add('hidden');    // shopModal 포함 확인
+    gachaModal.classList.add('hidden');   // gachaModal 포함 확인
+    growthGoalsModal.classList.add('hidden'); // growthGoalsModal 포함 확인
+}
 
-// openModal 헬퍼 함수 추가 (또는 기존 함수 활용)
 function openModal(modal) {
+    closeModal();
     modalBackdrop.classList.remove('hidden');
     modal.classList.remove('hidden');
 }
@@ -473,6 +517,103 @@ async function startBattle(dungeonId) {
     }
 }
 
+// [추가] 성장 목표 정의 배열
+// displayUserData 함수의 if문 순서와 동일하게 정의
+const growthGoals = [
+    { description: "카드 2개 이상 장착", key: 'equippedCards', value: 2 },
+    { description: "카드 4개 장착", key: 'equippedCards', value: 4 },
+    { description: "최대 HP 100 달성", key: 'maxHp', value: 100 },
+    { description: "최대 HP 200 달성", key: 'maxHp', value: 200 },
+    { description: "최대 MP 50 달성", key: 'maxMp', value: 50 },
+    { description: "최대 MP 80 달성", key: 'maxMp', value: 80 },
+    { description: "공격력 40 달성", key: 'totalAttack', value: 40 },
+    { description: "공격력 60 달성", key: 'totalAttack', value: 60 }
+];
+
+// [교체] openGrowthGoalsModal 함수
+function openGrowthGoalsModal() {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const cardDB = JSON.parse(localStorage.getItem('cardDB'));
+    if (!userData || !cardDB) return; // 데이터 없으면 중단
+
+    // --- displayUserData와 동일한 스탯 계산 로직 ---
+    const baseHp = userData.baseHp;
+    const baseMp = userData.baseMp;
+    const baseAttack = userData.baseAttack;
+    const ownedCardCount = userData.ownedCards.length;
+    const collectionHpBonus = ownedCardCount * 1;
+    const collectionMpBonus = Math.round(ownedCardCount * 0.5);
+    const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+    let equippedHpBonus = 0;
+    let equippedMpBonus = 0;
+    let equippedAttackBonus = 0;
+    userData.equippedCards.forEach(cardId => {
+        const card = cardDB.find(c => c.id === cardId);
+        if (card) {
+            equippedHpBonus += card.hpBonus;
+            equippedMpBonus += card.mpBonus;
+            equippedAttackBonus += card.attackBonus;
+        }
+    });
+    const maxHp = baseHp + collectionHpBonus + equippedHpBonus;
+    const maxMp = baseMp + collectionMpBonus + equippedMpBonus;
+    const totalAttack = baseAttack + collectionAttackBonus + equippedAttackBonus;
+    const equippedCardCount = userData.equippedCards.length;
+    // --- 스탯 계산 끝 ---
+
+    let achievedCount = 0;
+    // ▼▼▼ [수정] 달성/미달성 목표 HTML을 저장할 배열 추가 ▼▼▼
+    let achievedGoalsHTML = [];
+    let unachievedGoalsHTML = [];
+    // ▲▲▲ [수정] 여기까지 ▲▲▲
+
+    goalListEl.innerHTML = ''; // 목록 초기화 (이 줄은 이제 필요 없음)
+
+    // 정의된 목표 순서대로 확인
+    growthGoals.forEach(goal => {
+        let isAchieved = false;
+        // 목표 타입에 따라 달성 여부 확인
+        switch (goal.key) {
+            case 'maxHp':
+                isAchieved = maxHp >= goal.value;
+                break;
+            case 'maxMp':
+                isAchieved = maxMp >= goal.value;
+                break;
+            case 'totalAttack':
+                isAchieved = totalAttack >= goal.value;
+                break;
+            case 'equippedCards':
+                isAchieved = equippedCardCount >= goal.value;
+                break;
+        }
+
+        // ▼▼▼ [수정] 목표 항목 HTML 문자열 생성 ▼▼▼
+        const goalClass = isAchieved ? 'achieved' : 'unachieved';
+        const goalHTML = `<div class="goal-item ${goalClass}">${goal.description}</div>`;
+        // ▲▲▲ [수정] 여기까지 ▲▲▲
+
+        if (isAchieved) {
+            achievedCount++;
+            // ▼▼▼ [수정] 달성 목표 배열에 추가 ▼▼▼
+            achievedGoalsHTML.push(goalHTML);
+        } else {
+            // ▼▼▼ [수정] 미달성 목표 배열에 추가 ▼▼▼
+            unachievedGoalsHTML.push(goalHTML);
+        }
+    });
+
+    // 달성 개수 업데이트
+    goalsAchievedCountEl.textContent = achievedCount;
+
+    // ▼▼▼ [수정] 달성 목표와 미달성 목표 HTML을 합쳐서 목록에 삽입 ▼▼▼
+    goalListEl.innerHTML = achievedGoalsHTML.join('') + unachievedGoalsHTML.join('');
+    // ▲▲▲ [수정] 여기까지 ▲▲▲
+
+    // 모달 열기
+    openModal(growthGoalsModal);
+}
+
 async function initializeMainScreen() {
     // localStorage에 cardDB가 없으면 서버에서 모든 게임 DB를 불러옴
     if (!localStorage.getItem('cardDB')) {
@@ -491,6 +632,7 @@ async function initializeMainScreen() {
     cardViewBtn.addEventListener('click', openCardDexModal);
     itemViewBtn.addEventListener('click', openItemViewModal);
     exploreBtn.addEventListener('click', openDungeonModal);
+    goalsBtn.addEventListener('click', openGrowthGoalsModal);
     gachaBtn.addEventListener('click', openGachaModal);
     // 뽑기 결과 확인 버튼 리스너 추가
     gachaConfirmBtn.addEventListener('click', () => {
@@ -514,16 +656,7 @@ async function initializeMainScreen() {
     });
 
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            modalBackdrop.classList.add('hidden');
-            cardDexModal.classList.add('hidden');
-            cardDetailModal.classList.add('hidden');
-            itemViewModal.classList.add('hidden');
-            dungeonModal.classList.add('hidden');
-            shopModal.classList.add('hidden');
-            gachaModal.classList.add('hidden');
-            cardDetailModal.classList.add('hidden');
-        });
+        btn.addEventListener('click', closeModal); // closeModal 함수 사용
     });
 
     dexFilterButtons.addEventListener('click', (event) => {
@@ -842,7 +975,7 @@ function renderPacksByCategory(categoryName, allPacksForSale) {
             
             const purchaseBtn = document.createElement('button');
             purchaseBtn.textContent = '구매';
-            purchaseBtn.className = 'login-btn';
+            purchaseBtn.className = 'buy-btn';
             purchaseBtn.style.marginTop = '10px';
 
             if (hasAllCards) {

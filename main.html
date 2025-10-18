@@ -10,21 +10,39 @@
     <div class="main-container">
         <div id="player-status-container">
             <div class="player-portrait">
-                <img src="img/player0.png" alt="Player Portrait">
+                <img src="img/oldimg/player0.png" alt="Player Portrait">
             </div>
             <div class="player-info">
                 <h2 id="user-nickname"></h2>
                 <div class="status-bar">
                     <span class="label">HP</span>
-                    <div class="bar-background"><div id="player-hp-bar" class="bar hp"></div></div>
-                    <span id="player-hp-text" class="value"></span>
-                </div>
+                    <div class="bar-background">
+                        <div id="player-hp-bar" class="bar hp">
+                            <span id="player-hp-value" class="bar-value"></span>
+                            <small id="player-hp-details" class="bar-details"></small>
+                            </div>
+                    </div>
+                    </div>
                 <div class="status-bar">
                     <span class="label">MP</span>
-                    <div class="bar-background"><div id="player-mp-bar" class="bar mp"></div></div>
-                    <span id="player-mp-text" class="value"></span>
+                    <div class="bar-background">
+                        <div id="player-mp-bar" class="bar mp">
+                            <span id="player-mp-value" class="bar-value"></span>
+                            <small id="player-mp-details" class="bar-details"></small>
+                            </div>
+                    </div>
+                    </div>
+                <div class="status-bar">
+                    <span class="label">ATK</span>
+                    <div class="bar-background">
+                        <div id="player-attack-bar" class="bar attack">
+                            <span id="player-attack-value" class="bar-value"></span>
+                            <small id="player-attack-details" class="bar-details"></small>
+                        </div>
+                    </div>
                 </div>
                 <div class="stats-grid">
+                    <p>🎴 보유 카드: <span id="user-card-count"></span> 장</p>
                     <p>💰 골드: <span id="user-gold"></span> G</p>
                     <p>🅿️ 품사 포인트: <span id="user-pos-points"></span> P</p>
                     <p>📑 문장 성분 포인트: <span id="user-sc-points"></span> P</p>
@@ -40,12 +58,22 @@
             <p id="loading-message">게임 데이터를 불러오는 중...</p>
             <div id="main-menu" class="hidden">
                 <button id="explore-btn" class="main-menu-btn">🗺️ 탐험하기</button>
+                <button id="goals-btn" class="main-menu-btn">🎯 성장 목표</button>
                 <button id="shop-btn" class="main-menu-btn">🛍️ 상점</button>
                 <button id="gacha-btn" class="main-menu-btn">✨ 카드 뽑기</button>
             </div>
         </div>
 
     <div id="modal-backdrop" class="hidden">
+
+        <div id="growth-goals-modal" class="modal-window hidden">
+            <h3>🎯 성장 목표</h3>
+            <p>현재 달성 수: <span id="goals-achieved-count">0</span> / 8</p>
+            <div id="goal-list">
+                </div>
+            <button class="modal-close-btn">닫기</button>
+        </div>
+
         <div id="card-dex-modal" class="modal-window hidden">
             <h3>🎴 카드 보기</h3>
             

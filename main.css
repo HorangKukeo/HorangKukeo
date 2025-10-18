@@ -21,13 +21,15 @@ body {
 .player-portrait { width: 100%; height: 200px; background-color: #111; border: 2px solid var(--border-color); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; }
 .player-portrait img { max-width: 90%; max-height: 90%; }
 .player-info h2 { font-family: var(--font-pixel); font-size: 2.5em; color: var(--accent-color); margin: 0 0 15px 0; text-shadow: 2px 2px #000; }
-.status-bar { display: flex; align-items: center; margin-bottom: 8px; }
+.status-bar {
+    display: flex; /* 내부 요소들을 가로로 배치 */
+    align-items: center; /* 라벨과 바를 수직 중앙 정렬 */
+    margin-bottom: 8px; /* 기존 스타일 유지 */
+}
 .status-bar .label { font-family: var(--font-pixel); font-size: 1.5em; width: 40px; }
-.bar-background { flex-grow: 1; height: 18px; background-color: #111; border: 2px solid #000; box-shadow: inset 1px 1px 2px #000; }
-.bar { height: 100%; transition: width 0.5s ease-in-out; }
+
 .bar.hp { background-color: var(--hp-color); }
 .bar.mp { background-color: var(--mp-color); }
-.status-bar .value { width: 80px; text-align: right; font-size: 1.1em; }
 .stats-grid { margin-top: 15px; border-top: 2px solid var(--border-color); padding-top: 10px; }
 .stats-grid p { margin: 5px 0; }
 .player-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
@@ -372,15 +374,6 @@ body {
         width: 45px;
     }
 
-    .bar-background {
-        height: 20px;
-    }
-
-    .status-bar .value {
-        font-size: 1em;
-        width: 85px;
-    }
-
     .stats-grid p {
         font-size: 1em;
         line-height: 1.8;
@@ -693,5 +686,169 @@ body {
     .gacha-category-btn {
         font-size: 1.1em;
         padding: 12px 18px;
+    }
+}
+
+/* ========== [추가] 스탯 상세 정보 스타일 ========== */
+.stats-grid #user-attack-details {
+    display: block; /* 공격력 값 아래에 새 줄로 표시 */
+    font-size: 0.9em;
+    color: #ccc;
+    margin-left: 5px;
+    font-style: italic;
+}
+
+/* stats-grid의 p 태그 줄 간격 조정 */
+.stats-grid p {
+    margin: 5px 0;
+    line-height: 1.6; /* 상세 정보가 들어갈 공간 확보 */
+}
+
+@media (max-width: 768px) {
+    .stats-grid p {
+        font-size: 1em;
+        line-height: 1.8; 
+    }
+    
+    .stats-grid #user-attack-details {
+        margin-left: 10px;
+        font-size: 0.9em;
+    }
+}
+
+.bar {
+    width: 100%; /* 항상 부모(.bar-background)의 너비를 채움 */
+    height: 100%; /* 기존 스타일 유지 */
+    transition: width 0.5s ease-in-out; /* 기존 스타일 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 텍스트를 왼쪽부터 배치 */
+    padding: 0 10px;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+
+.bar-value {
+    font-weight: bold;
+    font-size: 1.1em;
+    font-family: var(--font-pixel); /* 픽셀 폰트 적용 */
+}
+
+.bar-details {
+    font-size: 0.75em;
+    font-family: var(--font-main);
+    color: #e0e0e0;
+    margin-left: 8px; /* 값과 상세정보 사이 간격 */
+}
+
+.bar-background {
+    flex-grow: 1; /* 라벨을 제외한 남은 공간을 모두 차지 */
+    height: 22px; /* 기존 스타일 유지 */
+    background-color: #444; /* 기존 스타일 유지 */
+    border: 1px solid #111; /* 기존 스타일 유지 */
+    border-radius: 10px; /* 기존 스타일 유지 */
+    overflow: hidden; /* 기존 스타일 유지 */
+    position: relative; /* 내부 텍스트 위치 기준점 (선택적) */
+}
+
+@media (max-width: 768px) {
+    .status-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px; /* 바 사이 간격 조정 */
+        padding: 0px;
+    }
+
+    .status-bar .label {
+        font-size: 1.4em; /* 모바일 라벨 크기 조정 */
+        width: 45px; /* 모바일 라벨 너비 약간 증가 */
+        margin-right: 8px; /* 모바일 바와의 간격 조정 */
+    }
+
+    .bar-background {
+        flex-grow: 1;
+        height: 30px;
+    }
+
+    .bar {
+        padding: 0 0 8 8px; /* [수정] 모바일 내부 여백 조정 */
+    }
+
+    .bar-value {
+        font-size: 1.1em; /* [수정] 모바일 값 텍스트 크기 증가 (1em -> 1.1em) */
+    }
+    .bar-details {
+        font-size: 0.75em; /* [수정] 모바일 상세 정보 텍스트 크기 증가 (0.7em -> 0.75em) */
+        margin-left: 8px; /* [수정] 모바일 값-상세정보 간격 조정 */
+    }
+
+}
+
+/* ========== [추가] 성장 목표 모달 스타일 ========== */
+#growth-goals-modal p {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+#goals-achieved-count {
+    font-weight: bold;
+    color: var(--accent-color);
+    font-size: 1.2em;
+}
+
+#goal-list {
+    display: grid;
+    grid-template-columns: 1fr; /* 한 줄에 하나씩 */
+    gap: 10px;
+    margin-top: 15px;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 5px;
+    max-height: 50vh; /* 내용 많아지면 스크롤 */
+    overflow-y: auto;
+    text-align: left;
+}
+
+.goal-item {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1.1em;
+    transition: all 0.2s;
+}
+
+.goal-item.achieved {
+    background-color: rgba(76, 175, 80, 0.3); /* 달성 (밝은 녹색 배경) */
+    border-color: #4CAF50;
+    color: #e0e0e0;
+    position: relative; /* 체크 표시 위치 기준점 */
+    padding-right: 35px; /* 체크 표시 공간 확보 */
+}
+
+.goal-item.achieved::after {
+    content: '✅'; /* 체크 표시 이모지 */
+    position: absolute; /* 오른쪽 끝에 위치 */
+    right: 15px; /* 오른쪽 여백 */
+    top: 50%; /* 수직 중앙 */
+    transform: translateY(-50%); /* 정확한 수직 중앙 정렬 */
+    font-size: 1.1em; /* 이모지 크기 */
+}
+
+.goal-item.unachieved {
+    background-color: rgba(50, 50, 50, 0.5); /* 미달성 (어두운 배경) */
+    color: #aaa;
+}
+
+/* ========== [추가] 모바일 반응형 스타일 ========== */
+@media (max-width: 768px) {
+    #goal-list {
+        gap: 8px;
+    }
+    .goal-item {
+        padding: 10px 12px;
+        font-size: 1em;
     }
 }

@@ -723,12 +723,14 @@ function initGame() {
     const playerImageEl = gameContainer.querySelector('#player-image');
     let conditionsMet = 0;
     // 아래 값들은 main.js와 동일하게 맞춰주어야 합니다.
-    if (player.maxHp >= 100) conditionsMet++;
-    if (player.maxHp >= 150) conditionsMet++;
-    if (player.maxMp >= 70) conditionsMet++;
-    if (player.attack >= 50) conditionsMet++;
-    if (player.equippedCards.length >= 4) conditionsMet++;
     if (player.equippedCards.length >= 2) conditionsMet++;
+    if (player.equippedCards.length >= 4) conditionsMet++;
+    if (player.maxHp >= 100) conditionsMet++;
+    if (player.maxHp >= 200) conditionsMet++;
+    if (player.maxMp >= 50) conditionsMet++;
+    if (player.maxMp >= 80) conditionsMet++;
+    if (player.attack >= 40) conditionsMet++;
+    if (player.attack >= 60) conditionsMet++;
     
     playerImageEl.src = `img/player${conditionsMet}.png`;
 
