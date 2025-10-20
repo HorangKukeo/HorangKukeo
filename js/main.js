@@ -60,7 +60,7 @@ const GACHA_CATEGORIES = {
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D021','D022','D023','D024','D025','D026'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D021','D022','D023','D024','D025','D026'];
 
 async function fetchAndStoreGameData() {
     try {
@@ -175,14 +175,20 @@ function displayUserData() {
 
     // --- 5. 플레이어 이미지 변경 로직 ---
     let conditionsMet = 0;
-    if (userData.equippedCards.length >= 2) conditionsMet++;
-    if (userData.equippedCards.length >= 4) conditionsMet++;
-    if (maxHp >= 100) conditionsMet++;
+    if (maxHp >= 50) conditionsMet++;
+    if (maxHp >= 80) conditionsMet++;
+    if (maxHp >= 120) conditionsMet++;
+    if (maxHp >= 150) conditionsMet++;
     if (maxHp >= 200) conditionsMet++;
+    if (maxHp >= 250) conditionsMet++;
     if (maxMp >= 50) conditionsMet++;
-    if (maxMp >= 80) conditionsMet++;
-    if (totalAttack >= 40) conditionsMet++;
+    if (maxMp >= 70) conditionsMet++;
+    if (maxMp >= 100) conditionsMet++;
+    if (maxMp >= 150) conditionsMet++;
+    if (totalAttack >= 30) conditionsMet++;
+    if (totalAttack >= 45) conditionsMet++;
     if (totalAttack >= 60) conditionsMet++;
+    if (totalAttack >= 80) conditionsMet++;
     
     playerPortraitImg.src = `img/player${conditionsMet}.png`;
 
@@ -520,14 +526,20 @@ async function startBattle(dungeonId) {
 // [추가] 성장 목표 정의 배열
 // displayUserData 함수의 if문 순서와 동일하게 정의
 const growthGoals = [
-    { description: "카드 2개 이상 장착", key: 'equippedCards', value: 2 },
-    { description: "카드 4개 장착", key: 'equippedCards', value: 4 },
-    { description: "최대 HP 100 달성", key: 'maxHp', value: 100 },
+    { description: "최대 HP 50 달성", key: 'maxHp', value: 50 },
+    { description: "최대 HP 80 달성", key: 'maxHp', value: 80 },
+    { description: "최대 HP 120 달성", key: 'maxHp', value: 120 },
+    { description: "최대 HP 150 달성", key: 'maxHp', value: 150 },
     { description: "최대 HP 200 달성", key: 'maxHp', value: 200 },
+    { description: "최대 HP 250 달성", key: 'maxHp', value: 250 },
     { description: "최대 MP 50 달성", key: 'maxMp', value: 50 },
-    { description: "최대 MP 80 달성", key: 'maxMp', value: 80 },
-    { description: "공격력 40 달성", key: 'totalAttack', value: 40 },
-    { description: "공격력 60 달성", key: 'totalAttack', value: 60 }
+    { description: "최대 MP 70 달성", key: 'maxMp', value: 70 },
+    { description: "최대 MP 100 달성", key: 'maxMp', value: 100 },
+    { description: "최대 MP 150 달성", key: 'maxMp', value: 150 },
+    { description: "공격력 30 달성", key: 'totalAttack', value: 30 },
+    { description: "공격력 45 달성", key: 'totalAttack', value: 45 },
+    { description: "공격력 60 달성", key: 'totalAttack', value: 60 },
+    { description: "공격력 80 달성", key: 'totalAttack', value: 80 }
 ];
 
 // [교체] openGrowthGoalsModal 함수
@@ -730,25 +742,43 @@ function buyItem(itemId) {
         return;
     }
 
-    // 골드 차감
+    // --- [수정 시작] 아이템 타입에 따른 로직 분기 ---
+    let purchaseMessage = ''; // 구매 결과 메시지 변수
+
+    // 골드 차감 (공통)
     userData.gold -= itemToBuy.price;
 
-    // 인벤토리에 아이템 추가 (없으면 1, 있으면 +1)
-    userData.inventory[itemToBuy.id] = (userData.inventory[itemToBuy.id] || 0) + 1;
+    if (itemToBuy.type === 4) { // 타입 4: 기본 HP 영구 증가
+        userData.baseHp += itemToBuy.value;
+        purchaseMessage = `${itemToBuy.name} 구매! 기본 HP가 ${itemToBuy.value} 영구적으로 증가했습니다!`;
+        // 인벤토리에 추가하지 않음
+    } else if (itemToBuy.type === 5) { // 타입 5: 기본 MP 영구 증가
+        userData.baseMp += itemToBuy.value;
+        purchaseMessage = `${itemToBuy.name} 구매! 기본 MP가 ${itemToBuy.value} 영구적으로 증가했습니다!`;
+        // 인벤토리에 추가하지 않음
+    } else if (itemToBuy.type === 6) { // 타입 6: 기본 공격력 영구 증가
+        userData.baseAttack += itemToBuy.value;
+        purchaseMessage = `${itemToBuy.name} 구매! 기본 공격력이 ${itemToBuy.value} 영구적으로 증가했습니다!`;
+        // 인벤토리에 추가하지 않음
+    } else { // 타입 1, 2, 3 또는 기타 (기존 로직)
+        // 인벤토리에 아이템 추가 (없으면 1, 있으면 +1)
+        userData.inventory[itemToBuy.id] = (userData.inventory[itemToBuy.id] || 0) + 1;
+        purchaseMessage = `${itemToBuy.name}을(를) 구매했습니다!`;
+    }
+    // --- [수정 끝] ---
+
 
     // 변경된 데이터를 로컬 스토리지에 저장하고 서버에 업로드
     localStorage.setItem('userData', JSON.stringify(userData));
     if (userData.id) { // 로그인 유저일 경우에만 업로드
-        uploadUserData(userData.id);
+        uploadUserData(userData.id); // common.js의 함수 사용
     }
 
-
-    alert(`${itemToBuy.name}을(를) 구매했습니다!`);
+    alert(purchaseMessage); // 결과 메시지 표시
 
     // UI 갱신
-    displayUserData(); // 메인 화면의 골드 정보 업데이트
+    displayUserData(); // 메인 화면의 스탯 및 골드 정보 업데이트
     openShopModal(); // 상점 모달을 다시 열어 버튼 상태 등 갱신
-
 }
 
 /**

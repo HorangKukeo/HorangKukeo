@@ -67,7 +67,8 @@ const battleModeContainer = document.querySelector('#battle-mode-container');
     const messageBox = gameContainer.querySelector('#message-box');
     const messageTextEl = gameContainer.querySelector('#message-text');
     const quizBox = gameContainer.querySelector('#quiz-box');
-    const quizTextEl = gameContainer.querySelector('#quiz-text');
+    const quizTextPromptEl = gameContainer.querySelector('#quiz-text-prompt');
+const quizTextContextEl = gameContainer.querySelector('#quiz-text-context');
     const quizAnswersEl = gameContainer.querySelector('#quiz-answers');
     const actionMenu = gameContainer.querySelector('#action-menu');
     const actionButtons = gameContainer.querySelectorAll('.action-btn');
@@ -133,6 +134,7 @@ function calculatePlayerStats() {
         }
     });
 }
+
 function updateUI() {
     player.hp = Math.min(player.maxHp, player.hp);
     player.mp = Math.min(player.maxMp, player.mp);
@@ -156,32 +158,66 @@ function updateUI() {
     });
 }
 function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]];} return array;}
-function showMessage(text, explanationOrCallback, callback) {
+function showMessage(text, detailsOrCallback, callback) {
     messageBox.classList.remove('hidden');
     quizBox.classList.add('hidden');
     
-    // 두 번째 파라미터가 함수인지 문자열인지 판별
     let explanation = '';
     let finalCallback = null;
+    let isAfterQuiz = false;
+    let isCorrect = false; // 기본값
     
-    if (typeof explanationOrCallback === 'function') {
-        // 기존 방식: showMessage(text, callback)
-        finalCallback = explanationOrCallback;
-    } else if (typeof explanationOrCallback === 'string') {
-        // 새 방식: showMessage(text, explanation, callback)
-        explanation = explanationOrCallback;
+    if (typeof detailsOrCallback === 'function') {
+        // 퀴즈 직후가 아님: showMessage(text, callback)
+        finalCallback = detailsOrCallback;
+    } else if (typeof detailsOrCallback === 'object' && detailsOrCallback !== null) {
+        // [수정] 퀴즈 직후임: showMessage(text, { isCorrect, explanation }, callback)
+        isAfterQuiz = true;
+        isCorrect = detailsOrCallback.isCorrect;
+        explanation = detailsOrCallback.explanation || '';
         finalCallback = callback;
+    } else if (detailsOrCallback === undefined && callback === undefined) {
+        // 퀴즈 직후가 아님 (콜백 없음): showMessage(text)
+        finalCallback = null;
     }
     
     let fullMessage = text;
-    if (explanation) {
-        fullMessage += `<br><br><div style="margin-top: 15px; padding: 10px; background-color: rgba(255,193,7,0.2); border-left: 3px solid var(--accent-color); text-align: left;"><strong>💡 해설:</strong> ${explanation}</div>`;
+    
+    if (isAfterQuiz) {
+        let answerHTML = '';
+        let explanationHTML = '';
+
+        if (currentQuestion && currentQuestion.correctAnswer) {
+            
+            // [수정] isCorrect 값에 따라 정답 박스 스타일을 동적으로 변경
+            if (isCorrect) {
+                // (성공) 녹색 박스
+                answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(76, 175, 80, 0.2); border-left: 3px solid var(--hp-color); text-align: left;"><strong>✔️ 정답:</strong> ${currentQuestion.correctAnswer}</div>`;
+            } else {
+                // (실패) 빨간색 박스 (게임오버 모달의 h2 색상(#c74343) 기준)
+                answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(199, 67, 67, 0.2); border-left: 3px solid #c74343; text-align: left;"><strong>❌ 정답:</strong> ${currentQuestion.correctAnswer}</div>`;
+            }
+        }
+        
+        if (explanation) {
+            explanationHTML = `<div style="margin-top: 10px; padding: 10px; background-color: rgba(255,193,7,0.2); border-left: 3px solid var(--accent-color); text-align: left;"><strong>💡 해설:</strong> ${explanation}</div>`;
+        }
+        
+        fullMessage += `<br><br>${answerHTML}${explanationHTML}`;
     }
     
     messageTextEl.innerHTML = fullMessage;
     
     if (finalCallback) { 
-        setTimeout(finalCallback, explanation ? 4000 : 1500);
+        let waitTime = 1500;
+        if (isAfterQuiz) {
+            if (explanation) {
+                waitTime = 3500;
+            } else {
+                waitTime = 2500; 
+            }
+        }
+        setTimeout(finalCallback, waitTime);
     }
 }
 
@@ -217,8 +253,11 @@ function showQuiz(question, callback) {
     onQuizComplete = callback;
     currentQuestion = question;
 
+    const displayPrompt = question.prompt.replace(/@(.*?)@/g, '<u>$1</u>');
     const displayContext = question.context.replace(/@(.*?)@/g, '<u>$1</u>');
-    quizTextEl.innerHTML = `${question.prompt}<br><br>"${displayContext}"`;
+    
+    quizTextPromptEl.innerHTML = displayPrompt;
+    quizTextContextEl.innerHTML = displayContext;
     
     // UI 요소 가져오기
     const quizAnswers = quizBox.querySelector('#quiz-answers');
@@ -251,8 +290,18 @@ function showQuiz(question, callback) {
             shortAnswerSubmitBtn.disabled = false; // 활성화
             
             const submitAnswer = () => {
+                // 1. 사용자가 입력한 답 (앞뒤 공백 제거)
                 const userAnswer = shortAnswerInput.value.trim();
-                handleQuizAnswer(userAnswer === question.correctAnswer);
+                // 2. DB에 저장된 정답
+                const correctAnswer = question.correctAnswer;
+
+                // 3. 두 텍스트에서 *모든* 띄어쓰기를 제거합니다.
+                //    (정규식 /\\s/g 는 모든(g) 공백(\\s)을 의미)
+                const normalizedUserAnswer = userAnswer.replace(/\s/g, '');
+                const normalizedCorrectAnswer = correctAnswer.replace(/\s/g, '');
+
+                // 4. 띄어쓰기가 제거된 버전을 비교합니다.
+                handleQuizAnswer(normalizedUserAnswer === normalizedCorrectAnswer);
             };
 
             // 기존 이벤트 리스너 제거 (중복 방지)
@@ -357,14 +406,16 @@ function startEnemyTurn() {
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
                     const finalDamage = Math.floor(damage * 0.5);
                     player.hp = Math.max(0, player.hp - finalDamage);
-                    showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, currentQuestion.explanation, checkBattleEnd);
+                    // [수정]
+                    showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
 
                 } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
                     playSound('monster-skillheal-miss'); // [효과음 추가] (동일한 방해 효과음 사용)
                     await sleep(200);
                     const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, currentQuestion.explanation, checkBattleEnd);
+                    // [수정]
+                    showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                 }
 
             } else {
@@ -378,14 +429,16 @@ function startEnemyTurn() {
                     const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
                     const finalDamage = damage;
                     player.hp = Math.max(0, player.hp - finalDamage);
-                    showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, currentQuestion.explanation, checkBattleEnd);
+                    // [수정]
+                    showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
 
                 } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
                     playSound('monster-skillheal-hit'); // [효과음 추가]
                     await sleep(200);
                     const healAmount = parseInt(skillToUse.effect);
                     currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, currentQuestion.explanation, checkBattleEnd);
+                    // [수정]
+                    showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                 }
             }
             updateUI();
@@ -395,6 +448,7 @@ function startEnemyTurn() {
         }
     });
 }
+
 function enemyBasicAttack(question) {
     showQuiz(question, async (isCorrect) => {
         if (isCorrect) {
@@ -404,7 +458,8 @@ function enemyBasicAttack(question) {
             const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
-            showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, currentQuestion.explanation, checkBattleEnd);
+            // [수정]
+            showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
         } else {
             playSound('monster-attack-hit'); // [효과음 추가]
             await sleep(200);
@@ -412,7 +467,8 @@ function enemyBasicAttack(question) {
             shakeScreen();
             player.hp = Math.max(0, player.hp - parseInt(currentMonster.attack));
             updateUI();
-            showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, currentQuestion.explanation, checkBattleEnd);
+            // [수정]
+            showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
         }
     });
 }
@@ -491,12 +547,14 @@ function handleAction(action) {
                     setMonsterImage('hurt');
                     currentMonster.hp = Math.max(0, currentMonster.hp - player.attack);
                     updateUI();
-                    showMessage(`공격 성공! ${player.attack}의 데미지!`, currentQuestion.explanation, checkBattleEnd);
+                    // [수정]
+                    showMessage(`공격 성공! ${player.attack}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                 } else { 
                     playSound('player-attack-miss');
                     await sleep(200);
                     setMonsterImage('happy');
-                    showMessage("공격이 빗나갔다...", currentQuestion.explanation, checkBattleEnd); 
+                    // [수정]
+                    showMessage("공격이 빗나갔다...", { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd); 
                 }
             });
             break;
@@ -505,14 +563,22 @@ function handleAction(action) {
         case 'flee':
             showQuiz(question, (isCorrect) => {
                 if (isCorrect && Math.random() < 0.5) {
-                    showMessage("도망치는데 성공했다!", () => { window.location.href = 'main.html'; });
+                    // [수정] 도망 성공 시에는 정답/해설을 표시할 필요가 없으므로 기존 호출 방식 유지
+                    showMessage("도망치는데 성공했다!", () => { 
+                        // [수정] window.location.href 대신 endBattle() 호출
+                        if (window.endBattle) {
+                            window.endBattle();
+                        }
+                    });
                 } else { 
-                    showMessage("도망칠 수 없었다...", currentQuestion.explanation, checkBattleEnd); 
+                    // [수정]
+                    showMessage("도망칠 수 없었다...", { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd); 
                 }
             });
             break;
     }
 }
+
 function checkBattleEnd() {
     updateUI();
     if (player.hp <= 0) {
@@ -608,6 +674,7 @@ function openSkillMenu() {
     });
     openModal(skillModal);
 }
+
 function useSkill(skill) {
     closeModal();
     isActionInProgress = true;
@@ -629,12 +696,14 @@ function useSkill(skill) {
                 shakeScreen();
                 const damage = Math.floor(player.attack * skill.effect);
                 currentMonster.hp = Math.max(0, currentMonster.hp - damage);
-                showMessage(`${skill.name} 발동! ${damage}의 데미지!`, currentQuestion.explanation, checkBattleEnd);
+                // [수정]
+                showMessage(`${skill.name} 발동! ${damage}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
             } else if (skill.type === 2) {
                 playSound('player-skillheal-hit');
                 await sleep(200);
                 player.hp = Math.min(player.maxHp, player.hp + skill.effect);
-                showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, currentQuestion.explanation, checkBattleEnd);
+                // [수정]
+                showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
             }
         } else {
             setMonsterImage('happy');
@@ -645,7 +714,8 @@ function useSkill(skill) {
                     playSound('player-skillheal-miss');
                     await sleep(200);
                 }
-            showMessage("스킬 발동에 실패했다...", currentQuestion.explanation, checkBattleEnd);
+            // [수정]
+            showMessage("스킬 발동에 실패했다...", { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
         }
         updateUI();
     });
@@ -723,14 +793,20 @@ function initGame() {
     const playerImageEl = gameContainer.querySelector('#player-image');
     let conditionsMet = 0;
     // 아래 값들은 main.js와 동일하게 맞춰주어야 합니다.
-    if (player.equippedCards.length >= 2) conditionsMet++;
-    if (player.equippedCards.length >= 4) conditionsMet++;
-    if (player.maxHp >= 100) conditionsMet++;
+    if (player.maxHp >= 50) conditionsMet++;
+    if (player.maxHp >= 80) conditionsMet++;
+    if (player.maxHp >= 120) conditionsMet++;
+    if (player.maxHp >= 150) conditionsMet++;
     if (player.maxHp >= 200) conditionsMet++;
+    if (player.maxHp >= 250) conditionsMet++;
     if (player.maxMp >= 50) conditionsMet++;
-    if (player.maxMp >= 80) conditionsMet++;
-    if (player.attack >= 40) conditionsMet++;
+    if (player.maxMp >= 70) conditionsMet++;
+    if (player.maxMp >= 100) conditionsMet++;
+    if (player.maxMp >= 150) conditionsMet++;
+    if (player.attack >= 30) conditionsMet++;
+    if (player.attack >= 45) conditionsMet++;
     if (player.attack >= 60) conditionsMet++;
+    if (player.attack >= 80) conditionsMet++;
     
     playerImageEl.src = `img/player${conditionsMet}.png`;
 

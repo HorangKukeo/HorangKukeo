@@ -58,7 +58,21 @@ body {
 .box { border: 2px solid var(--border-color); border-radius: 5px; padding: 20px; box-sizing: border-box; }
 #message-box { height: 100%; text-align: center; font-size: 1.2em; display: flex; justify-content: center; align-items: center; }
 #quiz-box { text-align: center; }
-#quiz-text { font-size: 1.2em; margin-bottom: 20px; }
+#quiz-text-prompt {
+    font-size: 1.2em;
+    margin-bottom: 15px; /* 박스와의 간격을 위해 조정 */
+    line-height: 1.5;
+}
+#quiz-text-context {
+    background-color: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 15px 20px;
+    margin-bottom: 20px; /* 답변 버튼과의 간격 */
+    font-size: 1.15em;
+    line-height: 1.6;
+    text-align: left; /* 제시문은 왼쪽 정렬 */
+}
 #quiz-answers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .quiz-btn, .menu-item-btn { background-color: #4a4a4a; color: white; border: 2px solid #777; padding: 15px; font-family: inherit; font-size: 1.1em; cursor: pointer; border-radius: 5px; transition: all 0.2s; width: 100%; text-align: left; }
 .quiz-btn:hover:not(:disabled), .menu-item-btn:hover:not(:disabled) { background-color: var(--accent-color); color: #1a1a1a; }
@@ -246,11 +260,16 @@ body {
         font-size: 1em;
     }
 
-    /* 퀴즈 텍스트 크기 증가 */
-    #quiz-text {
+    #quiz-text-prompt {
         font-size: 1.1em; /* 가독성 향상 */
         margin-bottom: 15px;
         line-height: 1.5;
+    }
+
+    /* [추가] 퀴즈 제시문 박스 모바일 스타일 */
+    #quiz-text-context {
+        padding: 12px 15px;
+        font-size: 1.05em;
     }
 
     /* 퀴즈 답안 그리드 - 세로 배치 */
