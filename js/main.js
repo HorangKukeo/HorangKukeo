@@ -53,8 +53,9 @@ const goalListEl = document.getElementById('goal-list');
 let currentDexPage = '1-10';
 
 const GACHA_CATEGORIES = {
-    '품사': ['CP001', 'CP002', 'CP003'],
-    '문장 성분': ['CP021', 'CP022', 'CP023']
+    '품사 ①': ['CP001', 'CP002', 'CP003'],
+    '품사 ②': ['CP004', 'CP005'],
+    '문장 성분 ①': ['CP021', 'CP022', 'CP023']
     // 추후 새로운 카테고리와 카드팩 ID를 여기에 추가하면 됩니다.
 };
 
