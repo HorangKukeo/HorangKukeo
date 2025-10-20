@@ -177,18 +177,24 @@ function displayUserData() {
     let conditionsMet = 0;
     if (maxHp >= 50) conditionsMet++;
     if (maxHp >= 80) conditionsMet++;
-    if (maxHp >= 120) conditionsMet++;
-    if (maxHp >= 150) conditionsMet++;
-    if (maxHp >= 200) conditionsMet++;
+    if (maxHp >= 160) conditionsMet++;
     if (maxHp >= 250) conditionsMet++;
+    if (maxHp >= 350) conditionsMet++;
+    if (maxHp >= 500) conditionsMet++;
+
     if (maxMp >= 50) conditionsMet++;
-    if (maxMp >= 70) conditionsMet++;
-    if (maxMp >= 100) conditionsMet++;
-    if (maxMp >= 150) conditionsMet++;
+    if (maxMp >= 80) conditionsMet++;
+    if (maxMp >= 160) conditionsMet++;
+    if (maxMp >= 250) conditionsMet++;
+    if (maxMp >= 350) conditionsMet++;
+    if (maxMp >= 500) conditionsMet++;
+
     if (totalAttack >= 30) conditionsMet++;
     if (totalAttack >= 45) conditionsMet++;
-    if (totalAttack >= 60) conditionsMet++;
-    if (totalAttack >= 80) conditionsMet++;
+    if (totalAttack >= 70) conditionsMet++;
+    if (totalAttack >= 100) conditionsMet++;
+    if (totalAttack >= 150) conditionsMet++;
+    if (totalAttack >= 220) conditionsMet++;
     
     playerPortraitImg.src = `img/player${conditionsMet}.png`;
 
@@ -528,18 +534,22 @@ async function startBattle(dungeonId) {
 const growthGoals = [
     { description: "최대 HP 50 달성", key: 'maxHp', value: 50 },
     { description: "최대 HP 80 달성", key: 'maxHp', value: 80 },
-    { description: "최대 HP 120 달성", key: 'maxHp', value: 120 },
-    { description: "최대 HP 150 달성", key: 'maxHp', value: 150 },
-    { description: "최대 HP 200 달성", key: 'maxHp', value: 200 },
+    { description: "최대 HP 160 달성", key: 'maxHp', value: 160 },
     { description: "최대 HP 250 달성", key: 'maxHp', value: 250 },
+    { description: "최대 HP 350 달성", key: 'maxHp', value: 350 },
+    { description: "최대 HP 500 달성", key: 'maxHp', value: 500 },
     { description: "최대 MP 50 달성", key: 'maxMp', value: 50 },
-    { description: "최대 MP 70 달성", key: 'maxMp', value: 70 },
-    { description: "최대 MP 100 달성", key: 'maxMp', value: 100 },
-    { description: "최대 MP 150 달성", key: 'maxMp', value: 150 },
+    { description: "최대 MP 80 달성", key: 'maxMp', value: 80 },
+    { description: "최대 MP 160 달성", key: 'maxMp', value: 160 },
+    { description: "최대 MP 250 달성", key: 'maxMp', value: 250 },
+    { description: "최대 MP 350 달성", key: 'maxMp', value: 350 },
+    { description: "최대 MP 500 달성", key: 'maxMp', value: 500 },
     { description: "공격력 30 달성", key: 'totalAttack', value: 30 },
     { description: "공격력 45 달성", key: 'totalAttack', value: 45 },
-    { description: "공격력 60 달성", key: 'totalAttack', value: 60 },
-    { description: "공격력 80 달성", key: 'totalAttack', value: 80 }
+    { description: "공격력 70 달성", key: 'totalAttack', value: 70 },
+    { description: "공격력 100 달성", key: 'totalAttack', value: 100 },
+    { description: "공격력 150 달성", key: 'totalAttack', value: 150 },
+    { description: "공격력 220 달성", key: 'totalAttack', value: 220 }
 ];
 
 // [교체] openGrowthGoalsModal 함수

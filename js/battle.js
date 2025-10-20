@@ -795,18 +795,24 @@ function initGame() {
     // 아래 값들은 main.js와 동일하게 맞춰주어야 합니다.
     if (player.maxHp >= 50) conditionsMet++;
     if (player.maxHp >= 80) conditionsMet++;
-    if (player.maxHp >= 120) conditionsMet++;
-    if (player.maxHp >= 150) conditionsMet++;
-    if (player.maxHp >= 200) conditionsMet++;
+    if (player.maxHp >= 160) conditionsMet++;
     if (player.maxHp >= 250) conditionsMet++;
+    if (player.maxHp >= 350) conditionsMet++;
+    if (player.maxHp >= 500) conditionsMet++;
+
     if (player.maxMp >= 50) conditionsMet++;
-    if (player.maxMp >= 70) conditionsMet++;
-    if (player.maxMp >= 100) conditionsMet++;
-    if (player.maxMp >= 150) conditionsMet++;
+    if (player.maxMp >= 80) conditionsMet++;
+    if (player.maxMp >= 160) conditionsMet++;
+    if (player.maxMp >= 250) conditionsMet++;
+    if (player.maxMp >= 350) conditionsMet++;
+    if (player.maxMp >= 500) conditionsMet++;
+
     if (player.attack >= 30) conditionsMet++;
     if (player.attack >= 45) conditionsMet++;
-    if (player.attack >= 60) conditionsMet++;
-    if (player.attack >= 80) conditionsMet++;
+    if (player.attack >= 70) conditionsMet++;
+    if (player.attack >= 100) conditionsMet++;
+    if (player.attack >= 150) conditionsMet++;
+    if (player.attack >= 220) conditionsMet++;
     
     playerImageEl.src = `img/player${conditionsMet}.png`;
 
