@@ -275,6 +275,24 @@ body {
     min-height: 80px; /* 최소 높이 */
 }
 
+/* 🎯 PC에서 높이 제한 추가 */
+#card-dex-modal.modal-window {
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 모달 자체는 스크롤 방지 */
+    overflow-y: auto; /* 제목과 닫기 버튼 사이 영역 전체 스크롤 */
+}
+
+#card-dex-modal.modal-window h3 {
+    flex-shrink: 0; /* 제목 고정 */
+}
+
+#card-dex-modal.modal-window .modal-close-btn {
+    flex-shrink: 0; /* 닫기 버튼 고정 */
+}
+
+
 .card-grid.dex { /* 도감 카드 목록 스크롤 */
     max-height: 35vh; /* 최대 높이 */
     overflow-y: auto;
@@ -440,7 +458,12 @@ body {
 .item-list-item .item-details { flex-grow: 1; } /* 이름, 설명 영역 */
 .item-list-item .item-name { font-weight: bold; font-size: 1.1em; }
 .item-list-item .item-desc { font-size: 0.9em; color: #bbb; margin-top: 4px; }
-.item-list-item .item-quantity { color: var(--accent-color); font-size: 1.1em; margin-left: 15px; } /* 아이템 보기 수량 */
+.item-list-item .item-quantity { 
+    color: var(--accent-color); 
+    font-size: 1.1em; 
+    margin-left: 15px;
+    text-align: right; /* 텍스트만 우측 정렬 */
+}
 
 /* --- 상점 모달 (#shop-modal) --- */
 #shop-modal p { /* 보유 골드 표시 */
@@ -569,7 +592,7 @@ body {
     .modal-close-btn { padding: 12px 20px; font-size: 1.1em; min-height: 48px; width: 100%; margin-top: 10px; }
 
     #card-dex-modal.modal-window { 
-        max-height: 92vh; 
+        max-height: 85vh; 
         padding: 12px;
         width: 95%; /* 전체 폭 유지 */
     }
@@ -697,6 +720,10 @@ body {
     .item-list-item { padding: 12px; flex-direction: column; align-items: flex-start; gap: 8px; }
     .item-list-item .item-name { font-size: 1.1em; }
     .item-list-item .item-desc { font-size: 0.95em; }
+    .item-list-item .item-quantity {
+        align-self: flex-end; /* 우측 정렬 */
+    }
+
     .item-list-item .item-buy-action { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; margin-left: 0; margin-top: 8px; }
     .buy-btn { padding: 10px 20px; font-size: 1em; min-height: 44px; }
 
