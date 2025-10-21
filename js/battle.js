@@ -337,8 +337,35 @@ function showQuiz(question, callback) {
     }
 
     setTimeout(() => {
-        quizBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 50); // 50ms 지연을 주어 렌더링 후 스크롤
+        const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+        if (question.type === '2' && isMobile && 'visualViewport' in window) {
+            // [방법 1: 모바일 + 주관식 + API 지원]
+            // 키패드가 나타나 뷰포트가 리사이즈될 때를 감지
+            
+            const shortAnswerInput = quizBox.querySelector('#short-answer-input');
+
+            const onViewportResize = () => {
+                // 뷰포트 리사이즈(키패드 등장) 완료 후,
+                // 퀴즈 박스 하단을 뷰포트(화면) 하단에 맞춤
+                quizBox.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end'
+                });
+            };
+            
+            // 리사이즈 이벤트를 *한 번만* 수신
+            window.visualViewport.addEventListener('resize', onViewportResize, { once: true });
+            
+            // 입력창에 포커스를 줘서 키패드를 올림
+            shortAnswerInput.focus();
+
+        } else {
+            // [방법 2: PC 또는 객관식]
+            // 기존 로직대로 퀴즈 박스 하단으로 즉시 스크롤
+            quizBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+    }, 50); // 50ms 지연
 }
 
 function handleQuizAnswer(isCorrect) {
