@@ -1,18 +1,9 @@
 (function() {
-    const sfxCache = {}; // 오디오 객체를 저장할 저장소
-    const sfxToPreload = [ // 미리 불러올 효과음 파일 이름 목록
-        'player-attack-hit',
-        'player-attack-miss',
-        'player-skillat-hit',
-        'player-skillat-miss',
-        'player-skillheal-hit',
-        'player-skillheal-miss',
-        'monster-attack-hit',
-        'monster-attack-blocked',
-        'monster-skillat-hit',
-        'monster-skillat-miss',
-        'monster-skillheal-hit',
-        'monster-skillheal-miss',
+    const sfxCache = {};
+    const sfxToPreload = [
+        'player-attack-hit', 'player-attack-miss', 'player-skillat-hit', 'player-skillat-miss',
+        'player-skillheal-hit', 'player-skillheal-miss', 'monster-attack-hit', 'monster-attack-blocked',
+        'monster-skillat-hit', 'monster-skillat-miss', 'monster-skillheal-hit', 'monster-skillheal-miss',
         'item-heal', 'item-damage'
     ];
 
@@ -21,17 +12,17 @@
     }
 
     function preloadSounds() {
-            sfxToPreload.forEach(soundName => {
-                const audio = new Audio(`sfx/${soundName}.mp3`);
-                audio.load(); // 파일을 미리 로드하도록 브라우저에 요청
-                sfxCache[soundName] = audio;
-            });
-        }
+        sfxToPreload.forEach(soundName => {
+            const audio = new Audio(`sfx/${soundName}.mp3`);
+            audio.load();
+            sfxCache[soundName] = audio;
+        });
+    }
 
     function playSound(soundName) {
         const audio = sfxCache[soundName];
         if (audio) {
-            audio.currentTime = 0; // 소리를 처음부터 다시 재생
+            audio.currentTime = 0;
             audio.volume = 0.5;
             audio.play();
         } else {
@@ -40,60 +31,56 @@
     }
 
     function shakeScreen() {
-        // 흔들림 효과를 적용할 대상을 gameContainer로 지정
         gameContainer.classList.add('shake');
-
-        // 애니메이션이 끝나면 'shake' 클래스를 자동으로 제거하여 다음을 준비
         gameContainer.addEventListener('animationend', () => {
             gameContainer.classList.remove('shake');
         }, { once: true });
     }
 
 const battleModeContainer = document.querySelector('#battle-mode-container');
-
-    // --- 게임 영역 내부 요소들 ---
-    // 게임의 핵심 UI는 battleModeContainer 안의 #game-container에서 찾습니다.
-    const gameContainer = battleModeContainer.querySelector('#game-container');
-    const monsterImageEl = gameContainer.querySelector('#monster-image');
-    const infoBtn = gameContainer.querySelector('#info-btn');
-    const monsterNameEl = gameContainer.querySelector('#monster-name');
-    const monsterHpBar = gameContainer.querySelector('#monster-hp-bar');
-    const monsterHpText = gameContainer.querySelector('#monster-hp-text');
-    const playerNameEl = gameContainer.querySelector('#player-name');
-    const playerHpBar = gameContainer.querySelector('#player-hp-bar');
-    const playerHpText = gameContainer.querySelector('#player-hp-text');
-    const playerMpBar = gameContainer.querySelector('#player-mp-bar');
-    const playerMpText = gameContainer.querySelector('#player-mp-text');
-    const messageBox = gameContainer.querySelector('#message-box');
-    const messageTextEl = gameContainer.querySelector('#message-text');
-    const quizBox = gameContainer.querySelector('#quiz-box');
-    const quizTextPromptEl = gameContainer.querySelector('#quiz-text-prompt');
+const gameContainer = battleModeContainer.querySelector('#game-container');
+const monsterImageEl = gameContainer.querySelector('#monster-image');
+const infoBtn = gameContainer.querySelector('#info-btn');
+const monsterNameEl = gameContainer.querySelector('#monster-name');
+const monsterHpBar = gameContainer.querySelector('#monster-hp-bar');
+const playerNameEl = gameContainer.querySelector('#player-name');
+const playerHpBar = gameContainer.querySelector('#player-hp-bar');
+const playerMpBar = gameContainer.querySelector('#player-mp-bar');
+const messageBox = gameContainer.querySelector('#message-box');
+const messageTextEl = gameContainer.querySelector('#message-text');
+const quizBox = gameContainer.querySelector('#quiz-box');
+const quizTextPromptEl = gameContainer.querySelector('#quiz-text-prompt');
 const quizTextContextEl = gameContainer.querySelector('#quiz-text-context');
-    const quizAnswersEl = gameContainer.querySelector('#quiz-answers');
-    const actionMenu = gameContainer.querySelector('#action-menu');
-    const actionButtons = gameContainer.querySelectorAll('.action-btn');
-    const equippedCardsEl = gameContainer.querySelector('#equipped-cards');
-    
-    // --- 모달 등 게임 영역 외부 요소들 ---
-    // 모달 창들은 battleModeContainer 바로 아래에 있으므로 여기서 찾습니다.
-    const infoModal = battleModeContainer.querySelector('#info-modal');
-    const infoList = battleModeContainer.querySelector('#info-list');
-    const gameOverEl = battleModeContainer.querySelector('#game-over');
-    const dungeonClearEl = battleModeContainer.querySelector('#dungeon-clear');
-    const finalRewardsEl = battleModeContainer.querySelector('#final-rewards');
-    const returnToMainBtn = battleModeContainer.querySelector('#return-to-main-btn');
-    const modalBackdrop = battleModeContainer.querySelector('#modal-backdrop');
-    const skillModal = battleModeContainer.querySelector('#skill-modal');
-    const skillList = battleModeContainer.querySelector('#skill-list');
-    const itemModal = battleModeContainer.querySelector('#item-modal');
-    const itemList = battleModeContainer.querySelector('#item-list');
-    const victoryModal = battleModeContainer.querySelector('#victory-modal');
-    const victoryMessageEl = battleModeContainer.querySelector('#victory-message');
-    const continueBattleBtn = battleModeContainer.querySelector('#continue-battle-btn');
-    const gameOverMessageEl = battleModeContainer.querySelector('#game-over-message');
-    const returnToMainFromGameOverBtn = battleModeContainer.querySelector('#return-to-main-from-gameover-btn');
+const quizAnswersEl = gameContainer.querySelector('#quiz-answers');
+const actionMenu = gameContainer.querySelector('#action-menu');
+const actionButtons = gameContainer.querySelectorAll('.action-btn');
+const equippedCardsEl = gameContainer.querySelector('#equipped-cards');
 
-// === 데이터 로딩 (localStorage에서) ===
+// 🎯 새로운 DOM 요소 추가
+const turnIndicator = gameContainer.querySelector('#turn-indicator');
+const progressBarFill = gameContainer.querySelector('#progress-bar-fill');
+const progressText = gameContainer.querySelector('#progress-text');
+const battleLog = gameContainer.querySelector('#battle-log');
+const playerBox = gameContainer.querySelector('#player-box');
+const monsterBox = gameContainer.querySelector('#monster-box');
+
+const infoModal = battleModeContainer.querySelector('#info-modal');
+const infoList = battleModeContainer.querySelector('#info-list');
+const gameOverEl = battleModeContainer.querySelector('#game-over');
+const dungeonClearEl = battleModeContainer.querySelector('#dungeon-clear');
+const finalRewardsEl = battleModeContainer.querySelector('#final-rewards');
+const returnToMainBtn = battleModeContainer.querySelector('#return-to-main-btn');
+const modalBackdrop = battleModeContainer.querySelector('#modal-backdrop');
+const skillModal = battleModeContainer.querySelector('#skill-modal');
+const skillList = battleModeContainer.querySelector('#skill-list');
+const itemModal = battleModeContainer.querySelector('#item-modal');
+const itemList = battleModeContainer.querySelector('#item-list');
+const victoryModal = battleModeContainer.querySelector('#victory-modal');
+const victoryMessageEl = battleModeContainer.querySelector('#victory-message');
+const continueBattleBtn = battleModeContainer.querySelector('#continue-battle-btn');
+const gameOverMessageEl = battleModeContainer.querySelector('#game-over-message');
+const returnToMainFromGameOverBtn = battleModeContainer.querySelector('#return-to-main-from-gameover-btn');
+
 const cardDB = JSON.parse(localStorage.getItem('cardDB')) || [];
 const skillDB = JSON.parse(localStorage.getItem('skillDB')) || [];
 const itemDB = JSON.parse(localStorage.getItem('itemDB')) || [];
@@ -103,7 +90,6 @@ const questionDB = JSON.parse(localStorage.getItem('questionDB')) || [];
 const userData = JSON.parse(localStorage.getItem('userData'));
 const selectedDungeonId = localStorage.getItem('selectedDungeonId');
 
-// === 데이터 구조 초기화 ===
 let player = {};
 let monstersInDungeon = [];
 let currentMonster;
@@ -114,7 +100,47 @@ let onQuizComplete = null;
 let isActionInProgress = false;
 let isReturningToMain = false;
 
-// === 헬퍼 및 UI 함수 ===
+// 🎯 새로운 기능: 전투 로그 추가 함수
+function addBattleLog(message, icon = '⚔️') {
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    logEntry.textContent = `${icon} ${message}`;
+    
+    battleLog.appendChild(logEntry);
+    
+    const logs = battleLog.querySelectorAll('.log-entry');
+    if (logs.length > 10) {
+        logs[0].remove();
+    }
+    
+    battleLog.scrollTop = battleLog.scrollHeight;
+}
+
+// 🎯 새로운 기능: 턴 표시 업데이트
+function updateTurnIndicator(currentTurn) {
+    if (currentTurn === 'player') {
+        turnIndicator.className = 'player-turn';
+        turnIndicator.innerHTML = '🗡️ 당신의 턴입니다';
+        playerBox.classList.add('active-turn');
+        monsterBox.classList.remove('active-turn');
+    } else {
+        turnIndicator.className = 'enemy-turn';
+        turnIndicator.innerHTML = '👹 몬스터의 턴입니다';
+        monsterBox.classList.add('active-turn');
+        playerBox.classList.remove('active-turn');
+    }
+}
+
+// 🎯 새로운 기능: 진행도 바 업데이트
+function updateProgressBar() {
+    const currentIndex = currentMonsterIndex + 1;
+    const totalMonsters = monstersInDungeon.length;
+    const percentage = (currentIndex / totalMonsters) * 100;
+    
+    progressText.textContent = `몬스터 ${currentIndex} / ${totalMonsters}`;
+    progressBarFill.style.width = `${percentage}%`;
+}
+
 function calculatePlayerStats() {
     const ownedCardCount = player.ownedCards.length;
     const collectionHpBonus = ownedCardCount * 1;
@@ -138,12 +164,23 @@ function calculatePlayerStats() {
 function updateUI() {
     player.hp = Math.min(player.maxHp, player.hp);
     player.mp = Math.min(player.maxMp, player.mp);
-    playerHpText.textContent = `${player.hp} / ${player.maxHp}`;
-    playerHpBar.style.width = `${(player.hp / player.maxHp) * 100}%`;
-    playerMpText.textContent = `${player.mp} / ${player.maxMp}`;
-    playerMpBar.style.width = `${(player.mp / player.maxMp) * 100}%`;
-    monsterHpText.textContent = `${currentMonster.hp} / ${currentMonster.maxHp}`;
-    monsterHpBar.style.width = `${(currentMonster.hp / currentMonster.maxHp) * 100}%`;
+    
+    // ✅ 플레이어 HP 바 업데이트
+    const hpPercent = Math.round((player.hp / player.maxHp) * 100);
+    playerHpBar.style.width = `${hpPercent}%`;
+    document.getElementById('player-hp-text').textContent = `${player.hp} / ${player.maxHp}`;
+    
+    // ✅ 플레이어 MP 바 업데이트
+    const mpPercent = Math.round((player.mp / player.maxMp) * 100);
+    playerMpBar.style.width = `${mpPercent}%`;
+    document.getElementById('player-mp-text').textContent = `${player.mp} / ${player.maxMp}`;
+    
+    // ✅ 몬스터 HP 바 업데이트
+    const monsterHpPercent = Math.round((currentMonster.hp / currentMonster.maxHp) * 100);
+    monsterHpBar.style.width = `${monsterHpPercent}%`;
+    document.getElementById('monster-hp-text').textContent = `${currentMonster.hp} / ${currentMonster.maxHp}`;
+    
+    // 카드 슬롯 업데이트 (기존 코드 유지)
     const cardSlots = equippedCardsEl.querySelectorAll('.card-slot');
     cardSlots.forEach((slot, index) => {
         const cardId = player.equippedCards[index];
@@ -151,13 +188,27 @@ function updateUI() {
         if (card) {
             slot.textContent = card.name;
             slot.classList.remove('empty');
+            const bonusInfo = [];
+            if (card.hpBonus > 0) bonusInfo.push(`HP +${card.hpBonus}`);
+            if (card.mpBonus > 0) bonusInfo.push(`MP +${card.mpBonus}`);
+            if (card.attackBonus > 0) bonusInfo.push(`공격 +${card.attackBonus}`);
+            slot.title = bonusInfo.join(', ');
         } else {
             slot.textContent = '비어있음';
             slot.classList.add('empty');
+            slot.title = '';
         }
     });
 }
-function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]];} return array;}
+
+function shuffleArray(array) { 
+    for (let i = array.length - 1; i > 0; i--) { 
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    } 
+    return array;
+}
+
 function showMessage(text, detailsOrCallback, callback) {
     messageBox.classList.remove('hidden');
     quizBox.classList.add('hidden');
@@ -165,19 +216,16 @@ function showMessage(text, detailsOrCallback, callback) {
     let explanation = '';
     let finalCallback = null;
     let isAfterQuiz = false;
-    let isCorrect = false; // 기본값
+    let isCorrect = false;
     
     if (typeof detailsOrCallback === 'function') {
-        // 퀴즈 직후가 아님: showMessage(text, callback)
         finalCallback = detailsOrCallback;
     } else if (typeof detailsOrCallback === 'object' && detailsOrCallback !== null) {
-        // [수정] 퀴즈 직후임: showMessage(text, { isCorrect, explanation }, callback)
         isAfterQuiz = true;
         isCorrect = detailsOrCallback.isCorrect;
         explanation = detailsOrCallback.explanation || '';
         finalCallback = callback;
     } else if (detailsOrCallback === undefined && callback === undefined) {
-        // 퀴즈 직후가 아님 (콜백 없음): showMessage(text)
         finalCallback = null;
     }
     
@@ -188,13 +236,9 @@ function showMessage(text, detailsOrCallback, callback) {
         let explanationHTML = '';
 
         if (currentQuestion && currentQuestion.correctAnswer) {
-            
-            // [수정] isCorrect 값에 따라 정답 박스 스타일을 동적으로 변경
             if (isCorrect) {
-                // (성공) 녹색 박스
                 answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(76, 175, 80, 0.2); border-left: 3px solid var(--hp-color); text-align: left;"><strong>✔️ 정답:</strong> ${currentQuestion.correctAnswer}</div>`;
             } else {
-                // (실패) 빨간색 박스 (게임오버 모달의 h2 색상(#c74343) 기준)
                 answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(199, 67, 67, 0.2); border-left: 3px solid #c74343; text-align: left;"><strong>❌ 정답:</strong> ${currentQuestion.correctAnswer}</div>`;
             }
         }
@@ -222,11 +266,12 @@ function showMessage(text, detailsOrCallback, callback) {
 }
 
 let currentQuestion = null;
+
 function parseQuestion(questionString, questionType) {
     const parts = questionString.split('⊥');
     const questionData = { type: questionType };
 
-    if (questionType === '1') { // 객관식
+    if (questionType === '1') {
         questionData.prompt = parts[0];
         questionData.context = parts[1];
         questionData.choices = [parts[2], parts[3], parts[4], parts[5]];
@@ -236,12 +281,12 @@ function parseQuestion(questionString, questionType) {
         } else {
             questionData.correctAnswer = questionData.choices[0]; 
         }
-        questionData.explanation = parts[7] || ''; // 해설 추가
-    } else if (questionType === '2') { // 주관식
+        questionData.explanation = parts[7] || '';
+    } else if (questionType === '2') {
         questionData.prompt = parts[0];
         questionData.context = parts[1];
         questionData.correctAnswer = parts[2];
-        questionData.explanation = parts[3] || ''; // 해설 추가
+        questionData.explanation = parts[3] || '';
     }
     
     return questionData;
@@ -259,13 +304,12 @@ function showQuiz(question, callback) {
     quizTextPromptEl.innerHTML = displayPrompt;
     quizTextContextEl.innerHTML = displayContext;
     
-    // UI 요소 가져오기
     const quizAnswers = quizBox.querySelector('#quiz-answers');
     const shortAnswerArea = quizBox.querySelector('#quiz-short-answer-area');
     const shortAnswerInput = quizBox.querySelector('#short-answer-input');
     const shortAnswerSubmitBtn = quizBox.querySelector('#short-answer-submit-btn');
 
-    if (question.type === '1') { // 타입 1: 객관식 UI 표시
+    if (question.type === '1') {
         quizAnswers.classList.remove('hidden');
         shortAnswerArea.classList.add('hidden');
         quizAnswers.innerHTML = '';
@@ -278,52 +322,39 @@ function showQuiz(question, callback) {
             button.onclick = () => handleQuizAnswer(choice === question.correctAnswer);
             quizAnswers.appendChild(button);
         });
+    } else if (question.type === '2') {
+        quizAnswers.classList.add('hidden');
+        shortAnswerArea.classList.remove('hidden');
+        
+        shortAnswerInput.value = '';
+        shortAnswerInput.disabled = false;
+        shortAnswerInput.focus();
+        
+        shortAnswerSubmitBtn.disabled = false;
+        
+        const submitAnswer = () => {
+            const userAnswer = shortAnswerInput.value.trim();
+            const correctAnswer = question.correctAnswer;
+            const normalizedUserAnswer = userAnswer.replace(/\s/g, '');
+            const normalizedCorrectAnswer = correctAnswer.replace(/\s/g, '');
+            handleQuizAnswer(normalizedUserAnswer === normalizedCorrectAnswer);
+        };
 
-        } else if (question.type === '2') { // 타입 2: 주관식 UI 표시
-            quizAnswers.classList.add('hidden');
-            shortAnswerArea.classList.remove('hidden');
-            
-            shortAnswerInput.value = '';
-            shortAnswerInput.disabled = false; // 활성화
-            shortAnswerInput.focus();
-            
-            shortAnswerSubmitBtn.disabled = false; // 활성화
-            
-            const submitAnswer = () => {
-                // 1. 사용자가 입력한 답 (앞뒤 공백 제거)
-                const userAnswer = shortAnswerInput.value.trim();
-                // 2. DB에 저장된 정답
-                const correctAnswer = question.correctAnswer;
-
-                // 3. 두 텍스트에서 *모든* 띄어쓰기를 제거합니다.
-                //    (정규식 /\\s/g 는 모든(g) 공백(\\s)을 의미)
-                const normalizedUserAnswer = userAnswer.replace(/\s/g, '');
-                const normalizedCorrectAnswer = correctAnswer.replace(/\s/g, '');
-
-                // 4. 띄어쓰기가 제거된 버전을 비교합니다.
-                handleQuizAnswer(normalizedUserAnswer === normalizedCorrectAnswer);
-            };
-
-            // 기존 이벤트 리스너 제거 (중복 방지)
-            shortAnswerSubmitBtn.onclick = null;
-            shortAnswerInput.onkeypress = null;
-
-            // 새 이벤트 리스너 추가
-            shortAnswerSubmitBtn.onclick = submitAnswer;
-            shortAnswerInput.onkeypress = (event) => {
-                if (event.key === 'Enter') {
-                    submitAnswer();
-                }
-            };
-        }
+        shortAnswerSubmitBtn.onclick = null;
+        shortAnswerInput.onkeypress = null;
+        shortAnswerSubmitBtn.onclick = submitAnswer;
+        shortAnswerInput.onkeypress = (event) => {
+            if (event.key === 'Enter') {
+                submitAnswer();
+            }
+        };
+    }
 }
 
 function handleQuizAnswer(isCorrect) {
-    // 객관식 버튼만 비활성화
     const quizAnswersButtons = quizAnswersEl.querySelectorAll('.quiz-btn');
     quizAnswersButtons.forEach(btn => btn.disabled = true);
     
-    // 주관식 입력도 비활성화
     const shortAnswerInput = quizBox.querySelector('#short-answer-input');
     const shortAnswerSubmitBtn = quizBox.querySelector('#short-answer-submit-btn');
     if (shortAnswerInput) shortAnswerInput.disabled = true;
@@ -334,14 +365,28 @@ function handleQuizAnswer(isCorrect) {
     }
 }
 
-function toggleActionMenu(enabled) { actionButtons.forEach(btn => btn.disabled = !enabled); }
+function toggleActionMenu(enabled) { 
+    actionButtons.forEach(btn => btn.disabled = !enabled); 
+}
+
 function setMonsterImage(state) {
-    // 현재 몬스터의 img 속성 값을 가져오고, 만약 없다면 기본값으로 'monster'를 사용
     const imgBaseName = currentMonster.img || 'monster';
     monsterImageEl.src = `img/${imgBaseName}-${state}.png`;
 }
-function openModal(modal) { modalBackdrop.classList.remove('hidden'); modal.classList.remove('hidden'); }
-function closeModal() { modalBackdrop.classList.add('hidden'); skillModal.classList.add('hidden'); itemModal.classList.add('hidden'); victoryModal.classList.add('hidden'); infoModal.classList.add('hidden'); }
+
+function openModal(modal) { 
+    modalBackdrop.classList.remove('hidden'); 
+    modal.classList.remove('hidden'); 
+}
+
+function closeModal() { 
+    modalBackdrop.classList.add('hidden'); 
+    skillModal.classList.add('hidden'); 
+    itemModal.classList.add('hidden'); 
+    victoryModal.classList.add('hidden'); 
+    infoModal.classList.add('hidden'); 
+}
+
 function generateMonsters() {
     const selectedDungeon = dungeonDB.find(d => d.id === selectedDungeonId);
     if (!selectedDungeon) { 
@@ -349,17 +394,17 @@ function generateMonsters() {
         monstersInDungeon = []; 
         return; 
     }
-    const monsterIds = [selectedDungeon.monster1Id, selectedDungeon.monster2Id, selectedDungeon.monster3Id, selectedDungeon.monster4Id, selectedDungeon.monster5Id].filter(id => id);
+    const monsterIds = [
+        selectedDungeon.monster1Id, selectedDungeon.monster2Id, selectedDungeon.monster3Id, 
+        selectedDungeon.monster4Id, selectedDungeon.monster5Id
+    ].filter(id => id);
+    
     monstersInDungeon = monsterIds.map(id => {
         const monsterData = monsterDB.find(monster => monster.id === id);
         if (monsterData) {
             const questionsData = questionDB.find(q => q.id === monsterData.questionId);
             const newMonster = { ...monsterData };
-            
-            // ✨ 수정: 중복 방지용 배열
             newMonster.usedQuestions = [];
-            
-            // ✨ 추가: 출제 횟수 카운트용 객체
             newMonster.questionCount = {};
             
             if (questionsData) {
@@ -374,12 +419,22 @@ function generateMonsters() {
     }).filter(monster => monster);
 }
 
-// === 전투 로직 ===
-function startPlayerTurn() {turn = 'player';setMonsterImage('idle');showMessage("당신의 턴입니다.", () => {messageBox.classList.add('hidden');toggleActionMenu(true);isActionInProgress = false;});}
+function startPlayerTurn() {
+    turn = 'player';
+    setMonsterImage('idle');
+    updateTurnIndicator('player');
+    showMessage("당신의 턴입니다.", () => {
+        messageBox.classList.add('hidden');
+        toggleActionMenu(true);
+        isActionInProgress = false;
+    });
+}
+
 function startEnemyTurn() {
     turn = 'enemy';
     toggleActionMenu(false);
     setMonsterImage('idle');
+    updateTurnIndicator('enemy');
     showMessage("몬스터의 턴입니다.", () => {
         const randomKey = getRandomQuestion();
         if (!randomKey) {
@@ -388,61 +443,59 @@ function startEnemyTurn() {
         }
 
         const rawQuestion = currentMonster.questionSet[randomKey];
-        const questionType = currentMonster.questionSet.type; // 타입 가져오기
-        const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
-        const monsterSkills = [currentMonster.skillId1, currentMonster.skillId2, currentMonster.skillId3].filter(id => id).map(id => skillDB.find(s => s.id === id)).filter(skill => skill && parseInt(currentMonster.mp) >= parseInt(skill.mpCost));
+        const questionType = currentMonster.questionSet.type;
+        const question = parseQuestion(rawQuestion, questionType);
+        const monsterSkills = [
+            currentMonster.skillId1, currentMonster.skillId2, currentMonster.skillId3
+        ].filter(id => id).map(id => skillDB.find(s => s.id === id))
+         .filter(skill => skill && parseInt(currentMonster.mp) >= parseInt(skill.mpCost));
+        
         const willUseSkill = monsterSkills.length > 0 && Math.random() < 0.5;
+        
         if (willUseSkill) {
             const skillToUse = monsterSkills[Math.floor(Math.random() * monsterSkills.length)];
             currentMonster.mp -= parseInt(skillToUse.mpCost);
             showQuiz(question, async (isCorrect) => {
-            if (isCorrect) {
-                // ========== 플레이어가 퀴즈를 맞혔을 경우 (방해 성공) ==========
-                setMonsterImage('hurt');
-
-                if (skillToUse.type == 1) { // 몬스터의 공격 스킬
-                    playSound('monster-skillat-miss'); // [효과음 추가]
-                    await sleep(200);
-                    const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
-                    const finalDamage = Math.floor(damage * 0.5);
-                    player.hp = Math.max(0, player.hp - finalDamage);
-                    // [수정]
-                    showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
-
-                } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
-                    playSound('monster-skillheal-miss'); // [효과음 추가] (동일한 방해 효과음 사용)
-                    await sleep(200);
-                    const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
-                    currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    // [수정]
-                    showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                if (isCorrect) {
+                    setMonsterImage('hurt');
+                    if (skillToUse.type == 1) {
+                        playSound('monster-skillat-miss');
+                        await sleep(200);
+                        const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
+                        const finalDamage = Math.floor(damage * 0.5);
+                        player.hp = Math.max(0, player.hp - finalDamage);
+                        addBattleLog(`방해 성공! ${skillToUse.name} 데미지 감소!`, '🛡️');
+                        showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                    } else if (skillToUse.type == 2) {
+                        playSound('monster-skillheal-miss');
+                        await sleep(200);
+                        const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
+                        currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
+                        addBattleLog(`방해 성공! ${skillToUse.name} 회복량 감소!`, '🛡️');
+                        showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                    }
+                } else {
+                    setMonsterImage('happy');
+                    if (skillToUse.type == 1) {
+                        playSound('monster-skillat-hit');
+                        await sleep(200);
+                        shakeScreen();
+                        const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
+                        const finalDamage = damage;
+                        player.hp = Math.max(0, player.hp - finalDamage);
+                        addBattleLog(`${skillToUse.name}! ${finalDamage} 데미지!`, '💥');
+                        showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                    } else if (skillToUse.type == 2) {
+                        playSound('monster-skillheal-hit');
+                        await sleep(200);
+                        const healAmount = parseInt(skillToUse.effect);
+                        currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
+                        addBattleLog(`${skillToUse.name}! HP ${healAmount} 회복!`, '💚');
+                        showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                    }
                 }
-
-            } else {
-                // ========== 플레이어가 퀴즈를 틀렸을 경우 (방해 실패) ==========
-                setMonsterImage('happy');
-
-                if (skillToUse.type == 1) { // 몬스터의 공격 스킬
-                    playSound('monster-skillat-hit'); // [효과음 추가]
-                    await sleep(200);
-                    shakeScreen();
-                    const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
-                    const finalDamage = damage;
-                    player.hp = Math.max(0, player.hp - finalDamage);
-                    // [수정]
-                    showMessage(`몬스터의 ${skillToUse.name}! ${finalDamage}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
-
-                } else if (skillToUse.type == 2) { // 몬스터의 회복 스킬
-                    playSound('monster-skillheal-hit'); // [효과음 추가]
-                    await sleep(200);
-                    const healAmount = parseInt(skillToUse.effect);
-                    currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
-                    // [수정]
-                    showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
-                }
-            }
-            updateUI();
-        });
+                updateUI();
+            });
         } else {
             enemyBasicAttack(question);
         }
@@ -452,22 +505,22 @@ function startEnemyTurn() {
 function enemyBasicAttack(question) {
     showQuiz(question, async (isCorrect) => {
         if (isCorrect) {
-            playSound('monster-attack-blocked'); // [효과음 추가]
+            playSound('monster-attack-blocked');
             await sleep(200);
             setMonsterImage('hurt');
             const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
-            // [수정]
+            addBattleLog(`방어 성공! ${reducedDamage}의 데미지!`, '🛡️');
             showMessage(`방어 성공! ${reducedDamage}의 데미지를 받았다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
         } else {
-            playSound('monster-attack-hit'); // [효과음 추가]
+            playSound('monster-attack-hit');
             await sleep(200);
             setMonsterImage('happy');
             shakeScreen();
             player.hp = Math.max(0, player.hp - parseInt(currentMonster.attack));
             updateUI();
-            // [수정]
+            addBattleLog(`방어 실패! ${currentMonster.attack}의 데미지!`, '💥');
             showMessage(`방어 실패! ${currentMonster.attack}의 데미지를 받았다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
         }
     });
@@ -483,33 +536,22 @@ function getRandomQuestion() {
         return null;
     }
     
-    // 현재 몬스터에서 아직 사용하지 않은 문제 찾기
     const availableQuestions = allQuestionKeys.filter(
         key => !currentMonster.usedQuestions.includes(key)
     );
     
-    // 사용 안 한 문제가 없으면 초기화
     if (availableQuestions.length === 0) {
-        /*console.log(`${currentMonster.name}의 모든 문제를 사용했습니다. 문제 목록을 초기화합니다.`);*/
         currentMonster.usedQuestions = [];
         return getRandomQuestion();
     }
     
-    // 사용 안 한 문제 중에서 랜덤 선택
     const randomKey = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
     currentMonster.usedQuestions.push(randomKey);
     
-        // ✨ 추가: 출제 횟수 카운트
     if (!currentMonster.questionCount[randomKey]) {
         currentMonster.questionCount[randomKey] = 0;
     }
     currentMonster.questionCount[randomKey]++;
-    
-    /*// ✨ 추가: 콘솔에 현재 통계 출력
-    console.log(`%c[문제 출제] ${currentMonster.name}`, 'color: #4CAF50; font-weight: bold;');
-    console.log(`선택된 문제: ${randomKey} (${currentMonster.questionCount[randomKey]}번째 출제)`);
-    console.log(`남은 미출제 문제: ${availableQuestions.length - 1}개`);
-    console.table(currentMonster.questionCount);*/
 
     return randomKey;
 }
@@ -520,8 +562,8 @@ function handleAction(action) {
     toggleActionMenu(false);
 
     if (action === 'skill') {
-    openSkillMenu();
-    return;
+        openSkillMenu();
+        return;
     }
     if (action === 'item') {
         openItemMenu();
@@ -534,8 +576,8 @@ function handleAction(action) {
         return;
     }
     const rawQuestion = currentMonster.questionSet[randomKey];
-    const questionType = currentMonster.questionSet.type; // 타입 가져오기
-    const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
+    const questionType = currentMonster.questionSet.type;
+    const question = parseQuestion(rawQuestion, questionType);
 
     switch(action) {
         case 'attack':
@@ -547,13 +589,13 @@ function handleAction(action) {
                     setMonsterImage('hurt');
                     currentMonster.hp = Math.max(0, currentMonster.hp - player.attack);
                     updateUI();
-                    // [수정]
+                    addBattleLog(`공격 성공! ${player.attack}의 데미지!`, '⚔️');
                     showMessage(`공격 성공! ${player.attack}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                 } else { 
                     playSound('player-attack-miss');
                     await sleep(200);
                     setMonsterImage('happy');
-                    // [수정]
+                    addBattleLog('공격이 빗나갔다...', '❌');
                     showMessage("공격이 빗나갔다...", { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd); 
                 }
             });
@@ -563,15 +605,12 @@ function handleAction(action) {
         case 'flee':
             showQuiz(question, (isCorrect) => {
                 if (isCorrect && Math.random() < 0.5) {
-                    // [수정] 도망 성공 시에는 정답/해설을 표시할 필요가 없으므로 기존 호출 방식 유지
                     showMessage("도망치는데 성공했다!", () => { 
-                        // [수정] window.location.href 대신 endBattle() 호출
                         if (window.endBattle) {
                             window.endBattle();
                         }
                     });
                 } else { 
-                    // [수정]
                     showMessage("도망칠 수 없었다...", { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd); 
                 }
             });
@@ -582,15 +621,13 @@ function handleAction(action) {
 function checkBattleEnd() {
     updateUI();
     if (player.hp <= 0) {
-        // 1. 페널티 계산을 위한 기본 설정
-        const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100; // 0.01 ~ 0.1
+        const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100;
         const goldPenalty = Math.floor(player.gold * penaltyRate);
         
         let pointsPenalty = 0;
         let pointTypeKey = '';
         let pointTypeName = '';
 
-        // 현재 몬스터의 소속(affiliation)에 따라 차감할 포인트 종류 결정
         if (currentMonster.affiliation === '품사') {
             pointTypeKey = 'partsOfSpeech';
             pointTypeName = '품사';
@@ -599,23 +636,20 @@ function checkBattleEnd() {
             pointTypeName = '문장 성분';
         }
 
-        // 2. 결정된 종류의 포인트를 대상으로 페널티 계산 및 적용
         if (pointTypeKey && player.points[pointTypeKey] > 0) {
             pointsPenalty = Math.floor(player.points[pointTypeKey] * penaltyRate);
             player.points[pointTypeKey] -= pointsPenalty;
         }
         player.gold -= goldPenalty;
 
-        // 3. 변경된 유저 데이터 저장
         let finalUserData = JSON.parse(localStorage.getItem('userData'));
         finalUserData.gold = player.gold;
-        finalUserData.points = player.points; // 포인트 전체 객체를 업데이트
+        finalUserData.points = player.points;
         localStorage.setItem('userData', JSON.stringify(finalUserData));
         if (finalUserData.id) {
             uploadUserData(finalUserData.id);
         }
 
-        // 4. 동적인 게임 오버 메시지 생성 및 표시
         let penaltyMessage = `전투에서 패배하여 골드 ${goldPenalty} G`;
         if (pointsPenalty > 0) {
             penaltyMessage += `와 ${pointTypeName} 포인트 ${pointsPenalty} P`;
@@ -626,6 +660,7 @@ function checkBattleEnd() {
         gameOverEl.classList.remove('hidden'); 
         return;
     }
+    
     if (currentMonster.hp <= 0) {
         const goldReward = parseInt(currentMonster.goldReward, 10) || 0;
         const pointReward = parseInt(currentMonster.pointReward, 10) || 0;
@@ -643,7 +678,6 @@ function checkBattleEnd() {
         }
 
         if (pointTypeKey) {
-            // 만약 해당 포인트 종류가 처음 누적되는 것이라면, 초기화
             if (!dungeonRewards.points[pointTypeKey]) {
                 dungeonRewards.points[pointTypeKey] = 0;
             }
@@ -655,9 +689,11 @@ function checkBattleEnd() {
         openModal(victoryModal);
         return;
     }
+    
     if (turn === 'player') startEnemyTurn();
     else startPlayerTurn();
 }
+
 function openSkillMenu() {
     skillList.innerHTML = '';
     player.equippedCards.forEach(cardId => {
@@ -684,8 +720,8 @@ function useSkill(skill) {
         return;
     }
     const rawQuestion = currentMonster.questionSet[randomKey];
-    const questionType = currentMonster.questionSet.type; // 타입 가져오기
-    const question = parseQuestion(rawQuestion, questionType); // 타입과 함께 전달
+    const questionType = currentMonster.questionSet.type;
+    const question = parseQuestion(rawQuestion, questionType);
     showQuiz(question, async (isCorrect) => {
         player.mp -= skill.mpCost;
         if (isCorrect) {
@@ -696,30 +732,31 @@ function useSkill(skill) {
                 shakeScreen();
                 const damage = Math.floor(player.attack * skill.effect);
                 currentMonster.hp = Math.max(0, currentMonster.hp - damage);
-                // [수정]
+                addBattleLog(`${skill.name} 발동! ${damage} 데미지!`, '✨');
                 showMessage(`${skill.name} 발동! ${damage}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
             } else if (skill.type === 2) {
                 playSound('player-skillheal-hit');
                 await sleep(200);
                 player.hp = Math.min(player.maxHp, player.hp + skill.effect);
-                // [수정]
+                addBattleLog(`${skill.name} 발동! HP ${skill.effect} 회복!`, '💚');
                 showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
             }
         } else {
             setMonsterImage('happy');
-                if (skill.type === 1){
-                    playSound('player-skillat-miss');
-                    await sleep(200);
-                } else if (skill.type ===2){
-                    playSound('player-skillheal-miss');
-                    await sleep(200);
-                }
-            // [수정]
+            if (skill.type === 1){
+                playSound('player-skillat-miss');
+                await sleep(200);
+            } else if (skill.type ===2){
+                playSound('player-skillheal-miss');
+                await sleep(200);
+            }
+            addBattleLog('스킬 발동 실패...', '❌');
             showMessage("스킬 발동에 실패했다...", { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
         }
         updateUI();
     });
 }
+
 function openItemMenu() {
     const usableItems = Object.keys(player.inventory).filter(key => player.inventory[key] > 0);
     if (usableItems.length === 0) {
@@ -743,6 +780,7 @@ function openItemMenu() {
     });
     openModal(itemModal);
 }
+
 async function useItem(item) {
     closeModal();
     isActionInProgress = true;
@@ -751,22 +789,24 @@ async function useItem(item) {
         playSound('item-heal');
         await sleep(200);
         player.hp = Math.min(player.maxHp, player.hp + item.value);
+        addBattleLog(`${item.name} 사용! HP ${item.value} 회복!`, '💊');
     } else if (item.type === 2) {
         playSound('item-heal');
         await sleep(200);
         player.mp = Math.min(player.maxMp, player.mp + item.value);
+        addBattleLog(`${item.name} 사용! MP ${item.value} 회복!`, '💊');
     } else if (item.type === 3) {
         playSound('item-damage');
         await sleep(200);
         setMonsterImage('hurt');
         currentMonster.hp = Math.max(0, currentMonster.hp - item.value);
         shakeScreen();
+        addBattleLog(`${item.name} 사용! ${item.value} 데미지!`, '💣');
     }
     updateUI();
     showMessage(`${item.name}을(를) 사용했다!`, checkBattleEnd);
 }
 
-// === 게임 초기화 및 시작 ===
 function initGame() {
     preloadSounds();
 
@@ -781,7 +821,7 @@ function initGame() {
         baseHp: userData.baseHp || 80,
         baseMp: userData.baseMp || 50,
         baseAttack: userData.baseAttack || 15,
-        ownedCards: userData.ownedCards || [], // [추가] 보유 카드 목록 추가
+        ownedCards: userData.ownedCards || [],
         equippedCards: userData.equippedCards || [],
         inventory: userData.inventory || {},
         gold: userData.gold || 0,
@@ -792,21 +832,18 @@ function initGame() {
 
     const playerImageEl = gameContainer.querySelector('#player-image');
     let conditionsMet = 0;
-    // 아래 값들은 main.js와 동일하게 맞춰주어야 합니다.
     if (player.maxHp >= 50) conditionsMet++;
     if (player.maxHp >= 80) conditionsMet++;
     if (player.maxHp >= 160) conditionsMet++;
     if (player.maxHp >= 250) conditionsMet++;
     if (player.maxHp >= 350) conditionsMet++;
     if (player.maxHp >= 500) conditionsMet++;
-
     if (player.maxMp >= 50) conditionsMet++;
     if (player.maxMp >= 80) conditionsMet++;
     if (player.maxMp >= 160) conditionsMet++;
     if (player.maxMp >= 250) conditionsMet++;
     if (player.maxMp >= 350) conditionsMet++;
     if (player.maxMp >= 500) conditionsMet++;
-
     if (player.attack >= 30) conditionsMet++;
     if (player.attack >= 45) conditionsMet++;
     if (player.attack >= 70) conditionsMet++;
@@ -844,82 +881,66 @@ function initGame() {
     toggleActionMenu(false);
 
     actionButtons.forEach(btn => btn.addEventListener('click', () => handleAction(btn.dataset.action)));
-    document.querySelectorAll('.modal-close-btn').forEach(btn => btn.addEventListener('click', () => {
-        closeModal();
-        isActionInProgress = false;
-        toggleActionMenu(true);
-    }));
+    document.querySelectorAll('.modal-close-btn').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            // 내 정보 모달의 닫기 버튼인지 확인
+            const isInfoModalClose = event.target.closest('#info-modal');
+            
+            closeModal();
+            
+            // 내 정보 모달이 아닐 때만 액션 메뉴 활성화
+            if (!isInfoModalClose) {
+                isActionInProgress = false;
+                toggleActionMenu(true);
+            }
+        });
+    });
+    
     continueBattleBtn.addEventListener('click', () => {
         closeModal();
-
-            /*/ ✨ 추가: 몬스터 처치 시 최종 통계 출력
-            console.log(`%c========== ${currentMonster.name} 처치! ==========`, 'color: #FF5722; font-weight: bold; font-size: 14px;');
-            console.log(`총 출제된 문제 수: ${Object.values(currentMonster.questionCount).reduce((sum, count) => sum + count, 0)}개`);
-            console.log('문제별 출제 횟수:');
-            console.table(currentMonster.questionCount);
-            console.log('====================================\n');*/
-            
         currentMonsterIndex++;
         if (currentMonsterIndex >= monstersInDungeon.length) {
-            // [수정 시작] 던전 클리어 시 최종 보상 표시 로직 변경
-            
-            // 표시할 HTML을 담을 변수
             let rewardsHTML = `<p>💰 골드: ${dungeonRewards.gold} G</p>`;
-
-            // 포인트 종류 영문 key를 한글 이름으로 바꾸기 위한 객체
             const pointTypeNames = {
                 partsOfSpeech: '품사 포인트',
                 sentenceComponents: '문장 성분 포인트'
-                // 나중에 새로운 포인트가 추가되면 여기에 추가하면 됩니다.
             };
-
-            // dungeonRewards.points 객체에 있는 모든 포인트 종류를 순회
             for (const pointType in dungeonRewards.points) {
                 const pointAmount = dungeonRewards.points[pointType];
-                // 해당 종류의 포인트를 1 이상 획득했을 경우에만 표시
                 if (pointAmount > 0) {
-                    const pointName = pointTypeNames[pointType] || pointType; // 한글 이름이 없으면 영문 key를 그대로 사용
+                    const pointName = pointTypeNames[pointType] || pointType;
                     rewardsHTML += `<p>🅿️ ${pointName}: ${pointAmount} P</p>`;
                 }
             }
-
             finalRewardsEl.innerHTML = rewardsHTML;
             dungeonClearEl.classList.remove('hidden');
-            // [수정 끝]
         } else {
             currentMonster = setupMonster(monstersInDungeon[currentMonsterIndex]);
             monsterNameEl.textContent = currentMonster.name;
-
-            // ✨ 추가: 새 몬스터 시작 알림
-            /*console.log(`%c========== 새 몬스터 등장: ${currentMonster.name} ==========`, 'color: #2196F3; font-weight: bold; font-size: 14px;');*/
-
+            updateProgressBar();
+            addBattleLog(`${currentMonster.name} 등장!`, '👹');
             updateUI();
             startPlayerTurn();
         }
     });
+    
     returnToMainBtn.addEventListener('click', async () => {
-        if (isReturningToMain) return; // 이미 로직이 실행 중이면 아무것도 하지 않음
-        isReturningToMain = true; // 로직 실행 시작 플래그 설정
-        returnToMainBtn.disabled = true; // 버튼을 즉시 비활성화
+        if (isReturningToMain) return;
+        isReturningToMain = true;
+        returnToMainBtn.disabled = true;
 
         try {
             const finalUserData = JSON.parse(localStorage.getItem('userData'));
             finalUserData.gold += dungeonRewards.gold;
-
             if (!finalUserData.points) {
                 finalUserData.points = {};
-                }
-
-            // dungeonRewards.points 객체에 있는 모든 포인트 종류를 순회하며 합산
+            }
             for (const pointType in dungeonRewards.points) {
-                // finalUserData에 해당 포인트 종류가 없으면 0으로 초기화
                 if (!finalUserData.points[pointType]) {
                     finalUserData.points[pointType] = 0;
                 }
-            // 누적된 보상 포인트를 더해줌
-            finalUserData.points[pointType] += dungeonRewards.points[pointType];
+                finalUserData.points[pointType] += dungeonRewards.points[pointType];
             }
-        
             finalUserData.inventory = player.inventory;
             localStorage.setItem('userData', JSON.stringify(finalUserData));
             
@@ -930,9 +951,7 @@ function initGame() {
             }
         } catch (error) {
             console.error("보상 저장 중 오류 발생:", error);
-            // 오류가 발생하더라도 창은 닫히도록 finally 블록으로 이동
         } finally {
-            // 페이지 이동 대신, main.js의 endBattle 함수를 호출
             if (window.endBattle) {
                 window.endBattle();
             }
@@ -940,52 +959,109 @@ function initGame() {
     });
 
     returnToMainFromGameOverBtn.addEventListener('click', () => {
-        // 보상을 더하는 로직 없이, 단순히 전투 창을 닫는 함수만 호출합니다.
         if (window.endBattle) {
             window.endBattle();
         }
     });
 
     infoBtn.addEventListener('click', () => {
-        let cardListHTML = '';
-        player.equippedCards.forEach(cardId => {
-            const card = cardDB.find(c => c.id === cardId);
-            if (card) { cardListHTML += `<li>${card.name}</li>`; }
-        });
-        if (player.equippedCards.length === 0) cardListHTML = '<li>없음</li>';
-        
-        // [수정] 도감 보너스를 포함하여 공격력 정보를 더 자세히 표시
         const ownedCardCount = player.ownedCards.length;
         const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+        const collectionHpBonus = ownedCardCount * 1;
+        const collectionMpBonus = Math.round(ownedCardCount * 0.5);
         const equippedAttackBonus = player.attack - player.baseAttack - collectionAttackBonus;
+        const equippedHpBonus = player.maxHp - player.baseHp - collectionHpBonus;
+        const equippedMpBonus = player.maxMp - player.baseMp - collectionMpBonus;
 
+        // ✅ (5) 장착 카드 목록 HTML 생성
+        let equippedCardsHTML = '';
+        if (player.equippedCards.length === 0) {
+            equippedCardsHTML = '<div class="empty-state">장착된 카드가 없습니다</div>';
+        } else {
+            equippedCardsHTML = '<div class="card-list">';
+            player.equippedCards.forEach(cardId => {
+                const card = cardDB.find(c => c.id === cardId);
+                if (card) {
+                    equippedCardsHTML += `<div class="card-tag">${card.name}</div>`;
+                }
+            });
+            equippedCardsHTML += '</div>';
+        }
+
+        // ✅ (5) 구조화된 정보 표시
         infoList.innerHTML = `
-            <p><strong>공격력:</strong> ${player.attack} (기본 ${player.baseAttack} + 도감 ${collectionAttackBonus} + 장착 카드 ${equippedAttackBonus})</p>
-            <p><strong>골드:</strong> ${player.gold} G</p>
-            <p><strong>품사 포인트:</strong> ${player.points.partsOfSpeech || 0} P</p>
-            <p><strong>장착 카드:</strong></p>
-            <ul>${cardListHTML}</ul>
+            <div class="info-section">
+                <div class="section-title">⚔️ 전투 능력치</div>
+                <div class="info-row">
+                    <span class="info-label">최대 HP</span>
+                    <span class="info-value">${player.maxHp}</span>
+                </div>
+                <div class="info-row" style="font-size: 0.85em; color: #999; padding-left: 20px; padding-top: 0;">
+                    <span>기본 ${player.baseHp} + 도감 ${collectionHpBonus} + 장착 ${equippedHpBonus}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">최대 MP</span>
+                    <span class="info-value">${player.maxMp}</span>
+                </div>
+                <div class="info-row" style="font-size: 0.85em; color: #999; padding-left: 20px; padding-top: 0;">
+                    <span>기본 ${player.baseMp} + 도감 ${collectionMpBonus} + 장착 ${equippedMpBonus}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">공격력</span>
+                    <span class="info-value">${player.attack}</span>
+                </div>
+                <div class="info-row" style="font-size: 0.85em; color: #999; padding-left: 20px; padding-top: 0;">
+                    <span>기본 ${player.baseAttack} + 도감 ${collectionAttackBonus} + 장착 ${equippedAttackBonus}</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="section-title">💰 보유 자원</div>
+                <div class="info-row">
+                    <span class="info-label">골드</span>
+                    <span class="info-value">${player.gold} G</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">품사 포인트</span>
+                    <span class="info-value">${player.points.partsOfSpeech || 0} P</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">문장 성분 포인트</span>
+                    <span class="info-value">${player.points.sentenceComponents || 0} P</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="section-title">🎴 장착 카드 (${player.equippedCards.length}/4)</div>
+                ${equippedCardsHTML}
+            </div>
+
+            <div class="info-section">
+                <div class="section-title">📊 컬렉션</div>
+                <div class="info-row">
+                    <span class="info-label">보유 카드 수</span>
+                    <span class="info-value">${ownedCardCount}장</span>
+                </div>
+            </div>
         `;
+        
         openModal(infoModal);
     });
     
+    updateProgressBar();
     updateUI();
     startPlayerTurn();
 }
 
 initGame();
 
-
-
 function runRandomTest(questionId, iterations = 100) {
-    // 1. 테스트할 문제 세트 찾기
     const questionSet = questionDB.find(q => q.id === questionId);
     if (!questionSet) {
         console.error(`'${questionId}' ID를 가진 문제 세트를 찾을 수 없습니다.`);
         return;
     }
 
-    // 2. 유효한 문제 목록 생성 (게임 로직과 동일)
     const questionKeys = Object.keys(questionSet).filter(k => k.startsWith('question') && questionSet[k]);
     if (questionKeys.length === 0) {
         console.error(`'${questionId}' 문제 세트에 유효한 문제가 없습니다.`);
@@ -995,22 +1071,18 @@ function runRandomTest(questionId, iterations = 100) {
     console.log(`--- 무작위 추출 테스트 시작 (총 ${iterations}회) ---`);
     console.log(`테스트 대상: ${questionId} (유효 문항 수: ${questionKeys.length}개)`);
     
-    // 3. 결과를 기록할 객체 초기화
     const results = {};
     questionKeys.forEach(key => { results[key] = 0; });
 
-    // 4. 지정된 횟수만큼 무작위 추출 시뮬레이션
     for (let i = 0; i < iterations; i++) {
         const randomKey = questionKeys[Math.floor(Math.random() * questionKeys.length)];
         results[randomKey]++;
     }
 
-    // 5. 최종 결과 출력
     console.log("--- 테스트 결과 ---");
     console.log("각 문제가 선택된 횟수:");
-    console.table(results); // 결과를 표 형태로 깔끔하게 출력
+    console.table(results);
 }
-// 테스트 함수를 브라우저 콘솔에서 직접 호출할 수 있도록 window 객체에 등록
+
 window.runRandomTest = runRandomTest;
-//runRandomTest('Q001', 10000);
 })();

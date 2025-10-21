@@ -8,14 +8,31 @@
 </head>
 <body>
     <div id="game-container">
+        <!-- 🎯 새로운 기능: 턴 표시 배너 -->
+        <div id="turn-indicator" class="player-turn">
+            🗡️ 당신의 턴입니다
+        </div>
+
+        <!-- 🎯 새로운 기능: 진행도 표시 -->
+        <div id="progress-bar-container">
+            <div id="progress-info">
+                <span>던전 진행도</span>
+                <span id="progress-text">몬스터 1 / 5</span>
+            </div>
+            <div id="progress-bar-track">
+                <div id="progress-bar-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
         <div class="character-box" id="monster-box">
             <div class="character-info">
                 <h2 id="monster-name"></h2>
                 <div class="hp-bar-container">
                     <div class="bar-background">
                         <div id="monster-hp-bar" class="bar hp"></div>
+                        <span class="bar-text" id="monster-hp-text"></span>
                     </div>
-                    <span id="monster-hp-text"></span>
+                    <!-- ✅ 개선: 우측 텍스트 제거 -->
                 </div>
             </div>
             <div class="character-img-container">
@@ -36,15 +53,17 @@
                     <span class="stat-label">HP:</span>
                     <div class="bar-background">
                         <div id="player-hp-bar" class="bar hp"></div>
+                        <span class="bar-text" id="player-hp-text"></span>
                     </div>
-                    <span id="player-hp-text" class="stat-text"></span>
+                    <!-- ✅ 개선: 우측 텍스트 제거 -->
                 </div>
                 <div class="hp-bar-container">
                     <span class="stat-label">MP:</span>
                     <div class="bar-background">
                         <div id="player-mp-bar" class="bar mp"></div>
+                        <span class="bar-text" id="player-mp-text"></span>
                     </div>
-                    <span id="player-mp-text" class="stat-text"></span>
+                    <!-- ✅ 개선: 우측 텍스트 제거 -->
                 </div>
                 <div id="equipped-cards">
                     <div class="card-slot"></div>
@@ -56,6 +75,11 @@
         </div>
 
         <div id="ui-area">
+            <!-- 🎯 새로운 기능: 전투 로그 -->
+            <div id="battle-log">
+                <div class="log-entry">⚔️ 전투가 시작되었습니다!</div>
+            </div>
+
             <div id="message-box" class="box"><p id="message-text"></p></div>
                 <div id="quiz-box" class="box hidden">
                     <p id="quiz-text-prompt"></p>
@@ -94,6 +118,7 @@
         </div>
     </div>
 
+    <!-- ✅ 오류 수정: modal 클래스 구조 유지 -->
     <div id="game-over" class="modal hidden">
         <div class="modal-window" style="text-align: center;">
             <h2 style="color: #c74343; font-family: var(--font-pixel); font-size: 3em;">GAME OVER</h2>
