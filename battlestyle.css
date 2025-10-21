@@ -741,22 +741,18 @@ body::before {
 
 /* 🎯 스크롤바 스타일링 */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 0px;
+    height: 0px;
+    display: none;
 }
 
-::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.3);
-    border-radius: 4px;
+* {
+    scrollbar-width: none;
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--accent-color);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #ff9800;
+/* IE */
+* {
+    -ms-overflow-style: none;
 }
 
 /*여기부터 모바일//////////////////////////////////////////////////////////////////////*/

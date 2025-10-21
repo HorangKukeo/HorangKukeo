@@ -553,13 +553,43 @@ body {
     .main-menu-btn { font-size: 1.8em; padding: 18px; min-height: 70px; }
 
     /* 모달 공통 */
-    .modal-window { width: 95%; padding: 15px; max-height: 90vh; }
+    .modal-window {
+        width: 95%;
+        padding: 15px;
+        max-height: 85vh; /* 80vh → 85vh로 증가 */
+        overflow-y: auto; /* 스크롤 활성화 */
+        display: flex; /* ✅ 추가 */
+        flex-direction: column; /* ✅ 추가 */
+    }
     .modal-window h3 { font-size: 1.8em; margin-bottom: 15px; }
     .modal-close-btn { padding: 12px 20px; font-size: 1.1em; min-height: 48px; width: 100%; margin-top: 10px; }
 
     /* 카드 보기 모달 */
-    #card-dex-modal.modal-window { max-height: 92vh; padding: 12px; }
-    .card-section { margin-bottom: 15px; padding: 8px; }
+    #card-dex-modal.modal-window {
+        max-height: 92vh; /* 기존 92vh 유지 */
+        padding: 12px;
+        overflow-y: auto; /* 명시적으로 지정 */
+    }
+    
+    /* ✅ 카드 섹션 스크롤 개선 */
+    .card-section {
+        margin-bottom: 15px;
+        padding: 8px;
+        flex-shrink: 0; /* 축소 방지 */
+    }
+
+    /* ✅ 도감 섹션 높이 제한 */
+    .card-grid.dex {
+        max-height: 50vh; /* 35vh → 50vh로 증가 */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+    }
+
+    /* ✅ 장착 카드 섹션 */
+    #equipped-cards-section {
+        max-height: none; /* 높이 제한 제거 */
+        overflow-y: visible;
+    }
     .card-section h4 { font-size: 1.2em; margin-bottom: 10px; }
     .dex-content-wrapper { flex-direction: column; }
     #dex-filter-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 12px; }
