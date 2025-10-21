@@ -3,8 +3,12 @@ const cardDexModal = document.getElementById('card-dex-modal');
 const equippedCardsSection = document.getElementById('equipped-cards-section');
 const cardDexSection = document.getElementById('card-dex-section');
 const cardDetailModal = document.getElementById('card-detail-modal');
-const detailCardName = document.getElementById('detail-card-name');
-const detailCardContent = document.getElementById('detail-card-content');
+const detailCardNumberEl = document.getElementById('card-detail-number');
+const detailCardNameEl = document.getElementById('card-detail-name'); // ID 확인
+const detailCardInfoEl = document.getElementById('card-detail-info');
+const detailCardStatsEl = document.getElementById('card-detail-stats');
+const detailCardSkillEl = document.getElementById('card-detail-skill');
+const detailCardDescEl = document.getElementById('card-detail-desc');
 const dexFilterButtons = document.getElementById('dex-filter-buttons');
 const loadingMessageEl = document.getElementById('loading-message');
 const dungeonListEl = document.getElementById('dungeon-list');
@@ -79,7 +83,7 @@ async function fetchAndStoreGameData() {
         };
 
         // 카드 DB 로딩
-        const cards = parseDB(data.Cards, ['id', 'name', 'hpBonus', 'mpBonus', 'attackBonus', 'skillId', 'description']);
+        const cards = parseDB(data.Cards, ['id', 'name', 'hpBonus', 'mpBonus', 'attackBonus', 'skillId', 'description', 'class']);
         cards.forEach(card => {
             card.hpBonus = parseInt(card.hpBonus, 10) || 0;
             card.mpBonus = parseInt(card.mpBonus, 10) || 0;
@@ -222,25 +226,65 @@ function displayUserData() {
     playerAttackDetails.textContent = `(기본 ${baseAttack} + 도감 ${collectionAttackBonus} + 장착 ${equippedAttackBonus})`;
 }
 
-/////////////////////CARD//////////////////////////
-function openCardDetailModal(cardId) {
-    const cardDB = JSON.parse(localStorage.getItem('cardDB'));
+function openCardDetailModal(cardId) {const cardDB = JSON.parse(localStorage.getItem('cardDB'));
     const skillDB = JSON.parse(localStorage.getItem('skillDB'));
     const card = cardDB.find(c => c.id === cardId);
     if (!card) return;
 
-    const skill = skillDB.find(s => s.id === card.skillId);
-    const skillName = skill ? skill.name : "없음";
+    // --- 상단 헤더 정보 설정 (변경 없음) ---
+    detailCardNumberEl.textContent = `#${card.id.replace('C', '')}`;
+    detailCardNameEl.textContent = card.name;
 
-    detailCardName.textContent = card.name;
-    detailCardContent.innerHTML = `
-        <p><strong>HP 보너스:</strong> ${card.hpBonus}</p>
-        <p><strong>MP 보너스:</strong> ${card.mpBonus}</p>
-        <p><strong>공격력 보너스:</strong> ${card.attackBonus}</p>
-        <p><strong>사용 스킬:</strong> ${skillName}</p>
-        <p class="description">"${card.description || '아직 알려진 바가 없다.'}"</p>
+    // --- [수정] 카드 정보 영역 내용 (2x2 Grid) ---
+    detailCardInfoEl.innerHTML = `
+        <h4>카드 정보</h4>
+        <div class="info-grid">
+            <div class="grid-item">
+                <span class="label">HP</span>
+                <span class="value">+${card.hpBonus}</span>
+            </div>
+            <div class="grid-item">
+                <span class="label">등급</span>
+                <span class="value">${card.class || '미분류'}</span>
+            </div>
+            <div class="grid-item">
+                <span class="label">MP</span>
+                <span class="value">+${card.mpBonus}</span>
+            </div>
+            <div class="grid-item">
+                <span class="label">ATK</span>
+                <span class="value">+${card.attackBonus}</span>
+            </div>
+        </div>
     `;
 
+    // --- [삭제] 능력치 보너스 영역 처리 코드 삭제 ---
+    // detailCardStatsEl.innerHTML = `...`; 부분 삭제
+
+    // --- 스킬 정보 영역 내용 (변경 없음, 단 info-item 클래스 적용) ---
+    const skill = skillDB.find(s => s.id === card.skillId);
+    if (skill) {
+        detailCardSkillEl.innerHTML = `
+            <h4>스킬 정보</h4>
+            <div class="info-item">
+                <span class="label" style="width: auto; text-align: left;">이름</span> <span class="value">${skill.name} (MP ${skill.mpCost})</span>
+            </div>
+            <div class="info-item">
+                <span class="label" style="width: auto; text-align: left;">효과</span> <span class="value">${skill.desc || '설명 없음'}</span>
+            </div>
+        `;
+        detailCardSkillEl.classList.remove('hidden');
+    } else {
+        detailCardSkillEl.innerHTML = `<h4>스킬 정보</h4><p class="value" style="text-align: left;">없음</p>`; // 스킬 없을 때
+    }
+
+    // --- 설명 영역 내용 (변경 없음) ---
+    detailCardDescEl.innerHTML = `
+        <h4>설명</h4>
+        <p>${card.description || '알려진 바가 없다.'}</p>
+    `;
+
+    // 상세보기 모달 열기
     openModal(cardDetailModal);
 }
 
@@ -675,11 +719,18 @@ async function initializeMainScreen() {
     });
 
     detailModalCloseBtn.addEventListener('click', () => {
-    cardDetailModal.classList.add('hidden'); // 상세보기 창만 닫음
+    // 1. 카드 상세보기 모달('cardDetailModal') 숨기기
+        cardDetailModal.classList.add('hidden');
+
+        // 2. 카드 보기 모달('cardDexModal') 다시 확실하게 보여주기
+        cardDexModal.classList.remove('hidden');
     });
 
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
-        btn.addEventListener('click', closeModal); // closeModal 함수 사용
+        // detailModalCloseBtn에는 'modal-close-btn' 클래스가 없어야 이 로직이 적용되지 않음
+        if (btn.id !== 'detail-modal-close-btn') { // 상세보기 닫기 버튼 제외 (선택적 안전장치)
+            btn.addEventListener('click', closeModal);
+        }
     });
 
     dexFilterButtons.addEventListener('click', (event) => {
