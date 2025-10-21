@@ -54,7 +54,6 @@ const quizTextContextEl = gameContainer.querySelector('#quiz-text-context');
 const quizAnswersEl = gameContainer.querySelector('#quiz-answers');
 const actionMenu = gameContainer.querySelector('#action-menu');
 const actionButtons = gameContainer.querySelectorAll('.action-btn');
-const equippedCardsEl = gameContainer.querySelector('#equipped-cards');
 
 // 🎯 새로운 DOM 요소 추가
 const turnIndicator = gameContainer.querySelector('#turn-indicator');
@@ -179,26 +178,6 @@ function updateUI() {
     const monsterHpPercent = Math.round((currentMonster.hp / currentMonster.maxHp) * 100);
     monsterHpBar.style.width = `${monsterHpPercent}%`;
     document.getElementById('monster-hp-text').textContent = `${currentMonster.hp} / ${currentMonster.maxHp}`;
-    
-    // 카드 슬롯 업데이트 (기존 코드 유지)
-    const cardSlots = equippedCardsEl.querySelectorAll('.card-slot');
-    cardSlots.forEach((slot, index) => {
-        const cardId = player.equippedCards[index];
-        const card = cardDB.find(c => c.id === cardId);
-        if (card) {
-            slot.textContent = card.name;
-            slot.classList.remove('empty');
-            const bonusInfo = [];
-            if (card.hpBonus > 0) bonusInfo.push(`HP +${card.hpBonus}`);
-            if (card.mpBonus > 0) bonusInfo.push(`MP +${card.mpBonus}`);
-            if (card.attackBonus > 0) bonusInfo.push(`공격 +${card.attackBonus}`);
-            slot.title = bonusInfo.join(', ');
-        } else {
-            slot.textContent = '비어있음';
-            slot.classList.add('empty');
-            slot.title = '';
-        }
-    });
 }
 
 function shuffleArray(array) { 

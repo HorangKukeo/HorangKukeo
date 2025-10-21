@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Nanum+Gothic+Coding&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Nanum+Gothic+Coding&family=Nanum+Gothic:wght@400;700&display=swap');
 
 :root {
     --bg-color: #2b2b2b; --border-color: #666; --text-color: #f0f0f0;
@@ -8,22 +8,31 @@
     --font-main: 'Nanum Gothic Coding', monospace;
 }
 
-/* ✅ 오류 수정: body 스크롤 문제 해결 */
+html {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+h2 {
+    font-size: 1.3em; /* 원하는 크기로 조절 (예: 1.5em) */
+    margin: 0 0 10px 0; /* 상단 여백 제거, 하단 여백 축소 */
+}
+
+/* body 스크롤 문제 해결 */
 body {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: var(--text-color); 
     font-family: var(--font-main);
     display: flex; 
     justify-content: center; 
-    align-items: flex-start; /* flex-start 유지 */
+    align-items: flex-start;
     min-height: 100vh; 
     margin: 0; 
     padding: 20px 0;
     position: relative;
-    overflow-y: auto; /* 세로 스크롤 허용 */
 }
 
-/* 🎯 배경 애니메이션 효과 */
+/* 배경 애니메이션 효과 */
 body::before {
     content: '';
     position: fixed;
@@ -41,39 +50,52 @@ body::before {
     50% { opacity: 0.8; }
 }
 
+/* ✅ 좌우 배치 그리드 레이아웃 */
 #game-container {
-    width: 800px; 
+    width: 900px;
     max-width: 95%; 
     min-height: 600px;
-    max-height: calc(100vh - 40px); /* ✅ 추가: viewport 높이 기준 제한 */
+    max-height: calc(100vh - 40px); /* ✅ 다시 추가 */
     border: 3px solid var(--border-color); 
     background-color: rgba(43, 43, 43, 0.95);
     border-radius: 15px; 
     box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.3);
-    display: flex; 
-    flex-direction: column; 
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto minmax(180px, auto) auto auto auto;
+    gap: 10px;
+    grid-template-areas:
+        "turn turn"
+        "progress progress"
+        "player monster"
+        "log log"
+        "ui ui"
+        "actions actions";
     padding: 20px; 
     box-sizing: border-box;
     position: relative;
     z-index: 1;
     margin: 20px 0;
-    overflow-y: auto; /* ✅ 추가: 컨테이너 내부에서 스크롤 */
+    overflow-y: auto; /* ✅ 다시 추가 */
 }
 
-/* 🎯 새로운 기능: 턴 표시 배너 */
 #turn-indicator {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 24px;
+    grid-area: turn;
+    position: static;
+    transform: none;
+    padding: 6px 20px;
     border-radius: 20px;
     font-family: var(--font-pixel);
-    font-size: 1.3em;
+    font-size: 1.2em;
     font-weight: bold;
-    z-index: 10;
+    text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.4);
     transition: all 0.3s ease;
+    white-space: nowrap; /* ✅ 추가 - 텍스트 줄바꿈 방지 */
+    min-height: 38px; /* ✅ 추가 - 고정 높이 */
+    display: flex; /* ✅ 추가 */
+    align-items: center; /* ✅ 추가 */
+    justify-content: center; /* ✅ 추가 */
 }
 
 #turn-indicator.player-turn {
@@ -97,9 +119,9 @@ body::before {
     }
 }
 
-/* 🎯 새로운 기능: 진행도 표시 */
+/* 진행도 표시 */
 #progress-bar-container {
-    margin: 45px 0 15px 0;
+    grid-area: progress;
     padding: 10px;
     background: rgba(0,0,0,0.3);
     border-radius: 8px;
@@ -129,32 +151,45 @@ body::before {
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
 }
 
+/* 캐릭터 박스 */
 .character-box {
-    border: 2px solid var(--border-color); 
-    padding: 15px; 
+    border: 2px solid var(--border-color);
+    padding: 15px;
     border-radius: 10px;
-    margin-bottom: 15px; 
-    display: flex; 
-    align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr; /* 좌: 콘텐츠 크기, 우: 나머지 공간 */
+    gap: 15px; /* 좌우 컬럼 사이 간격 */
+    align-items: start; /* 상단 정렬 (매우 중요) */    
     position: relative;
     transition: all 0.3s ease;
 }
 
-/* 🎯 턴에 따른 하이라이트 효과 */
 .character-box.active-turn {
     border-color: var(--accent-color);
     box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
     transform: scale(1.02);
 }
 
+.character-left-col {
+    display: flex;
+    flex-direction: column; /* 이미지와 버튼을 세로로 쌓음 */
+    align-items: center;
+    width: 120px; /* PC 이미지 너비와 동일하게 고정 */
+}
+
 #player-box { 
+    grid-area: player;
     background: linear-gradient(135deg, #3c4c7c 0%, #2d3a5c 100%);
 }
+
 #monster-box { 
+    grid-area: monster;
     background: linear-gradient(135deg, #7c3c7c 0%, #5c2d4c 100%);
 }
 
-.character-info { flex-grow: 1; }
+.character-info { 
+    width: 100%;
+}
 
 .character-img-container {
     width: 120px; 
@@ -165,7 +200,7 @@ body::before {
     display: flex; 
     justify-content: center; 
     align-items: center;
-    margin: 0 15px; 
+    margin: 0; /* 하단 마진(margin: 0 0 10px 0;) 제거 */
     flex-shrink: 0;
     transition: transform 0.3s ease;
 }
@@ -180,14 +215,12 @@ body::before {
 }
 
 .player-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+    display: block;
 }
 
 #info-btn { 
-    padding: 6px 12px; 
-    font-size: 0.85em; 
+    padding: 4px 10px;
+    font-size: 0.9em;
     cursor: pointer; 
     border-radius: 6px; 
     border: 1px solid rgba(255, 193, 7, 0.5); 
@@ -195,6 +228,9 @@ body::before {
     color: white;
     transition: all 0.2s ease;
     font-family: inherit;
+    width: 100%; /* 좌측 컬럼 너비(120px)에 맞춤 */
+    margin-top: 8px; /* 이미지와의 간격 */
+    box-sizing: border-box; /* 패딩 포함 너비 100% */
 }
 
 #info-btn:hover {
@@ -203,6 +239,7 @@ body::before {
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
 }
 
+/* 내 정보 모달 디자인 개선 */
 #info-modal .modal-window {
     max-width: 500px;
 }
@@ -281,19 +318,12 @@ body::before {
     border-radius: 6px;
 }
 
-/* ✅ 개선: HP/MP 바 레이아웃 단순화 (우측 텍스트 제거) */
+/* HP/MP 바 레이아웃 */
 .hp-bar-container { 
     display: flex; 
     align-items: center; 
     margin-top: 8px; 
     position: relative; 
-}
-
-.hp-bar-container .stat-label { 
-    width: 40px; 
-    flex-shrink: 0; 
-    font-weight: bold;
-    font-size: 1.1em;
 }
 
 .bar-background { 
@@ -303,7 +333,7 @@ body::before {
     border: 2px solid #000; 
     border-radius: 12px; 
     overflow: hidden; 
-    position: relative; /* 추가 */
+    position: relative;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
 }
 
@@ -314,9 +344,9 @@ body::before {
     border: none;
     box-sizing: border-box;
     position: relative;
-    /* ✅ 텍스트 관련 속성 제거 */
 }
 
+/* 바 위에 표시되는 텍스트 */
 .bar-text {
     position: absolute;
     left: 0;
@@ -333,7 +363,7 @@ body::before {
     font-family: var(--font-main);
 }
 
-/* 🎯 반짝이는 효과 */
+/* 반짝이는 효과 */
 .bar::after {
     content: '';
     position: absolute;
@@ -358,57 +388,18 @@ body::before {
     background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
 }
 
-/* ✅ 개선: 카드 슬롯 - 금색 테두리 제거, 심플하게 */
+/* 카드 슬롯 - 숨김 처리 */
 #equipped-cards { 
-    display: grid; 
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 8px; 
-    margin-top: 12px; 
+    display: none;
 }
 
-.card-slot { 
-    height: 38px; 
-    background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
-    border-radius: 6px; 
-    font-size: 0.85em; 
-    color: var(--text-color); 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    padding: 4px; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    white-space: nowrap;
-    position: relative;
-    transition: all 0.3s ease;
-    cursor: default;
-}
-
-/* ✅ 개선: 장착된 카드 스타일 - 금색 테두리 대신 미묘한 효과만 */
-.card-slot:not(.empty) {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.15) 100%);
-    border-color: rgba(255, 193, 7, 0.5);
-    cursor: help;
-}
-
-.card-slot:not(.empty):hover {
-    transform: translateY(-3px);
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.25) 0%, rgba(255, 152, 0, 0.25) 100%);
-    border-color: var(--accent-color);
-}
-
-.card-slot.empty { 
-    color: #555; 
-    border-style: dashed; 
-}
-
-/* 🎯 새로운 기능: 전투 로그 */
+/* 전투 로그 */
 #battle-log {
+    grid-area: log;
     background: rgba(0,0,0,0.4);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 8px;
-    margin-bottom: 10px;
     max-height: 80px;
     overflow-y: auto;
     font-size: 0.85em;
@@ -437,11 +428,13 @@ body::before {
     }
 }
 
+/* UI 영역 */
 #ui-area { 
-    flex-grow: 1; 
+    grid-area: ui;
     display: flex; 
-    flex-direction: column; 
+    flex-direction: column;
 }
+
 
 .box { 
     border: 2px solid var(--border-color); 
@@ -453,21 +446,22 @@ body::before {
 }
 
 #message-box { 
-    height: 100%; 
     text-align: center; 
-    font-size: 1.2em; 
+    font-size: 1.1em; 
     display: flex; 
     justify-content: center; 
     align-items: center; 
+    min-height: 65px; /* ✅ 추가 - 최소 높이만 지정 */
 }
 
-#quiz-box { 
-    text-align: center; 
+#quiz-box {
+    text-align: center;
+    min-height: 220px; /* ✅ 퀴즈박스 최소 높이 확보 */
 }
 
 #quiz-text-prompt {
-    font-size: 1.2em;
-    margin-bottom: 15px;
+    font-size: 1.1em;
+    margin-bottom: 10px;
     line-height: 1.5;
 }
 
@@ -475,9 +469,9 @@ body::before {
     background-color: rgba(0, 0, 0, 0.25);
     border: 1px solid var(--border-color);
     border-radius: 5px;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    font-size: 1.15em;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    font-size: 1.05em;
     line-height: 1.6;
     text-align: left;
 }
@@ -492,9 +486,9 @@ body::before {
     background-color: #4a4a4a; 
     color: white; 
     border: 2px solid #777; 
-    padding: 15px; 
+    padding: 12px; 
     font-family: inherit; 
-    font-size: 1.1em; 
+    font-size: 1.0em; 
     cursor: pointer; 
     border-radius: 5px; 
     transition: all 0.2s; 
@@ -518,32 +512,34 @@ body::before {
     color: var(--accent-color); 
 }
 
+/* 액션 메뉴 */
 #action-menu { 
-    height: 200px; /* 100px → 120px로 증가 */
+    grid-area: actions;
+    height: auto;
     display: grid; 
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 15px; 
-    margin-top: 15px; 
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 65px;
+    gap: 10px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
 }
 
 .action-btn { 
-    font-family: 'Nanum Gothic', 'Nanum Gothic Coding', sans-serif; /* ✅ 나눔 고딕으로 변경 */
-    font-size: 1.4em; 
-    font-weight: 500; /* ✅ 더 굵게 */
+    font-family: 'Nanum Gothic', 'Nanum Gothic Coding', sans-serif;
+    font-size: 1.2em; 
+    font-weight: 500;
     letter-spacing: 0.5px;
     cursor: pointer; 
-    border-radius: 10px; /* 8px → 10px */
-    border: 2px solid rgba(255, 255, 255, 0.1); /* ✅ 미묘한 테두리 */
-    background: linear-gradient(145deg, #4a4a5a 0%, #2d2d3a 100%); /* ✅ 모던한 그라데이션 */
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(145deg, #4a4a5a 0%, #2d2d3a 100%);
     color: #ffffff; 
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* ✅ 그림자 추가 */
-
-        /* ✅ 이 부분 추가 */
-    padding: 20px 8px; /* 세로 패딩 증가 */
-    min-height: 60px; /* 최소 높이 설정 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .action-btn::before {
@@ -553,7 +549,7 @@ body::before {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); /* ✅ 효과 강화 */
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
     transform: scale(0);
     transition: transform 0.5s ease;
 }
@@ -563,11 +559,11 @@ body::before {
 }
 
 .action-btn:hover:not(:disabled) { 
-    background: linear-gradient(145deg, #ffc107 0%, #ff9800 100%); /* ✅ 모던한 호버 */
+    background: linear-gradient(145deg, #ffc107 0%, #ff9800 100%);
     color: #1a1a1a; 
     border-color: rgba(255, 193, 7, 0.3);
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.4); /* ✅ 호버 그림자 강화 */
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.4);
 }
 
 .action-btn:active:not(:disabled) {
@@ -575,7 +571,7 @@ body::before {
 }
 
 .action-btn:disabled { 
-    background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%); /* ✅ 비활성화 그라데이션 */
+    background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
     color: #666; 
     cursor: not-allowed; 
     border-color: rgba(255, 255, 255, 0.05);
@@ -629,9 +625,8 @@ body::before {
     cursor: pointer; 
 }
 
-/* ✅ 오류 수정: modal을 fixed로 변경하여 스크롤과 무관하게 표시 */
 .modal {
-    position: fixed; /* absolute에서 fixed로 변경 */
+    position: fixed;
     top: 0; 
     left: 0; 
     right: 0; 
@@ -641,7 +636,7 @@ body::before {
     justify-content: center; 
     align-items: center;
     color: white;
-    z-index: 1000; /* 높은 z-index로 최상위 표시 */
+    z-index: 1000;
 }
 
 #dungeon-clear .modal-window {
@@ -739,7 +734,7 @@ body::before {
   animation: screen-shake 0.3s;
 }
 
-/* 🎯 스크롤바 스타일링 */
+/* 스크롤바 숨기기 */
 ::-webkit-scrollbar {
     width: 0px;
     height: 0px;
@@ -748,43 +743,44 @@ body::before {
 
 * {
     scrollbar-width: none;
-}
-
-/* IE */
-* {
     -ms-overflow-style: none;
 }
 
-/*여기부터 모바일//////////////////////////////////////////////////////////////////////*/
+/* 모바일 */
 @media (max-width: 600px) {
     body {
         padding: 0;
+        overflow-y: auto; /* ✅ 명시적으로 지정 */
+        display: block; /* 👈 이 코드를 추가하세요 */
     }
 
     #game-container {
-        min-height: 0;
-        height: 100vh;
+        width: 100%;
+        max-width: 100%;
+        min-height: 100vh;
+        height: auto;
+        max-height: none; /* ✅ 제한 해제 */
         padding: 8px;
         border-radius: 0;
         border: none;
-        display: grid;
-        grid-template-rows: auto auto auto 1fr auto;
-        gap: 8px;
-        margin: 0; /* 모바일에서는 여백 제거 */
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto minmax(140px, auto) auto auto auto;
+        gap: 6px;
+        margin: 0; /* ✅ 확인 */
+        overflow-y: auto;
     }
 
-    /* 🎯 모바일: 턴 표시 */
+    #quiz-box {
+        min-height: 250px; /* ✅ 모바일 최소 높이 */
+    }
+
     #turn-indicator {
-        position: static;
-        transform: none;
-        margin-bottom: 8px;
         font-size: 1.1em;
         padding: 6px 16px;
+        min-height: 38px; /* ✅ 추가 - 모바일 고정 높이 */
     }
 
-    /* 🎯 모바일: 진행도 바 */
     #progress-bar-container {
-        margin: 0 0 8px 0;
         padding: 8px;
     }
 
@@ -794,51 +790,40 @@ body::before {
 
     .character-box {
         padding: 8px;
-        margin-bottom: 0;
-        flex-direction: row;
+        gap: 10px;
+    }
+
+    .character-left-col {
+        width: 80px; /* 모바일 이미지 너비와 동일하게 */
     }
 
     .character-img-container {
-        width: 100px;
-        height: 100px;
-        margin: 0 8px;
+        width: 80px;
+        height: 80px;
     }
 
     h2 {
-        font-size: 1.4em;
+        font-size: 1.1em;
+        margin: 0 0 8px 0;
     }
 
     #info-btn {
-        padding: 8px 12px;
-        font-size: 0.9em;
+        margin-top: 6px; /* 모바일 이미지와의 간격 */
+        font-size: 0.8em;
     }
 
     .bar-background {
-        height: 22px;
+        height: 20px;
     }
 
-    .hp-bar-container .stat-label {
-        font-size: 1.1em;
-        width: 40px;
-    }
-    
-    #equipped-cards {
-        grid-template-columns: 1fr;
-        gap: 6px;
+    .bar-text {
+        font-size: 0.8em;
     }
 
-    .card-slot {
-        height: 35px;
-        font-size: 0.85em;
-        padding: 4px;
-    }
-
-    /* 🎯 모바일: 전투 로그 */
     #battle-log {
         max-height: 60px;
         font-size: 0.8em;
         padding: 6px;
-        margin-bottom: 8px;
     }
 
     .log-entry {
@@ -871,18 +856,15 @@ body::before {
     }
 
     #action-menu {
-        padding: 0;
-        border: none;
-        height: auto;
-        gap: 8px;
-        margin-top: 8px;
         grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        gap: 8px;
     }
 
     .action-btn {
         font-size: 1.1em;
-        padding: 15px 8px;
-        min-height: 50px;
+        padding: 10px 8px;
+        min-height: 30px;
     }
     
     .quiz-btn, .menu-item-btn {
@@ -943,29 +925,6 @@ body::before {
         margin: 8px 0;
     }
 
-    #info-list p {
-        font-size: 1em;
-        line-height: 1.6;
-    }
-
-    #skill-list, #item-list {
-        gap: 8px;
-    }
-
-    #action-menu {
-        height: auto;
-        gap: 10px;
-        margin-top: 8px;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .action-btn {
-        font-size: 1.2em;
-        padding: 18px 8px; /* 세로 길이 증가 */
-        min-height: 60px; /* 50px → 60px */
-    }
-    
-    /* ✅ 내 정보 모달 모바일 대응 */
     #info-list .info-row {
         font-size: 0.95em;
     }
@@ -977,5 +936,9 @@ body::before {
     #info-list .card-tag {
         font-size: 0.85em;
         padding: 5px 10px;
+    }
+
+    #skill-list, #item-list {
+        gap: 8px;
     }
 }

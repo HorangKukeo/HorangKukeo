@@ -8,12 +8,12 @@
 </head>
 <body>
     <div id="game-container">
-        <!-- 🎯 새로운 기능: 턴 표시 배너 -->
+        <!-- 🎯 턴 표시 배너 -->
         <div id="turn-indicator" class="player-turn">
             🗡️ 당신의 턴입니다
         </div>
 
-        <!-- 🎯 새로운 기능: 진행도 표시 -->
+        <!-- 🎯 진행도 표시 -->
         <div id="progress-bar-container">
             <div id="progress-info">
                 <span>던전 진행도</span>
@@ -24,7 +24,37 @@
             </div>
         </div>
 
+        <div class="character-box" id="player-box">
+            
+            <div class="character-left-col">
+                <div class="character-img-container">
+                    <img id="player-image" src="img/player0.png" alt="플레이어">
+                </div>
+                </div>
+
+            <div class="character-info">
+                <div class="player-header">
+                    <h2 id="player-name">용사</h2>
+                </div>
+                <div class="hp-bar-container"> <div class="bar-background">
+                        <div id="player-hp-bar" class="bar hp"></div>
+                        <span class="bar-text" id="player-hp-text"></span>
+                    </div>
+                </div>
+                <div class="hp-bar-container"> <div class="bar-background">
+                        <div id="player-mp-bar" class="bar mp"></div>
+                        <span class="bar-text" id="player-mp-text"></span>
+                    </div>
+                </div>
+                
+                <button id="info-btn">내 정보</button> 
+            </div>
+        </div>
+
         <div class="character-box" id="monster-box">
+            <div class="character-img-container">
+                <img id="monster-image" src="img/slime-idle.png" alt="몬스터">
+            </div>
             <div class="character-info">
                 <h2 id="monster-name"></h2>
                 <div class="hp-bar-container">
@@ -32,69 +62,31 @@
                         <div id="monster-hp-bar" class="bar hp"></div>
                         <span class="bar-text" id="monster-hp-text"></span>
                     </div>
-                    <!-- ✅ 개선: 우측 텍스트 제거 -->
-                </div>
-            </div>
-            <div class="character-img-container">
-                <img id="monster-image" src="img/slime-idle.png" alt="몬스터">
-            </div>
-        </div>
-
-        <div class="character-box" id="player-box">
-             <div class="character-img-container">
-                <img id="player-image" src="img/oldimg/player0.png" alt="플레이어">
-            </div>
-            <div class="character-info">
-                <div class="player-header">
-                    <h2 id="player-name">용사</h2>
-                    <button id="info-btn">내 정보</button>
-                </div>
-                <div class="hp-bar-container">
-                    <span class="stat-label">HP:</span>
-                    <div class="bar-background">
-                        <div id="player-hp-bar" class="bar hp"></div>
-                        <span class="bar-text" id="player-hp-text"></span>
-                    </div>
-                    <!-- ✅ 개선: 우측 텍스트 제거 -->
-                </div>
-                <div class="hp-bar-container">
-                    <span class="stat-label">MP:</span>
-                    <div class="bar-background">
-                        <div id="player-mp-bar" class="bar mp"></div>
-                        <span class="bar-text" id="player-mp-text"></span>
-                    </div>
-                    <!-- ✅ 개선: 우측 텍스트 제거 -->
-                </div>
-                <div id="equipped-cards">
-                    <div class="card-slot"></div>
-                    <div class="card-slot"></div>
-                    <div class="card-slot"></div>
-                    <div class="card-slot"></div>
                 </div>
             </div>
         </div>
 
+        <!-- 전투 로그 -->
+        <div id="battle-log">
+            <div class="log-entry">⚔️ 전투가 시작되었습니다!</div>
+        </div>
+
+        <!-- UI 영역 -->
         <div id="ui-area">
-            <!-- 🎯 새로운 기능: 전투 로그 -->
-            <div id="battle-log">
-                <div class="log-entry">⚔️ 전투가 시작되었습니다!</div>
-            </div>
-
             <div id="message-box" class="box"><p id="message-text"></p></div>
-                <div id="quiz-box" class="box hidden">
-                    <p id="quiz-text-prompt"></p>
-                        <div id="quiz-text-context"></div>
-                        <div id="quiz-answers"></div>
-                    
-                    <div id="quiz-answers"></div>
+            <div id="quiz-box" class="box hidden">
+                <p id="quiz-text-prompt"></p>
+                <div id="quiz-text-context"></div>
+                <div id="quiz-answers"></div>
 
-                    <div id="quiz-short-answer-area" class="hidden">
-                        <input type="text" id="short-answer-input" placeholder="정답을 입력하세요...">
-                        <button id="short-answer-submit-btn" class="quiz-btn">제출</button>
-                    </div>
+                <div id="quiz-short-answer-area" class="hidden">
+                    <input type="text" id="short-answer-input" placeholder="정답을 입력하세요...">
+                    <button id="short-answer-submit-btn" class="quiz-btn">제출</button>
                 </div>
+            </div>
         </div>
         
+        <!-- 액션 메뉴 -->
         <div id="action-menu" class="box">
             <button class="action-btn" data-action="attack">공격</button>
             <button class="action-btn" data-action="skill">스킬</button>
@@ -118,7 +110,6 @@
         </div>
     </div>
 
-    <!-- ✅ 오류 수정: modal 클래스 구조 유지 -->
     <div id="game-over" class="modal hidden">
         <div class="modal-window" style="text-align: center;">
             <h2 style="color: #c74343; font-family: var(--font-pixel); font-size: 3em;">GAME OVER</h2>

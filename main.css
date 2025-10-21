@@ -318,14 +318,17 @@ body {
     color: #999;
 }
 
-.card-item .card-stats { /* 카드 능력치 영역 */
-    flex-grow: 1; /* 남은 공간 차지 */
+.card-item .card-stats { /* ✅ 2x2 그리드로 변경 */
+    flex-grow: 1;
     text-align: left;
     font-size: 1em;
     padding-top: 5px;
 }
 
-.card-item .card-stats p { margin: 2px 0; }
+.card-item .card-stats p { 
+    margin: 0; /* 2px 0 → 0 */
+    font-size: 0.9em; /* ✅ 약간 축소 */
+}
 
 .card-item .card-actions { /* 카드 버튼 영역 */
     margin-top: 8px;
@@ -530,6 +533,7 @@ body {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: #1a1a1a; z-index: 200; overflow-y: auto;
     display: none; justify-content: center; align-items: center;
+    align-items: flex-start; /* 👈 이 부분을 center에서 flex-start로 변경 */
 }
 
 /* --- 반응형 디자인 (모바일) --- */
@@ -564,11 +568,10 @@ body {
     .modal-window h3 { font-size: 1.8em; margin-bottom: 15px; }
     .modal-close-btn { padding: 12px 20px; font-size: 1.1em; min-height: 48px; width: 100%; margin-top: 10px; }
 
-    /* 카드 보기 모달 */
-    #card-dex-modal.modal-window {
-        max-height: 92vh; /* 기존 92vh 유지 */
+    #card-dex-modal.modal-window { 
+        max-height: 92vh; 
         padding: 12px;
-        overflow-y: auto; /* 명시적으로 지정 */
+        width: 95%; /* 전체 폭 유지 */
     }
     
     /* ✅ 카드 섹션 스크롤 개선 */
@@ -594,16 +597,83 @@ body {
     .dex-content-wrapper { flex-direction: column; }
     #dex-filter-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 12px; }
     .dex-filter-btn { padding: 10px 14px; font-size: 1em; min-width: 75px; min-height: 44px; flex: 0 0 auto; }
-    #equipped-cards-section { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    #card-dex-section { grid-template-columns: 1fr; gap: 10px; }
-    #equipped-cards-section .card-item, #card-dex-section .card-item { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 10px; row-gap: 8px; padding: 10px; min-height: auto; align-items: start; }
+
+    #equipped-cards-section { 
+        grid-template-columns: 1fr; /* 1열로 */
+        gap: 8px; 
+    }
+    
+    #card-dex-section { 
+        grid-template-columns: 1fr; /* 1열로 */
+        gap: 10px; 
+    }
+
+    /* ✅ 개별 카드 아이템 크기 축소 */
+    #equipped-cards-section .card-item, 
+    #card-dex-section .card-item { 
+        display: grid; 
+        grid-template-columns: 1fr auto; /* 정보 영역 + 버튼 영역 */
+        grid-template-rows: auto auto; 
+        column-gap: 10px; 
+        row-gap: 6px; /* 8px → 6px */
+        padding: 10px; /* 축소 */
+        min-height: auto; 
+        align-items: start; 
+    }
+
     #equipped-cards-section .card-item .card-header, #card-dex-section .card-item .card-header { grid-column: 1 / -1; margin-bottom: 0; text-align: left; }
     #equipped-cards-section .card-item .card-name, #card-dex-section .card-item .card-name { font-size: 1.1em; }
     #equipped-cards-section .card-item .card-number, #card-dex-section .card-item .card-number { font-size: 1em; }
-    #equipped-cards-section .card-item .card-stats, #card-dex-section .card-item .card-stats { grid-column: 1; grid-row: 2; border-top: none; margin-top: 0; padding: 8px; border-radius: 4px; background-color: rgba(0,0,0,0.2); }
-    #equipped-cards-section .card-item .card-stats p, #card-dex-section .card-item .card-stats p { font-size: 1em; margin: 4px 0; line-height: 1.3; white-space: nowrap; }
-    #equipped-cards-section .card-item .card-actions, #card-dex-section .card-item .card-actions { grid-column: 2; grid-row: 2; margin-top: 0; display: flex; flex-direction: column; gap: 5px; justify-content: center; width: 70px; flex-shrink: 0; }
-    #equipped-cards-section .card-item .card-actions button, #card-dex-section .card-item .card-actions button { font-size: 0.75em; min-height: 36px; width: 100%; white-space: nowrap; }
+    /* ✅ 카드 스탯 2x2 그리드 - 열 비율 조정 */
+    #equipped-cards-section .card-item .card-stats, 
+    #card-dex-section .card-item .card-stats { 
+        grid-column: 1; 
+        grid-row: 2; 
+        border-top: none; 
+        margin-top: 0; 
+        padding: 6px; /* 8px → 6px */
+        border-radius: 4px; 
+        background-color: rgba(0,0,0,0.2);
+        
+        display: grid;
+        grid-template-columns: 0.7fr 1.3fr; /* ✅ HP/MP 열: 좁게, ATK/SKL 열: 넓게 */
+        gap: 3px 6px; /* 간격 축소 */
+    }
+    
+    #equipped-cards-section .card-item .card-stats p, 
+    #card-dex-section .card-item .card-stats p { 
+        font-size: 1em; /* 0.85em → 0.8em */
+        margin: 0; 
+        line-height: 1.3; 
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis; /* 긴 스킬 이름 말줄임 */
+    }
+    
+    /* ✅ 버튼 영역 크기 축소 */
+    #equipped-cards-section .card-item .card-actions, 
+    #card-dex-section .card-item .card-actions { 
+        grid-column: 2; 
+        grid-row: 2; 
+        margin-top: 0; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 4px; /* 5px → 4px */
+        justify-content: center; 
+        width: 60px; /* 70px → 60px */
+        flex-shrink: 0; 
+    }
+    
+    /* ✅ 버튼 자체 크기 축소 */
+    #equipped-cards-section .card-item .card-actions button, 
+    #card-dex-section .card-item .card-actions button { 
+        font-size: 0.7em; /* 0.75em → 0.7em */
+        min-height: 32px; /* 36px → 32px */
+        width: 100%; 
+        white-space: nowrap; 
+        padding: 4px 6px; /* 패딩 축소 */
+    }
+    
     #equipped-cards-section .card-item.locked, #card-dex-section .card-item.locked { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px; padding: 15px; }
     #equipped-cards-section .card-item.locked .card-header, #card-dex-section .card-item.locked .card-header { border-bottom: none; padding-bottom: 0; margin-bottom: 8px; justify-content: center; }
 
@@ -614,7 +684,10 @@ body {
     .card-detail-header .card-name { font-size: 1.6em; }
     .card-detail-content { max-height: 60vh; }
     .detail-section h4 { font-size: 1.1em; margin-bottom: 10px; padding-bottom: 6px; }
-    #card-detail-info .info-grid { grid-template-columns: 1fr; gap: 8px; }
+    #card-detail-info .info-grid { 
+        grid-template-columns: 1fr 1fr; /* 2열 유지 */
+        gap: 10px 12px; /* 세로 가로 간격 */
+    }
     #card-detail-info .grid-item .label { width: 35px; font-size: 0.85em; }
     #card-detail-info .grid-item .value { font-size: 1em; }
     #card-detail-skill .info-item { grid-template-columns: 60px 1fr; font-size: 0.95em; }
@@ -639,6 +712,12 @@ body {
     /* 성장 목표 모달 */
     #goal-list { gap: 8px; }
     .goal-item { padding: 10px 12px; font-size: 1em; }
+
+    .unequip-btn, .detail-btn {
+        min-height: 28px !important; /* 32px → 28px */
+        padding: 3px 5px !important; /* 4px 6px → 3px 5px */
+        font-size: 0.8em !important; /* 0.7em → 0.8em (글씨 크기 증가) */
+    }
 }
 
 /* 추가적인 작은 화면 최적화 */
