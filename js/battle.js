@@ -337,35 +337,48 @@ function showQuiz(question, callback) {
     }
 
     setTimeout(() => {
-        const isMobile = window.matchMedia("(max-width: 600px)").matches;
+            const isMobile = window.matchMedia("(max-width: 600px)").matches;
 
-        if (question.type === '2' && isMobile && 'visualViewport' in window) {
-            // [방법 1: 모바일 + 주관식 + API 지원]
-            // 키패드가 나타나 뷰포트가 리사이즈될 때를 감지
-            
-            const shortAnswerInput = quizBox.querySelector('#short-answer-input');
+            if (question.type === '2' && isMobile && 'visualViewport' in window) {
+                // [방법 1: 모바일 + 주관식]
+                const shortAnswerInput = quizBox.querySelector('#short-answer-input');
 
-            const onViewportResize = () => {
-                // 뷰포트 리사이즈(키패드 등장) 완료 후,
-                // 퀴즈 박스 하단을 뷰포트(화면) 하단에 맞춤
-                quizBox.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'end'
-                });
-            };
-            
-            // 리사이즈 이벤트를 *한 번만* 수신
-            window.visualViewport.addEventListener('resize', onViewportResize, { once: true });
-            
-            // 입력창에 포커스를 줘서 키패드를 올림
-            shortAnswerInput.focus();
+                // 1. 뷰포트가 리사이즈되면 실행할 스크롤 함수
+                const onViewportResize = () => {
+                    quizBox.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end'
+                    });
+                };
 
-        } else {
-            // [방법 2: PC 또는 객관식]
-            // 기존 로직대로 퀴즈 박스 하단으로 즉시 스크롤
-            quizBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
-    }, 50); // 50ms 지연
+                // 2. input에 'focus'가 발생했을 때(사용자가 탭했거나 코드로 focus()됐을 때)
+                //    *그때* 뷰포트 리사이즈 리스너를 부착합니다.
+                shortAnswerInput.addEventListener('focus', () => {
+                    window.visualViewport.addEventListener('resize', onViewportResize, { once: true });
+                }, { once: true }); // 'focus' 이벤트 리스너도 한 번만 실행
+
+                // 3. input에서 'blur'가 발생하면(키패드가 내려가면) 리스너를 제거합니다.
+                shortAnswerInput.addEventListener('blur', () => {
+                    window.visualViewport.removeEventListener('resize', onViewportResize);
+                }, { once: true });
+
+                
+                if (turn === 'player') {
+                    // 4. 플레이어 턴: focus()를 호출하여 2번 로직(focus 리스너)을 자동 실행
+                    shortAnswerInput.focus();
+                } else {
+                    // 5. 몬스터 턴: focus()를 호출하지 않음 (보안 정책).
+                    //    대신 키패드가 없는 상태를 기준으로 하단 스크롤.
+                    //    (사용자가 직접 input을 탭하면 2번 로직이 실행됨)
+                    quizBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+
+            } else {
+                // [방법 2: PC 또는 객관식]
+                // 키패드 걱정이 없으므로 즉시 하단 스크롤
+                quizBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        }, 50); // 퀴즈 박스가 그려질 시간을 줌
 }
 
 function handleQuizAnswer(isCorrect) {
