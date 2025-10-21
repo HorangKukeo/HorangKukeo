@@ -30,33 +30,45 @@
                 <div class="character-img-container">
                     <img id="player-image" src="img/player0.png" alt="플레이어">
                 </div>
-                </div>
+            </div>
 
-            <div class="character-info">
+            <div class="character-info-top">
                 <div class="player-header">
                     <h2 id="player-name">용사</h2>
                 </div>
-                <div class="hp-bar-container"> <div class="bar-background">
+                <button id="info-btn">내 정보</button>
+            </div>
+            
+            <div class="character-info-bottom">
+                <div class="hp-bar-container">
+                    <div class="bar-background">
                         <div id="player-hp-bar" class="bar hp"></div>
                         <span class="bar-text" id="player-hp-text"></span>
                     </div>
                 </div>
-                <div class="hp-bar-container"> <div class="bar-background">
+                <div class="hp-bar-container">
+                    <div class="bar-background">
                         <div id="player-mp-bar" class="bar mp"></div>
                         <span class="bar-text" id="player-mp-text"></span>
                     </div>
                 </div>
-                
-                <button id="info-btn">내 정보</button> 
             </div>
+
         </div>
 
         <div class="character-box" id="monster-box">
-            <div class="character-img-container">
-                <img id="monster-image" src="img/slime-idle.png" alt="몬스터">
+            
+            <div class="character-left-col">
+                <div class="character-img-container">
+                    <img id="monster-image" src="img/slime-idle.png" alt="몬스터">
+                </div>
             </div>
-            <div class="character-info">
+
+            <div class="character-info-top">
                 <h2 id="monster-name"></h2>
+            </div>
+
+            <div class="character-info-bottom">
                 <div class="hp-bar-container">
                     <div class="bar-background">
                         <div id="monster-hp-bar" class="bar hp"></div>
@@ -64,6 +76,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
         <!-- 전투 로그 -->

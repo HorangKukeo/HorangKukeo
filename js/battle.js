@@ -54,8 +54,7 @@ const quizTextContextEl = gameContainer.querySelector('#quiz-text-context');
 const quizAnswersEl = gameContainer.querySelector('#quiz-answers');
 const actionMenu = gameContainer.querySelector('#action-menu');
 const actionButtons = gameContainer.querySelectorAll('.action-btn');
-
-// 🎯 새로운 DOM 요소 추가
+const uiArea = gameContainer.querySelector('#ui-area');
 const turnIndicator = gameContainer.querySelector('#turn-indicator');
 const progressBarFill = gameContainer.querySelector('#progress-bar-fill');
 const progressText = gameContainer.querySelector('#progress-text');
@@ -189,6 +188,7 @@ function shuffleArray(array) {
 }
 
 function showMessage(text, detailsOrCallback, callback) {
+    uiArea.classList.remove('hidden'); // 👈 [추가]
     messageBox.classList.remove('hidden');
     quizBox.classList.add('hidden');
     
@@ -231,6 +231,12 @@ function showMessage(text, detailsOrCallback, callback) {
     
     messageTextEl.innerHTML = fullMessage;
     
+    if (isAfterQuiz) {
+        setTimeout(() => {
+            messageBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 50); // 50ms 지연
+    }
+
     if (finalCallback) { 
         let waitTime = 1500;
         if (isAfterQuiz) {
@@ -272,6 +278,7 @@ function parseQuestion(questionString, questionType) {
 }
 
 function showQuiz(question, callback) {
+    uiArea.classList.remove('hidden');
     messageBox.classList.add('hidden');
     quizBox.classList.remove('hidden');
     onQuizComplete = callback;
@@ -328,6 +335,10 @@ function showQuiz(question, callback) {
             }
         };
     }
+
+    setTimeout(() => {
+        quizBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 50); // 50ms 지연을 주어 렌더링 후 스크롤
 }
 
 function handleQuizAnswer(isCorrect) {
@@ -399,17 +410,19 @@ function generateMonsters() {
 }
 
 function startPlayerTurn() {
+    battleModeContainer.scrollTo({ top: 0, behavior: 'smooth' });
     turn = 'player';
     setMonsterImage('idle');
     updateTurnIndicator('player');
     showMessage("당신의 턴입니다.", () => {
-        messageBox.classList.add('hidden');
+        uiArea.classList.add('hidden'); // 👈 [수정]
         toggleActionMenu(true);
         isActionInProgress = false;
     });
 }
 
 function startEnemyTurn() {
+    battleModeContainer.scrollTo({ top: 0, behavior: 'smooth' });
     turn = 'enemy';
     toggleActionMenu(false);
     setMonsterImage('idle');

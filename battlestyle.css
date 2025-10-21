@@ -16,6 +16,8 @@ html {
 h2 {
     font-size: 1.3em; /* 원하는 크기로 조절 (예: 1.5em) */
     margin: 0 0 10px 0; /* 상단 여백 제거, 하단 여백 축소 */
+    text-align: center;
+    word-break: keep-all;
 }
 
 /* body 스크롤 문제 해결 */
@@ -26,7 +28,6 @@ body {
     display: flex; 
     justify-content: center; 
     align-items: flex-start;
-    min-height: 100vh; 
     margin: 0; 
     padding: 20px 0;
     position: relative;
@@ -54,7 +55,6 @@ body::before {
 #game-container {
     width: 900px;
     max-width: 95%; 
-    min-height: 600px;
     max-height: calc(100vh - 40px); /* ✅ 다시 추가 */
     border: 3px solid var(--border-color); 
     background-color: rgba(43, 43, 43, 0.95);
@@ -92,7 +92,8 @@ body::before {
     box-shadow: 0 4px 8px rgba(0,0,0,0.4);
     transition: all 0.3s ease;
     white-space: nowrap; /* ✅ 추가 - 텍스트 줄바꿈 방지 */
-    min-height: 38px; /* ✅ 추가 - 고정 높이 */
+    height: 38px; /* 👈 min-height를 height로 변경 */
+    box-sizing: border-box; /* 👈 패딩을 높이에 포함 */
     display: flex; /* ✅ 추가 */
     align-items: center; /* ✅ 추가 */
     justify-content: center; /* ✅ 추가 */
@@ -126,6 +127,8 @@ body::before {
     background: rgba(0,0,0,0.3);
     border-radius: 8px;
     border: 1px solid rgba(255, 193, 7, 0.3);
+    height: 54px;
+    box-sizing: border-box;
 }
 
 #progress-info {
@@ -157,11 +160,17 @@ body::before {
     padding: 15px;
     border-radius: 10px;
     display: grid;
-    grid-template-columns: auto 1fr; /* 좌: 콘텐츠 크기, 우: 나머지 공간 */
-    gap: 15px; /* 좌우 컬럼 사이 간격 */
-    align-items: start; /* 상단 정렬 (매우 중요) */    
+    align-items: start;
+    gap: 15px;
     position: relative;
     transition: all 0.3s ease;
+
+    /* PC 레이아웃 정의 */
+    grid-template-columns: auto 1fr; /* 1열: 이미지, 2열: 정보 */
+    grid-template-rows: auto 1fr;    /* 1행: 상단, 2행: 하단 */
+    grid-template-areas:
+        "left top"
+        "left bottom";
 }
 
 .character-box.active-turn {
@@ -170,25 +179,37 @@ body::before {
     transform: scale(1.02);
 }
 
+/* 1. 좌측 컬럼 (이미지) */
 .character-left-col {
+    grid-area: left;
+    width: 120px;
     display: flex;
-    flex-direction: column; /* 이미지와 버튼을 세로로 쌓음 */
     align-items: center;
-    width: 120px; /* PC 이미지 너비와 동일하게 고정 */
+    flex-direction: column;
 }
 
-#player-box { 
-    grid-area: player;
-    background: linear-gradient(135deg, #3c4c7c 0%, #2d3a5c 100%);
+/* 2. 우측 상단 (이름, 버튼) */
+.character-info-top {
+    grid-area: top;
 }
 
-#monster-box { 
-    grid-area: monster;
-    background: linear-gradient(135deg, #7c3c7c 0%, #5c2d4c 100%);
+/* 3. 우측 하단 (HP/MP 바) */
+.character-info-bottom {
+    grid-area: bottom;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* HP바와 MP바 사이 간격 */
+    margin-top: 0px; /* 이름/버튼과의 간격 */
 }
 
-.character-info { 
-    width: 100%;
+/* [중요] 몬스터 박스는 '내 정보' 버튼이 없으므로 간격 재조정 */
+#monster-box .character-info-bottom {
+    margin-top: 0;
+}
+
+/* 몬스터 박스의 '내 정보' 버튼 숨기기 */
+#monster-box #info-btn {
+    display: none;
 }
 
 .character-img-container {
@@ -200,7 +221,7 @@ body::before {
     display: flex; 
     justify-content: center; 
     align-items: center;
-    margin: 0; /* 하단 마진(margin: 0 0 10px 0;) 제거 */
+    margin: 0;
     flex-shrink: 0;
     transition: transform 0.3s ease;
 }
@@ -228,9 +249,9 @@ body::before {
     color: white;
     transition: all 0.2s ease;
     font-family: inherit;
-    width: 100%; /* 좌측 컬럼 너비(120px)에 맞춤 */
-    margin-top: 8px; /* 이미지와의 간격 */
-    box-sizing: border-box; /* 패딩 포함 너비 100% */
+    width: 100%;
+    margin-top: 0px; /* 이름과의 간격 (PC) */
+    box-sizing: border-box; 
 }
 
 #info-btn:hover {
@@ -240,8 +261,12 @@ body::before {
 }
 
 /* 내 정보 모달 디자인 개선 */
-#info-modal .modal-window {
+#info-modal.modal-window {
     max-width: 500px;
+    max-height: 80vh; /* 👈 [추가] PC 최대 높이 80% */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 👈 모달 자체 스크롤 방지 */
 }
 
 #info-list { 
@@ -250,6 +275,8 @@ body::before {
     background: rgba(0, 0, 0, 0.2);
     padding: 20px;
     border-radius: 8px;
+    flex-grow: 1; /* 👈 [추가] 리스트가 남은 공간 차지 */
+    overflow-y: auto; /* 👈 [추가] 리스트 내부 스크롤 활성화 */
 }
 
 #info-list .info-section {
@@ -322,7 +349,7 @@ body::before {
 .hp-bar-container { 
     display: flex; 
     align-items: center; 
-    margin-top: 8px; 
+    margin-top: 0px; 
     position: relative; 
 }
 
@@ -752,12 +779,12 @@ body::before {
         padding: 0;
         overflow-y: auto; /* ✅ 명시적으로 지정 */
         display: block; /* 👈 이 코드를 추가하세요 */
+        min-height: 0; /* 👈 이 코드를 추가하세요 (100vh 상속 방지) */
     }
 
     #game-container {
         width: 100%;
         max-width: 100%;
-        min-height: 100vh;
         height: auto;
         max-height: none; /* ✅ 제한 해제 */
         padding: 8px;
@@ -767,6 +794,7 @@ body::before {
         grid-template-rows: auto auto minmax(140px, auto) auto auto auto;
         gap: 6px;
         margin: 0; /* ✅ 확인 */
+        min-height: 0;
         overflow-y: auto;
     }
 
@@ -777,24 +805,47 @@ body::before {
     #turn-indicator {
         font-size: 1.1em;
         padding: 6px 16px;
-        min-height: 38px; /* ✅ 추가 - 모바일 고정 높이 */
+        height: 38px; /* 👈 min-height를 height로 변경 */
+        box-sizing: border-box; /* 👈 패딩을 높이에 포함 */
     }
 
     #progress-bar-container {
         padding: 8px;
+        height: 48px;
+        box-sizing: border-box;
     }
 
     #progress-info {
         font-size: 0.85em;
     }
 
+    /* [수정] 모바일 캐릭터 박스 레이아웃 */
     .character-box {
+        grid-template-columns: auto 1fr; /* 1열: 이미지, 2열: 이름/버튼 */
+        grid-template-rows: auto auto;   /* 1행: 상단, 2행: 하단 바 */
+        grid-template-areas: 
+            "left top"
+            "bottom bottom"; /* 2행: HP/MP 바 (전체 너비) */
+        gap: 6px;
         padding: 8px;
-        gap: 10px;
     }
 
     .character-left-col {
-        width: 80px; /* 모바일 이미지 너비와 동일하게 */
+        grid-area: left;
+        width: 80px; /* 모바일 이미지 크기 */
+    }
+
+    .character-info-top {
+        grid-area: top;
+        display: flex;
+        flex-direction: column;
+        align-items: center
+    }
+
+    .character-info-bottom {
+        grid-area: bottom;
+        margin-top: 0; /* 중요: PC의 margin-top 제거 (그리드 gap이 대신함) */
+        gap: 6px; /* 모바일 HP/MP바 간격 */
     }
 
     .character-img-container {
@@ -803,13 +854,17 @@ body::before {
     }
 
     h2 {
-        font-size: 1.1em;
+        font-size: 0.9em;
         margin: 0 0 8px 0;
+        width: 100%;
     }
 
     #info-btn {
-        margin-top: 6px; /* 모바일 이미지와의 간격 */
-        font-size: 0.8em;
+        margin: 2px;
+        margin-top: 2px; /* 이름과의 간격 (모바일) */
+        font-size: 0.7em;
+        padding: 4px 4px;
+        width: auto;
     }
 
     .bar-background {
@@ -862,9 +917,9 @@ body::before {
     }
 
     .action-btn {
-        font-size: 1.1em;
-        padding: 10px 8px;
-        min-height: 30px;
+        font-size: 1em;
+        padding: 6px 4px;
+        min-height: 25px;
     }
     
     .quiz-btn, .menu-item-btn {
@@ -890,10 +945,24 @@ body::before {
     }
 
     .modal-window {
-        width: 90%;
+        width: 85%;
         padding: 15px;
-        max-height: 80vh;
+        max-height: 90vh;
         overflow-y: auto;
+    }
+
+    /* 👈 [추가] 모바일 #info-modal 스크롤 방식 PC와 동일하게 */
+    #info-modal.modal-window {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* 👈 모달 자체 스크롤 방지 */
+    }
+
+    #info-list {
+        /* ... (기존 모바일 #info-list 스타일이 있다면 유지) ... */
+        flex-grow: 1; /* 👈 [추가] 리스트가 남은 공간 차지 */
+        overflow-y: auto; /* 👈 [추가] 리스트 내부 스크롤 활성화 */
+        padding: 12px; /* 👈 모바일 패딩 조정 (PC의 20px 대신) */
     }
 
     .modal-window h3 {
