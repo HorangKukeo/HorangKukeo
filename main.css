@@ -755,3 +755,211 @@ body {
     .modal-window h3 { font-size: 1.5em; }
     .dex-filter-btn { min-width: 65px; padding: 8px 10px; font-size: 0.95em; }
 }
+
+/* main.css의 tutorial 버튼 스타일 수정 부분 */
+/* 기존 765-920줄을 이 코드로 대체하세요 */
+
+#tutorial-modal {
+    max-width: 700px;
+    animation: slideIn 0.3s ease-out;
+    z-index: 1001;
+    height: 600px;  /* ← 고정 높이 추가 */
+    display: flex;  /* ← flexbox 사용 */
+    flex-direction: column;  /* ← 세로 정렬 */
+}
+
+/* 모달 진입 애니메이션 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== 튜토리얼 콘텐츠 영역 ===== */
+#tutorial-content {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 4px solid #ffc107;
+    height: 350px;  /* ← min/max 대신 고정 높이 */
+    flex: 0 0 350px;  /* ← flex 값 추가 */
+    overflow-y: auto;
+    text-align: left;  /* ← 왼쪽 정렬 */
+}
+
+#tutorial-content p {
+    line-height: 1.6;
+    margin-bottom: 10px;
+    color: #ddd;
+    font-size: 0.95em;
+    text-align: left;  /* ← 왼쪽 정렬 */
+}
+
+/* 콘텐츠 내 제목 */
+#tutorial-content h4 {
+    margin-top: 0;
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    color: #ffc107;
+    font-weight: bold;
+}
+
+/* 콘텐츠 내 리스트 */
+#tutorial-content ul {
+    line-height: 1.8;
+    margin-left: 15px;
+    margin-bottom: 10px;
+}
+
+#tutorial-content li {
+    margin-bottom: 8px;
+    color: #ddd;
+}
+
+/* 콘텐츠 내 강조 텍스트 */
+#tutorial-content strong {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+/* 콘텐츠 내 강조 상자 */
+.tutorial-highlight-text {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-radius: 3px;
+}
+
+/* ===== 진행도 표시 ===== */
+#tutorial-progress {
+    background-color: #444;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #ffc107;
+    font-size: 0.9em;
+}
+
+/* ===== 튜토리얼 버튼들 (수정됨) ===== */
+#tutorial-prev-btn,
+#tutorial-next-btn,
+#tutorial-skip-btn {
+    padding: 10px 15px;
+    border: 1px solid #666;
+    background-color: #2b2b2b;
+    color: #f0f0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    flex: 1;  /* ← 모든 버튼 동일한 크기 */
+    text-align: center;
+    min-width: 80px;  /* ← 최소 너비 설정 */
+}
+
+/* 이전/다음 버튼 호버 효과 */
+#tutorial-prev-btn:hover,
+#tutorial-next-btn:hover {
+    background-color: #4caf50;
+    border-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+#tutorial-prev-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#tutorial-prev-btn:disabled:hover {
+    background-color: #2b2b2b;
+    border-color: #666;
+    box-shadow: none;
+}
+
+/* 스킵 버튼 호버 효과 */
+#tutorial-skip-btn:hover {
+    background-color: #7c3c7c;
+    border-color: #b981b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(124, 60, 124, 0.3);
+}
+
+/* 다음 버튼 스타일 (수정됨 - flex: 1 제거) */
+#tutorial-next-btn {
+    background-color: #4caf50;
+    border-color: #45a049;
+    font-weight: bold;
+    color: white;
+}
+
+#tutorial-next-btn:hover {
+    background-color: #45a049;
+    border-color: #3d8b40;
+}
+
+/* 버튼 컨테이너 (수정됨) */
+.tutorial-button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/* ===== 도움말 버튼 (메인 메뉴) ===== */
+#guide-btn {
+    background-color: #6c5ce7 !important;
+    border-color: #7b68ee !important;
+    margin-top: 20px !important;
+    font-weight: bold;
+}
+
+#guide-btn:hover {
+    background-color: #7b68ee !important;
+    transform: scale(1.02);
+}
+
+#tutorial-modal h3 {
+    color: #ffc107;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #666;
+    padding-bottom: 15px;
+    font-size: 1.3em;
+}
+
+/* 모바일 반응형 조정 */
+@media (max-width: 768px) {
+    #tutorial-modal {
+        width: 80vw;
+        font-size: 0.95em;
+    }
+    
+    #tutorial-content {
+        padding: 15px;
+    }
+    
+    #tutorial-content h4 {
+        font-size: 1.1em;
+    }
+    
+    .tutorial-button-container {
+        flex-direction: column;
+    }
+    
+    #tutorial-prev-btn,
+    #tutorial-next-btn,
+    #tutorial-skip-btn {
+        width: 100%;
+    }
+}

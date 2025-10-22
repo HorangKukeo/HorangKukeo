@@ -61,6 +61,9 @@
                 <button id="goals-btn" class="main-menu-btn">🎯 성장 목표</button>
                 <button id="shop-btn" class="main-menu-btn">🛍️ 상점</button>
                 <button id="gacha-btn" class="main-menu-btn">✨ 카드 뽑기</button>
+                <button id="help-btn" class="main-menu-btn">
+                    ❓ 도움말/튜토리얼
+                </button>
             </div>
         </div>
 
@@ -151,6 +154,23 @@
             </div>
             <button class="modal-close-btn">닫기</button>
         </div>
+
+        <div id="tutorial-modal" class="modal-window hidden" style="max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>📚 문법 RPG 튜토리얼</h3>
+                <span id="tutorial-progress" style="font-size: 0.9em; color: #999;">1/7</span>
+            </div>
+            
+            <div id="tutorial-content">
+                <!-- 콘텐츠 동적 삽입 -->
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: space-between;">
+                <button id="tutorial-prev-btn" style="display: none;">← 이전</button>
+                <button id="tutorial-skip-btn">스킵</button>
+                <button id="tutorial-next-btn">다음 →</button>
+            </div>
+        </div>
     </div>
     <div id="battle-mode-container"></div>
 
@@ -159,7 +179,7 @@
         document.body.addEventListener('click', function playMusic() {
             // [수정] id를 "bgm-main"으로 변경
             const bgm = document.getElementById('bgm-main');
-            bgm.volume = 0.4;
+            bgm.volume = 0.5;
             bgm.play();
             document.body.removeEventListener('click', playMusic);
         });
@@ -167,5 +187,6 @@
 
     <script src="js/common.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/tutorial.js"></script>
 </body>
 </html>

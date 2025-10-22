@@ -1155,3 +1155,7 @@ window.runGachaTest = runGachaTest;
 
 
 initializeMainScreen();
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTutorial();  // ← 여기서 호출
+});
