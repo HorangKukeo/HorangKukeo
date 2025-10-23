@@ -58,14 +58,14 @@ let currentDexPage = '1-10';
 
 const GACHA_CATEGORIES = {
     '품사 ①': ['CP001', 'CP002', 'CP003'],
-    '품사 ②': ['CP004', 'CP005'],
+    '품사 ②': ['CP004', 'CP005', 'CP006', 'CP007', 'CP008','CP010'],
     '문장 성분 ①': ['CP021', 'CP022', 'CP023']
     // 추후 새로운 카테고리와 카드팩 ID를 여기에 추가하면 됩니다.
 };
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D021','D022','D023','D024','D025','D026'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013','D021','D022','D023','D024','D025','D026'];
 
 async function fetchAndStoreGameData() {
     try {
@@ -190,16 +190,16 @@ function displayUserData() {
     if (maxMp >= 50) conditionsMet++;
     if (maxMp >= 80) conditionsMet++;
     if (maxMp >= 160) conditionsMet++;
+    if (maxMp >= 190) conditionsMet++;
     if (maxMp >= 250) conditionsMet++;
     if (maxMp >= 350) conditionsMet++;
-    if (maxMp >= 500) conditionsMet++;
 
     if (totalAttack >= 30) conditionsMet++;
     if (totalAttack >= 45) conditionsMet++;
     if (totalAttack >= 70) conditionsMet++;
     if (totalAttack >= 100) conditionsMet++;
-    if (totalAttack >= 150) conditionsMet++;
-    if (totalAttack >= 220) conditionsMet++;
+    if (totalAttack >= 140) conditionsMet++;
+    if (totalAttack >= 190) conditionsMet++;
     
     playerPortraitImg.src = `img/player${conditionsMet}.png`;
 
@@ -301,8 +301,10 @@ function renderCardDex() {
         const skill = skillDB.find(s => s.id === card.skillId);
         const skillName = skill ? skill.name : "없음";
         
-        // [추가] 카드 ID에서 'C'를 제거하여 숫자만 추출
         const cardNumber = card.id.replace('C', '');
+        
+        // ✅ 등급별 클래스 추가
+        const gradeClass = card.class ? `grade-${card.class}` : '';
 
         let actionsHTML = '';
         if (isEquipped) {
@@ -313,7 +315,7 @@ function renderCardDex() {
         actionsHTML += `<button class="detail-btn" onclick="openCardDetailModal('${card.id}')">자세히</button>`;
 
         return `
-            <div class="card-item">
+            <div class="card-item ${gradeClass}">
                 <div class="card-header">
                     <span class="card-name">${card.name}</span>
                     <span class="card-number">#${cardNumber}</span>
@@ -586,15 +588,15 @@ const growthGoals = [
     { description: "최대 MP 50 달성", key: 'maxMp', value: 50 },
     { description: "최대 MP 80 달성", key: 'maxMp', value: 80 },
     { description: "최대 MP 160 달성", key: 'maxMp', value: 160 },
+    { description: "최대 MP 190 달성", key: 'maxMp', value: 190 },
     { description: "최대 MP 250 달성", key: 'maxMp', value: 250 },
     { description: "최대 MP 350 달성", key: 'maxMp', value: 350 },
-    { description: "최대 MP 500 달성", key: 'maxMp', value: 500 },
     { description: "공격력 30 달성", key: 'totalAttack', value: 30 },
     { description: "공격력 45 달성", key: 'totalAttack', value: 45 },
     { description: "공격력 70 달성", key: 'totalAttack', value: 70 },
     { description: "공격력 100 달성", key: 'totalAttack', value: 100 },
-    { description: "공격력 150 달성", key: 'totalAttack', value: 150 },
-    { description: "공격력 220 달성", key: 'totalAttack', value: 220 }
+    { description: "공격력 140 달성", key: 'totalAttack', value: 140 },
+    { description: "공격력 190 달성", key: 'totalAttack', value: 190 }
 ];
 
 // [교체] openGrowthGoalsModal 함수
@@ -906,7 +908,7 @@ function drawCard(pack) {
 
         if (isDuplicate) {
             // [수정 시작] 환급 메시지 생성 로직 전체 변경
-            const goldRefund = Math.round(pack.priceGold * 0.6);
+            const goldRefund = Math.round(pack.priceGold * 0.7);
             let pointRefundMessages = []; // 포인트 환급 메시지만 따로 저장할 배열
             
             const pointTypeNames = {
@@ -918,7 +920,7 @@ function drawCard(pack) {
             userData.gold += goldRefund;
 
             for (const pointType in requiredPoints) {
-                const pointsRefund = Math.round(requiredPoints[pointType] * 0.6);
+                const pointsRefund = Math.round(requiredPoints[pointType] * 0.7);
                 if (pointsRefund > 0) {
                     const pointName = pointTypeNames[pointType] || pointType;
                     // [수정] "이름 수치P" 순서로 메시지 생성
@@ -930,7 +932,7 @@ function drawCard(pack) {
             resultTitle.textContent = '💧 이런... 이미 소유한 카드네요.💧';
 
             // 최종 메시지 조합
-            let finalMessage = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 60%인 `;
+            let finalMessage = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 70%인 `;
             let refundParts = [];
 
             if (goldRefund > 0) {

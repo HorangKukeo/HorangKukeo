@@ -215,10 +215,14 @@ function showMessage(text, detailsOrCallback, callback) {
         let explanationHTML = '';
 
         if (currentQuestion && currentQuestion.correctAnswer) {
+            // 🔽 --- 수정된 부분 --- 🔽
+            const formattedAnswer = currentQuestion.correctAnswer.replace(/@(.*?)@/g, '<u>$1</u>');
+            // 🔼 --- 수정된 부분 --- 🔼
+
             if (isCorrect) {
-                answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(76, 175, 80, 0.2); border-left: 3px solid var(--hp-color); text-align: left;"><strong>✔️ 정답:</strong> ${currentQuestion.correctAnswer}</div>`;
+                answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(76, 175, 80, 0.2); border-left: 3px solid var(--hp-color); text-align: left;"><strong>✔️ 정답:</strong> ${formattedAnswer}</div>`; // ◀ 변수 사용
             } else {
-                answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(199, 67, 67, 0.2); border-left: 3px solid #c74343; text-align: left;"><strong>❌ 정답:</strong> ${currentQuestion.correctAnswer}</div>`;
+                answerHTML = `<div style="margin-top: 15px; padding: 10px; background-color: rgba(199, 67, 67, 0.2); border-left: 3px solid #c74343; text-align: left;"><strong>❌ 정답:</strong> ${formattedAnswer}</div>`; // ◀ 변수 사용
             }
         }
         
@@ -259,7 +263,20 @@ function parseQuestion(questionString, questionType) {
     if (questionType === '1') {
         questionData.prompt = parts[0];
         questionData.context = parts[1];
-        questionData.choices = [parts[2], parts[3], parts[4], parts[5]];
+        let isFixedOrder = false;
+        if (parts[2] && parts[2].startsWith('#')) {
+            isFixedOrder = true;
+        }
+        questionData.isFixedOrder = isFixedOrder; // 셔플 방지 플래그 저장
+
+        // 2. '#' 플래그를 제거한 선지 배열 생성
+        questionData.choices = [
+            parts[2] ? parts[2].replace('#', '') : '', // # 제거
+            parts[3], 
+            parts[4], 
+            parts[5]
+        ];
+
         const correctIndex = parseInt(parts[6], 10) - 1;
         if (correctIndex >= 0 && correctIndex < questionData.choices.length) {
             questionData.correctAnswer = questionData.choices[correctIndex];
@@ -284,8 +301,8 @@ function showQuiz(question, callback) {
     onQuizComplete = callback;
     currentQuestion = question;
 
-    const displayPrompt = question.prompt.replace(/@(.*?)@/g, '<u>$1</u>');
-    const displayContext = question.context.replace(/@(.*?)@/g, '<u>$1</u>');
+    const displayPrompt = question.prompt.replace(/@(.*?)@/g, '<u>$1</u>').replace(/▽/g, '<br>');
+    const displayContext = question.context.replace(/@(.*?)@/g, '<u>$1</u>').replace(/▽/g, '<br>');
     
     quizTextPromptEl.innerHTML = displayPrompt;
     quizTextContextEl.innerHTML = displayContext;
@@ -300,11 +317,19 @@ function showQuiz(question, callback) {
         shortAnswerArea.classList.add('hidden');
         quizAnswers.innerHTML = '';
         
-        const shuffledChoices = shuffleArray([...question.choices]);
-        shuffledChoices.forEach(choice => {
+        let choicesToDisplay;
+        if (question.isFixedOrder) {
+            // isFixedOrder가 true이면, 순서 고정 (셔플 안 함)
+            choicesToDisplay = [...question.choices];
+        } else {
+            // isFixedOrder가 false(undefined)이면, 기존대로 셔플
+            choicesToDisplay = shuffleArray([...question.choices]);
+        }
+
+        choicesToDisplay.forEach(choice => {
             const button = document.createElement('button');
             button.className = 'quiz-btn';
-            button.textContent = choice;
+            button.innerHTML = choice.replace(/@(.*?)@/g, '<u>$1</u>').replace(/▽/g, '<br>');
             button.onclick = () => handleQuizAnswer(choice === question.correctAnswer);
             quizAnswers.appendChild(button);
         });
@@ -465,7 +490,6 @@ function startPlayerTurn() {
 }
 
 function startEnemyTurn() {
-    battleModeContainer.scrollTo({ top: 0, behavior: 'smooth' });
     turn = 'enemy';
     toggleActionMenu(false);
     setMonsterImage('idle');
@@ -485,10 +509,44 @@ function startEnemyTurn() {
         ].filter(id => id).map(id => skillDB.find(s => s.id === id))
          .filter(skill => skill && parseInt(currentMonster.mp) >= parseInt(skill.mpCost));
         
-        const willUseSkill = monsterSkills.length > 0 && Math.random() < 0.5;
+        let actionWeights = [];
         
-        if (willUseSkill) {
-            const skillToUse = monsterSkills[Math.floor(Math.random() * monsterSkills.length)];
+        if (monsterSkills.length === 0) {
+            actionWeights = [{ action: 'attack', weight: 100 }];
+        } else if (monsterSkills.length === 1) {
+            actionWeights = [
+                { action: 'skill', skill: monsterSkills[0], weight: 40 },
+                { action: 'attack', weight: 60 }
+            ];
+        } else if (monsterSkills.length === 2) {
+            actionWeights = [
+                { action: 'skill', skill: monsterSkills[0], weight: 30 },
+                { action: 'skill', skill: monsterSkills[1], weight: 25 },
+                { action: 'attack', weight: 45 }
+            ];
+        } else {
+            actionWeights = [
+                { action: 'skill', skill: monsterSkills[0], weight: 30 },
+                { action: 'skill', skill: monsterSkills[1], weight: 23 },
+                { action: 'skill', skill: monsterSkills[2], weight: 17 },
+                { action: 'attack', weight: 30 }
+            ];
+        }
+        
+        const totalWeight = actionWeights.reduce((sum, item) => sum + item.weight, 0);
+        let random = Math.random() * totalWeight;
+        
+        let selectedAction = null;
+        for (const item of actionWeights) {
+            if (random < item.weight) {
+                selectedAction = item;
+                break;
+            }
+            random -= item.weight;
+        }
+        
+        if (selectedAction.action === 'skill') {
+            const skillToUse = selectedAction.skill;
             currentMonster.mp -= parseInt(skillToUse.mpCost);
             showQuiz(question, async (isCorrect) => {
                 if (isCorrect) {
@@ -500,7 +558,7 @@ function startEnemyTurn() {
                         const finalDamage = Math.floor(damage * 0.5);
                         player.hp = Math.max(0, player.hp - finalDamage);
                         addBattleLog(`방해 성공! ${skillToUse.name} 데미지 감소!`, '🛡️');
-                        showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}로 감소!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                        showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}(으)로 감소!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                     } else if (skillToUse.type == 2) {
                         playSound('monster-skillheal-miss');
                         await sleep(200);
@@ -876,15 +934,15 @@ function initGame() {
     if (player.maxMp >= 50) conditionsMet++;
     if (player.maxMp >= 80) conditionsMet++;
     if (player.maxMp >= 160) conditionsMet++;
+    if (player.maxMp >= 190) conditionsMet++;
     if (player.maxMp >= 250) conditionsMet++;
     if (player.maxMp >= 350) conditionsMet++;
-    if (player.maxMp >= 500) conditionsMet++;
     if (player.attack >= 30) conditionsMet++;
     if (player.attack >= 45) conditionsMet++;
     if (player.attack >= 70) conditionsMet++;
     if (player.attack >= 100) conditionsMet++;
-    if (player.attack >= 150) conditionsMet++;
-    if (player.attack >= 220) conditionsMet++;
+    if (player.attack >= 140) conditionsMet++;
+    if (player.attack >= 190) conditionsMet++;
     
     playerImageEl.src = `img/player${conditionsMet}.png`;
 

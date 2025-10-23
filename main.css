@@ -327,20 +327,23 @@ body {
 .card-item .card-name { /* 카드 이름 */
     font-weight: bold;
     color: var(--accent-color);
-    font-size: 1.1em;
+    font-size: 0.9em;
     text-align: left; /* 이름 왼쪽 정렬 */
 }
 
 .card-item .card-number { /* 카드 번호 */
-    font-size: 0.9em;
-    color: #999;
+    font-size: 0.85em;
+    color: #FFF;
 }
 
 .card-item .card-stats { /* ✅ 2x2 그리드로 변경 */
     flex-grow: 1;
     text-align: left;
-    font-size: 1em;
-    padding-top: 5px;
+    font-size: 0.9em;
+    padding: 8px;
+    padding-bottom: 5px;
+    padding-right: 5px;
+    background-color: rgba(0, 0, 0, 0.353);
 }
 
 .card-item .card-stats p { 
@@ -656,7 +659,7 @@ body {
         margin-top: 0; 
         padding: 6px; /* 8px → 6px */
         border-radius: 4px; 
-        background-color: rgba(0,0,0,0.2);
+        background-color: rgba(0, 0, 0, 0.353);
         
         display: grid;
         grid-template-columns: 0.7fr 1.3fr; /* ✅ HP/MP 열: 좁게, ATK/SKL 열: 넓게 */
@@ -744,6 +747,21 @@ body {
         min-height: 28px !important; /* 32px → 28px */
         padding: 3px 5px !important; /* 4px 6px → 3px 5px */
         font-size: 0.8em !important; /* 0.7em → 0.8em (글씨 크기 증가) */
+    }
+
+    /* ✅ 모바일에서 애니메이션 성능 최적화 */
+    .card-item.grade-A::before,
+    .card-item.grade-S::before {
+        animation-duration: 4s; /* 더 느리게 */
+    }
+    
+    .card-item.grade-S {
+        animation: none; /* 떠다니는 효과 제거 */
+    }
+    
+    /* 호버 효과 간소화 */
+    .card-item:not(.locked):hover {
+        transform: scale(1.01);
     }
 }
 
@@ -962,4 +980,281 @@ body {
     #tutorial-skip-btn {
         width: 100%;
     }
+}
+
+
+/*////////////카드 등급별////////////*/
+/*////////////카드 등급별////////////*/
+/* 카드 등급별 색상 - 모던 디자인 (v20: #FFA500 오렌지 톤 적용) */
+
+/* [정의] B, A, S 등급이 사용할 공통 애니메이션 (Glow, Shine, Float) */
+@keyframes neonGlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+@keyframes shine {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
+}
+@keyframes cardFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-3px); }
+}
+
+
+/* [유지] Grade F (Common) - 웜 그레이. 애니메이션 없음. */
+.card-item.grade-F {
+    background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+    border: 2px solid #555555;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* [유지] Grade E (Uncommon) - 옅은 흙빛. 애니메이션 없음. */
+.card-item.grade-E {
+    background: #402400;
+    border: 2px solid #857a79;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.card-item.grade-E::after { display: none; }
+
+
+/* [유지] Grade D (Rare) - 흙빛 오렌지. 애니메이션 없음. */
+.card-item.grade-D {
+    /*background: #714c02;*/
+    background: #6a4803;
+    border: 2px solid #ad8a80;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-item.grade-D::after { display: none; }
+
+
+/* [개선] Grade C (Epic) - 다크 앰버 (#FFA500 계열). 애니메이션 없음. */
+.card-item.grade-C {
+    background: #9f610a;
+    border: 2px solid #b38e5a;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    position: relative;
+}
+
+.card-item.grade-C::before { display: none; }
+
+
+/* [개선] Grade B (Heroic) - 앰버 (#FFA500 계열) + 앰버 Glow + 미세한 Shine */
+.card-item.grade-B {
+    background: linear-gradient(135deg, #cc8400 0%, #b27307 100%);
+    border: 2px solid #ffc366;
+    box-shadow: 0 4px 30px rgba(255, 195, 102, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* [개선] Grade B - 앰버 Glow 효과 */
+.card-item.grade-B::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ffc366, #a66a00, #ffc366);
+    z-index: -1;
+    filter: blur(8px);
+    opacity: 0.6;
+    animation: neonGlow 2s ease-in-out infinite;
+}
+
+.card-item.grade-B::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shine 4s infinite;
+    pointer-events: none;
+    animation-delay: -1s;
+}
+
+
+/* [개선] Grade A (Legendary) - 골든 오렌지 (#FFA500 계열) + 골드 Glow + 미세한 Shine */
+.card-item.grade-A {
+    background: linear-gradient(135deg, #ffa500 0%, #d98e00 100%);
+    border: 3px solid #ffd080;
+    box-shadow: 0 4px 35px rgba(255, 208, 128, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+/* [개선] Grade A - 골드 Glow 효과 */
+.card-item.grade-A::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ffd080, #d98e00, #ffd080);
+    z-index: -1;
+    filter: blur(10px);
+    opacity: 0.6;
+    animation: neonGlow 2s ease-in-out infinite;
+}
+
+.card-item.grade-A::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    animation: shine 5s infinite;
+    pointer-events: none;
+}
+
+
+/* [개선] Grade S (Mythic) - 브라이트 골드 (#FFA500 계열) + 밝은 골드 Glow + Float + 미세한 Shine */
+.card-item.grade-S {
+    background: linear-gradient(135deg, #ffb733 0%, #e69a00 100%);
+    border: 3px solid #ffddaa;
+    box-shadow: 0 4px 40px rgba(255, 221, 170, 0.6);
+    position: relative;
+    overflow: hidden;
+    animation: cardFloat 3s ease-in-out infinite;
+}
+
+/* [개선] Grade S - 밝은 골드 Glow 효과 */
+.card-item.grade-S::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ffddaa, #e69a00, #ffddaa);
+    z-index: -1;
+    filter: blur(12px);
+    opacity: 0.7;
+    animation: neonGlow 2s ease-in-out infinite;
+}
+
+.card-item.grade-S::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shine 6s infinite;
+    pointer-events: none;
+    animation-delay: -2s;
+}
+
+
+/* --- 텍스트 스타일 (A, S 등급 가독성 확보) --- */
+
+/* [유지] F, E 등급: 기본 accent-color (노란색) 사용, 섀도우 없음 */
+.card-item.grade-F .card-name,
+.card-item.grade-E .card-name {
+    position: relative;
+    z-index: 1;
+}
+
+/* [개선] D, C, B, A, S 등급: 기본 accent-color + 8방향 찐한 갈색 테두리 공통 적용 */
+.card-item.grade-D .card-name,
+.card-item.grade-C .card-name,
+.card-item.grade-B .card-name,
+.card-item.grade-A .card-name,
+.card-item.grade-S .card-name {
+    /* color: #FFF8F0; <-- 모든 등급에서 색상 지정 제거 */
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    /* [수정] 섀도우 색상을 새 톤에 맞는 #593A00 (진한 골드 브라운)으로 변경 */
+    text-shadow: 1px 1px 0 #593A00, -1px -1px 0 #593A00, 1px -1px 0 #593A00, -1px 1px 0 #593A00, 1px 0 0 #593A00, -1px 0 0 #593A00, 0 1px 0 #593A00, 0 -1px 0 #593A00, 2px 2px 3px rgba(0,0,0,0.3);
+}
+
+
+/* 등급별 카드 번호도 스타일링 */
+.card-item.grade-A .card-number,
+.card-item.grade-S .card-number {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 1px 1px 1px rgba(5, 5, 5, 0.8);
+}
+
+.card-item.grade-E .card-stats,
+.card-item.grade-D .card-stats {
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.229);
+}
+
+
+.card-item.grade-C .card-stats {
+    color: #fff;
+    background-color: rgba(92, 92, 92, 0.229);
+    box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* [개선] B등급 스탯 (밝은 색) */
+.card-item.grade-B .card-stats {
+    color: #fff;
+    background-color: rgba(55, 55, 55, 0.229);
+    box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* [개선] B등급 스탯 (밝은 색) */
+.card-item.grade-B .card-stats {
+    color: #fff;
+    background-color: rgba(55, 55, 55, 0.229);
+    box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* [개선] A등급 스탯 (밝은 크림색 + 8방향 찐한 갈색 테두리) */
+.card-item.grade-A .card-stats {
+    color: #FFF8F0;
+    background-color: rgba(55, 55, 55, 0.229);
+    box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 0 #593A00, -1px -1px 0 #593A00, 1px -1px 0 #593A00, -1px 1px 0 #593A00, 1px 0 0 #593A00, -1px 0 0 #593A00, 0 1px 0 #593A00, 0 -1px 0 #593A00, 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* [개선] S등급 스탯 (밝은 크림색 + 8방향 찐한 갈색 테두리) */
+.card-item.grade-S .card-stats {
+    color: #FFF8F0;
+    background-color: rgba(107, 107, 107, 0.229);
+    box-shadow: inset 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 0 #593A00, -1px -1px 0 #593A00, 1px -1px 0 #593A00, -1px 1px 0 #593A00, 1px 0 0 #593A00, -1px 0 0 #593A00, 0 1px 0 #593A00, 0 -1px 0 #593A00, 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+/* 모든 등급 카드 공통 개선 */
+.card-item:not(.locked) {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.card-item:not(.locked):hover {
+    transform: translateY(-5px) scale(1.02);
+}
+
+@media (min-width: 1024px) {
+
+    #card-dex-section.card-grid.dex {
+        grid-template-columns: repeat(5, 1fr) !important; /* 5장 고정 */
+    }
+
+  /* 도감 그리드 내 모든 카드 최소 높이 통일 */
+  #card-dex-section .card-item,
+  #card-dex-section .card-item.locked {
+    min-height: 180px; /* 정상 카드(≈161~170px)에 맞춰 통일 */
+    
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 내용이 많아도 내부 스크롤로 흘러가게 */
+  #card-dex-section .card-item .card-stats {
+    overflow: hidden;
+  }
+
+  /* 버튼 영역이 아래로 밀착되도록 */
+  #card-dex-section .card-item .card-actions {
+    margin-top: auto;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  #card-dex-section.card-grid.dex {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
 }

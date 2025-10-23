@@ -121,14 +121,9 @@ class GameTutorial {
                 content: `
                     <p><strong>카드 뽑기</strong>는 카드팩을 구매해 새로운 카드를 얻는 시스템입니다.</p>
                     
-                    <p style="margin-top: 15px;"><strong>카드팩 종류:</strong></p>
-                    <p style="margin: 5px 0;">• <strong>품사 ①:</strong> 기초 품사 관련 카드 (명사, 동사 등)</p>
-                    <p style="margin: 5px 0;">• <strong>품사 ②:</strong> 고급 품사 관련 카드</p>
-                    <p style="margin: 5px 0;">• <strong>문장 성분 ①:</strong> 기초 문장 성분 카드 (주어, 서술어 등)</p>
-                    
                     <p style="margin-top: 15px;"><strong>🎲 중복 카드 시스템:</strong></p>
                     <p style="margin: 5px 0;">• 이미 가진 카드를 다시 뽑을 수 있습니다</p>
-                    <p style="margin: 5px 0;">• 중복 카드를 뽑을 경우, 카드는 획득할 수 없지만 비용의 <strong>60%</strong>를 돌려 받습니다.</p>
+                    <p style="margin: 5px 0;">• 중복 카드를 뽑을 경우, 카드는 획득할 수 없지만 비용의 <strong>70%</strong>를 돌려 받습니다.</p>
                     
                     <p style="margin-top: 12px; color: #b0e57c;"><strong>💡 팁: 완전한 도감을 목표로 해보세요!</strong></p>
                 `
