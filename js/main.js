@@ -65,7 +65,7 @@ const GACHA_CATEGORIES = {
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013','D021','D022','D023','D024','D025','D026'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013','D021','D022','D023','D024','D025','D026','D027','D028'];
 
 async function fetchAndStoreGameData() {
     try {
