@@ -24,6 +24,20 @@ body {
     background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'); /* 배경 패턴 */
 }
 
+.main-title {
+    text-align: center; /* 중앙 정렬 */
+    font-family: var(--font-main); /* 나눔고딕 코딩 폰트 */
+    font-size: 1.2em; /* 타이틀 느낌을 위해 크기 증가 */
+    font-weight: bold; /* 굵게 */
+    color: var(--accent-color); /* 강조색 (노란색) */
+    margin-top: 0;
+    margin-bottom: 25px; /* 메인 컨테이너와 간격 살짝 증가 */
+    padding-bottom: 10px; /* 하단 여백 */
+    border-bottom: 2px solid var(--border-color); /* 하단 구분선 */
+    letter-spacing: 1px; /* 자간 */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* 그림자 강조 */
+}
+
 /* --- 메인 레이아웃 --- */
 .main-container {
     max-width: 900px; /* 최대 너비 */
