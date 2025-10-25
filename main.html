@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>문법 RPG - 메인</title>
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="tuto.css">
 </head>
 <body>
     <h3 class="main-title">호랑국어 신성식의 문법 RPG</h3>
@@ -62,13 +63,39 @@
                 <button id="goals-btn" class="main-menu-btn">🎯 성장 목표</button>
                 <button id="shop-btn" class="main-menu-btn">🛍️ 상점</button>
                 <button id="gacha-btn" class="main-menu-btn">✨ 카드 뽑기</button>
-                <button id="help-btn" class="main-menu-btn">
-                    ❓ 도움말/튜토리얼
-                </button>
+                <div class="button-row">
+                    <button id="guidebook-btn" class="main-menu-btn half-width">📚 가이드북</button>
+                    <button id="tutorial-btn" class="main-menu-btn half-width">⚔️ 튜토리얼</button>
+                </div>
             </div>
         </div>
 
     <div id="modal-backdrop" class="hidden">
+
+        <div id="tutorial-prompt-modal" class="modal-window hidden" style="max-width: 400px; text-align: center;">
+            <h3>⚔️ 문법 RPG 튜토리얼</h3>
+            <p style="margin: 20px 0; font-size: 1.1em;">
+                문법 RPG에 오신 것을 환영합니다!
+                <br>
+                게임의 기본 진행 방법을 알아보시겠습니까?
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                <button id="tutorial-skip-btn" class="tutorial-prompt-btn" style="background-color: #777;">다음에 하기</button>
+                <button id="tutorial-start-btn" class="tutorial-prompt-btn" style="background-color: var(--hp-color);">진행하기</button>
+            </div>
+        </div>
+
+        <div id="tutorial-complete-modal" class="modal-window hidden" style="max-width: 400px; text-align: center;">
+            <h3>🎉 튜토리얼 완료!</h3>
+            <p style="margin: 20px 0; font-size: 1.1em;">
+                축하합니다! 튜토리얼을 모두 완료했습니다!
+                <br><br>
+                튜토리얼 때 사용한 카드와 아이템은 모두 사라집니다.
+                <br><br>
+                이제부터, '진짜' 게임을 시작하세요.
+            </p>
+            <button id="tutorial-complete-btn" class="tutorial-prompt-btn" style="background-color: var(--hp-color);">종료</button>
+        </div>
 
         <div id="growth-goals-modal" class="modal-window hidden">
             <h3>🎯 성장 목표</h3>
@@ -159,7 +186,7 @@
 
         <div id="tutorial-modal" class="modal-window hidden" style="max-height: 80vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>📚 문법 RPG 튜토리얼</h3>
+                <h3>📚 문법 RPG 가이드북</h3>
                 <span id="tutorial-progress" style="font-size: 0.9em; color: #999;">1/7</span>
             </div>
             
@@ -169,7 +196,7 @@
             
             <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: space-between;">
                 <button id="tutorial-prev-btn" style="display: none;">← 이전</button>
-                <button id="tutorial-skip-btn">스킵</button>
+                <button id="tutorial-close-btn" class="tutorial-close-btn">닫기</button>
                 <button id="tutorial-next-btn">다음 →</button>
             </div>
         </div>

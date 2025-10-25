@@ -252,19 +252,6 @@ body {
     padding-bottom: 10px;
 }
 
-.modal-close-btn { /* 모달 닫기 버튼 */
-    padding: 10px 20px;
-    font-size: 1em;
-    margin-top: 20px;
-    cursor: pointer;
-    background-color: #555;
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    transition: background-color 0.2s;
-}
-
-.modal-close-btn:hover { background-color: #666; }
 
 /* --- 카드 보기 모달 (#card-dex-modal) --- */
 .card-section { /* 장착 카드 / 도감 영역 구분 */
@@ -594,7 +581,17 @@ body {
     .view-btn { font-size: 1.1em; padding: 12px; min-height: 48px; }
 
     /* 메인 메뉴 */
-    .main-menu-btn { font-size: 1.8em; padding: 18px; min-height: 70px; }
+    .main-menu-btn { 
+    font-size: 1.8em; 
+    padding: 18px; 
+    min-height: 70px;
+    }
+
+    /* 버튼이 2개씩 나란히 배치되는 경우 */
+    .main-menu-btn.half-width {
+        word-break: keep-all; /* 한국어 어절 단위로 줄바꿈 */
+        overflow-wrap: break-word; /* 긴 단어는 강제 줄바꿈 */
+    }
 
     /* 모달 공통 */
     .modal-window {
@@ -882,7 +879,7 @@ body {
 /* ===== 튜토리얼 버튼들 (수정됨) ===== */
 #tutorial-prev-btn,
 #tutorial-next-btn,
-#tutorial-skip-btn {
+#tutorial-close-btn {
     padding: 10px 15px;
     border: 1px solid #666;
     background-color: #2b2b2b;
@@ -920,7 +917,7 @@ body {
 }
 
 /* 스킵 버튼 호버 효과 */
-#tutorial-skip-btn:hover {
+#tutorial-close-btn:hover {
     background-color: #7c3c7c;
     border-color: #b981b9;
     transform: translateY(-2px);
@@ -991,7 +988,7 @@ body {
     
     #tutorial-prev-btn,
     #tutorial-next-btn,
-    #tutorial-skip-btn {
+    #tutorial-close-btn {
         width: 100%;
     }
 }
@@ -1272,3 +1269,45 @@ body {
     grid-template-columns: repeat(4, 1fr) !important;
   }
 }
+
+.button-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.button-row .half-width {
+    flex: 1;
+    width: auto;
+}
+
+/* 튜토리얼 프롬프트 모달 버튼 스타일 */
+.tutorial-prompt-btn {
+    padding: 12px 20px;
+    font-size: 1.1em;
+    min-height: 48px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-family: inherit;
+    transition: opacity 0.2s;
+}
+
+.tutorial-prompt-btn:hover {
+    opacity: 0.85;
+}
+
+.modal-close-btn { /* 모달 닫기 버튼 */
+    padding: 10px 20px;
+    font-size: 1em;
+    margin-top: 20px;
+    cursor: pointer;
+    background-color: #555;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.modal-close-btn:hover { background-color: #666; }

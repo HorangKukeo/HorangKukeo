@@ -56,6 +56,15 @@ const goalsAchievedCountEl = document.getElementById('goals-achieved-count');
 const goalListEl = document.getElementById('goal-list');
 let currentDexPage = '1-10';
 
+// [신규] 튜토리얼 상태 변수
+let isTutorialActive = false;
+let tutorialStep = 0;
+let tutorialUserData = null;
+
+// [신규] (요구사항 4) 튜토리얼 오버레이(커튼) 요소 생성
+const tutorialOverlay = document.createElement('div');
+tutorialOverlay.id = 'ui-curtain'; // ID 변경
+
 const GACHA_CATEGORIES = {
     '품사 ①': ['CP001', 'CP002', 'CP003'],
     '품사 ②': ['CP004', 'CP005', 'CP006', 'CP007', 'CP008','CP010'],
@@ -155,9 +164,36 @@ function displayUserData() {
 
     // --- 2. 도감(보유 카드) 보너스 계산 ---
     const ownedCardCount = userData.ownedCards.length;
-    const collectionHpBonus = ownedCardCount * 1;
-    const collectionMpBonus = Math.round(ownedCardCount * 0.5);
-    const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+        // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
+        const tierBonuses = [
+            { hp: 10, mp: 5, att: 5 },   // 10개 이상
+            { hp: 15, mp: 8, att: 7 }, // 20개 이상
+            { hp: 20, mp: 12, att: 13 }  // 30개 이상
+            // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+        ];
+
+
+        // 1. 기본 보너스를 계산합니다.
+        let collectionHpBonus = ownedCardCount * 1;
+        let collectionMpBonus = Math.round(ownedCardCount * 0.5);
+        let collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+        // 2. 10개 단위 티어(tier)를 계산합니다.
+        // (예: 35개면 3티어, 9개면 0티어)
+        const tiers = Math.floor(ownedCardCount / 10);
+        
+        // 3. 달성한 티어만큼 설정 배열을 순회하며 보너스를 누적합니다.
+        for (let i = 0; i < tiers; i++) {
+            
+            // 설정 배열에 해당 티어의 보너스가 정의되어 있는지 확인
+            if (tierBonuses[i]) {
+                collectionHpBonus += tierBonuses[i].hp;
+                collectionMpBonus += tierBonuses[i].mp;
+                collectionAttackBonus += tierBonuses[i].att;
+            }
+        }
+
 
     // --- 3. 장착 카드 보너스 계산 ---
     let equippedHpBonus = 0;
@@ -288,8 +324,9 @@ function openCardDetailModal(cardId) {const cardDB = JSON.parse(localStorage.get
     openModal(cardDetailModal);
 }
 
-function renderCardDex() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+function renderCardDex(isTutorial = false) {
+    // 튜토리얼 모드일 때는 임시 데이터 사용, 아니면 실제 데이터 사용
+    const userData = isTutorial ? tutorialUserData : JSON.parse(localStorage.getItem('userData'));
     const cardDB = JSON.parse(localStorage.getItem('cardDB'));
     const skillDB = JSON.parse(localStorage.getItem('skillDB'));
 
@@ -303,7 +340,7 @@ function renderCardDex() {
         
         const cardNumber = card.id.replace('C', '');
         
-        // ✅ 등급별 클래스 추가
+        // 등급별 클래스 추가
         const gradeClass = card.class ? `grade-${card.class}` : '';
 
         let actionsHTML = '';
@@ -315,7 +352,7 @@ function renderCardDex() {
         actionsHTML += `<button class="detail-btn" onclick="openCardDetailModal('${card.id}')">자세히</button>`;
 
         return `
-            <div class="card-item ${gradeClass}">
+            <div class="card-item ${gradeClass}" data-card-id="${card.id}">
                 <div class="card-header">
                     <span class="card-name">${card.name}</span>
                     <span class="card-number">#${cardNumber}</span>
@@ -329,75 +366,152 @@ function renderCardDex() {
         `;
     };
     
-    // 장착된 카드 섹션 채우기
-    userData.equippedCards.forEach(cardId => {
-        const card = cardDB.find(c => c.id === cardId);
-        if (card) {
-            equippedCardsSection.innerHTML += createCardHTML(card, true);
+    // 튜토리얼 모드일 때는 장착 섹션 숨기기
+    if (isTutorial) {
+        if (equippedCardsSection.parentElement) {
+            equippedCardsSection.parentElement.style.display = 'none';
         }
-    });
-    for (let i = userData.equippedCards.length; i < 4; i++) {
-        equippedCardsSection.innerHTML += `<div class="card-item locked"><div class="card-name">비어있음</div></div>`;
+    } else {
+        // 일반 모드에서는 장착 섹션 보이기
+        if (equippedCardsSection.parentElement) {
+            equippedCardsSection.parentElement.style.display = '';
+        }
+        
+        // 장착된 카드 섹션 채우기
+        userData.equippedCards.forEach(cardId => {
+            const card = cardDB.find(c => c.id === cardId);
+            if (card) {
+                equippedCardsSection.innerHTML += createCardHTML(card, true);
+            }
+        });
+        for (let i = userData.equippedCards.length; i < 4; i++) {
+            equippedCardsSection.innerHTML += `<div class="card-item locked"><div class="card-name">비어있음</div></div>`;
+        }
     }
 
     // 도감 섹션 채우기
-    const [start, end] = currentDexPage.split('-').map(Number);
-    for (let i = start; i <= end; i++) {
-        const cardId = 'C' + String(i).padStart(3, '0');
-        const card = cardDB.find(c => c.id === cardId);
-
+    if (isTutorial) {
+        // 튜토리얼 모드: C001만 표시
+        const card = cardDB.find(c => c.id === 'C001');
         if (card) {
-            const isOwned = userData.ownedCards.includes(card.id);
-            const isEquipped = userData.equippedCards.includes(card.id);
-
+            const isOwned = userData.ownedCards.includes('C001');
+            const isEquipped = userData.equippedCards.includes('C001');
             if (isOwned) {
-                cardDexSection.innerHTML += createCardHTML(card, isEquipped);
-            } else {
-                // 소유하지 않은 카드
-                cardDexSection.innerHTML += `
-                    <div class="card-item locked">
-                        <div class="card-header">
-                            <span class="card-name">???</span>
-                            <span class="card-number">#${String(i).padStart(3, '0')}</span>
+                cardDexSection.innerHTML = createCardHTML(card, isEquipped);
+            }
+        }
+    } else {
+        // 일반 모드: 현재 페이지의 모든 카드 표시
+        const [start, end] = currentDexPage.split('-').map(Number);
+        for (let i = start; i <= end; i++) {
+            const cardId = 'C' + String(i).padStart(3, '0');
+            const card = cardDB.find(c => c.id === cardId);
+
+            if (card) {
+                const isOwned = userData.ownedCards.includes(card.id);
+                const isEquipped = userData.equippedCards.includes(card.id);
+
+                if (isOwned) {
+                    cardDexSection.innerHTML += createCardHTML(card, isEquipped);
+                } else {
+                    // 소유하지 않은 카드
+                    cardDexSection.innerHTML += `
+                        <div class="card-item locked">
+                            <div class="card-header">
+                                <span class="card-name">???</span>
+                                <span class="card-number">#${String(i).padStart(3, '0')}</span>
+                            </div>
+                            <div class="card-stats">
+                                <p>HP: ???</p><p>MP: ???</p>
+                                <p>ATK: ???</p><p>SKL: ???</p>
+                            </div>
                         </div>
-                        <div class="card-stats">
-                            <p>HP: ???</p><p>MP: ???</p>
-                            <p>ATK: ???</p><p>SKL: ???</p>
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
             }
         }
     }
     
-    // 필터 버튼 활성화 상태 업데이트
-    dexFilterButtons.querySelectorAll('.dex-filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.range === currentDexPage) {
-            btn.classList.add('active');
-        }
-    });
+    // 필터 버튼 활성화 상태 업데이트 (튜토리얼 모드에서는 스킵)
+    if (!isTutorial) {
+        dexFilterButtons.querySelectorAll('.dex-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.range === currentDexPage) {
+                btn.classList.add('active');
+            }
+        });
+    }
 }
 
 // 도감 모달을 여는 함수 (초기화 역할)
-function openCardDexModal() {
+function openCardDexModal(isTutorial = false) {
     currentDexPage = '1-10'; // 열 때마다 기본 페이지로 초기화
-    renderCardDex(); // 내용물 그리기
+    renderCardDex(isTutorial); // 내용물 그리기
     openModal(cardDexModal); // 모달 보이기
+
+    // (요구사항 4) 튜토리얼 모드일 때 DOM 조작
+    if (isTutorial) {
+        // 튜토리얼 중에는 다른 버튼 비활성화
+            cardDexModal.querySelectorAll('button').forEach(btn => {
+                if (btn.classList.contains('close-btn') || btn.classList.contains('dex-filter-btn')) {
+                    btn.disabled = true;
+                }
+            });
+        
+        setTimeout(() => {
+            // C001 카드의 '장착' 버튼만 찾아서 활성화 및 하이라이트
+            const equipBtn = cardDexSection.querySelector('.card-item[data-card-id="C001"] .equip-btn');
+            
+            if (equipBtn) {
+                equipBtn.disabled = false;
+                equipBtn.disabled = false;
+                equipBtn.classList.add('tutorial-focus'); // í•˜ì´ë¼ì´íŠ¸ í´ëž˜ìŠ¤ ì¶"ê°€
+                equipBtn.style.position = 'relative';
+                equipBtn.style.zIndex = '10001'; // 오버레이 위로
+                
+                // 클릭 이벤트 재정의
+                equipBtn.onclick = () => {
+                    removeTutorialOverlay(`.card-item[data-card-id="C001"] .equip-btn`);
+                    equipCard('C001'); // 실제 장착 함수 사용
+                    closeModal();
+                    nextTutorialStep(); // 3단계(상점)로 이동
+                };
+
+                // [추가] (요구사항 4) C001 장착 버튼 하이라이트용 오버레이
+                showTutorialOverlay("획득한 '명사' 카드의 [장착] 버튼을 누르세요.", `.card-item[data-card-id="C001"] .equip-btn`);
+
+            } else {
+                alert("튜토리얼 오류: C001 카드를 찾을 수 없습니다.");
+            }
+        }, 100); // 렌더링 대기
+    }
 }
 
 function equipCard(cardId) {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (userData.equippedCards.length < 4) {
-        if (!userData.equippedCards.includes(cardId)) {
-            userData.equippedCards.push(cardId);
-            localStorage.setItem('userData', JSON.stringify(userData));
-            uploadUserData(userData.id);
-            renderCardDex(); // [수정] 모달을 다시 여는 대신, 내용물만 새로고침
-            displayUserData();
+    // 튜토리얼 모드일 때는 임시 데이터 사용
+    if (isTutorialActive) {
+        if (tutorialUserData.equippedCards.length < 4) {
+            if (!tutorialUserData.equippedCards.includes(cardId)) {
+                tutorialUserData.equippedCards.push(cardId);
+                renderCardDex(true); // 튜토리얼 모드로 재렌더링
+            }
+        } else {
+            alert("카드는 최대 4개까지만 장착할 수 있습니다.");
         }
     } else {
-        alert("카드는 최대 4개까지만 장착할 수 있습니다.");
+        // 일반 모드
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (userData.equippedCards.length < 4) {
+            if (!userData.equippedCards.includes(cardId)) {
+                userData.equippedCards.push(cardId);
+                localStorage.setItem('userData', JSON.stringify(userData));
+                uploadUserData(userData.id);
+                renderCardDex(); // 일반 모드로 재렌더링
+                displayUserData();
+            }
+        } else {
+            alert("카드는 최대 4개까지만 장착할 수 있습니다.");
+        }
     }
 }
 
@@ -420,6 +534,12 @@ function closeModal() {
     shopModal.classList.add('hidden');    // shopModal 포함 확인
     gachaModal.classList.add('hidden');   // gachaModal 포함 확인
     growthGoalsModal.classList.add('hidden'); // growthGoalsModal 포함 확인
+
+    const tutorialPromptModal = document.getElementById('tutorial-prompt-modal');
+    if (tutorialPromptModal) tutorialPromptModal.classList.add('hidden');
+    
+    const tutorialCompleteModal = document.getElementById('tutorial-complete-modal');
+    if (tutorialCompleteModal) tutorialCompleteModal.classList.add('hidden');
 }
 
 function openModal(modal) {
@@ -451,64 +571,114 @@ function openItemViewModal() {
     itemViewModal.classList.remove('hidden');
 }
 
-function openDungeonModal() {
+function openDungeonModal(isTutorial = false) {
     const allDungeons = JSON.parse(localStorage.getItem('dungeonDB') || '[]');
-    const visibleDungeons = allDungeons.filter(dungeon => VISIBLE_DUNGEON_IDS.includes(dungeon.id));
+    
+    let visibleDungeons;
+    let categories;
 
-    // 1. 활성화된 던전에서 고유한 카테고리('area') 목록을 추출합니다.
-    const categories = [...new Set(visibleDungeons.map(dungeon => dungeon.area))];
+    // (요구사항 5) 튜토리얼 모드일 때
+    if (isTutorial) {
+        // D998 던전만 필터링
+        visibleDungeons = allDungeons.filter(dungeon => dungeon.id === 'D998');
+        // D998의 카테고리('품사')만 추출
+        categories = [...new Set(visibleDungeons.map(dungeon => dungeon.area))];
+        
+        if (categories.length === 0) {
+             dungeonCategoryListEl.innerHTML = '<p>튜토리얼 던전(D998)을 DB에서 찾을 수 없습니다.</p>';
+             dungeonListEl.innerHTML = '';
+             openModal(dungeonModal);
+             return;
+        }
 
-    // 2. 카테고리 버튼들을 생성합니다.
-    dungeonCategoryListEl.innerHTML = ''; // 이전 버튼들 초기화
+    } else {
+        // [기존] 일반 모드
+        visibleDungeons = allDungeons.filter(dungeon => VISIBLE_DUNGEON_IDS.includes(dungeon.id));
+        categories = [...new Set(visibleDungeons.map(dungeon => dungeon.area))];
+    }
+    
+    // 카테고리 버튼 생성 (튜토리얼이면 '품사' 하나만 생성됨)
+    dungeonCategoryListEl.innerHTML = '';
     categories.forEach(category => {
         const button = document.createElement('button');
         button.className = 'dungeon-category-btn';
         button.textContent = category;
         button.addEventListener('click', () => {
-            // 클릭한 버튼에 'active' 스타일 적용
             document.querySelectorAll('.dungeon-category-btn').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-
-            // 선택된 카테고리에 해당하는 던전 목록을 표시
-            renderDungeonsByCategory(category, visibleDungeons);
+            
+            // 튜토리얼 플래그 전달
+            renderDungeonsByCategory(category, visibleDungeons, isTutorial);
         });
         dungeonCategoryListEl.appendChild(button);
     });
 
-    // 3. 던전 목록은 일단 비우고 숨깁니다.
     dungeonListEl.innerHTML = '';
     dungeonListEl.classList.add('hidden');
-
-    // 4. 모달 창을 엽니다.
     openModal(dungeonModal);
+
+    // (요구사항 4) 튜토리얼 모드이고 카테고리가 하나면 자동 하이라이트
+    if (isTutorial && categories.length === 1) {
+        setTimeout(() => {
+            showTutorialOverlay("'품사' 카테고리를 선택하세요.", ".dungeon-category-btn");
+        }, 100);
+    }
 }
 
-function renderDungeonsByCategory(category, allVisibleDungeons) {
-    // 선택된 카테고리에 해당하는 던전만 필터링합니다.
-    const dungeonsToDisplay = allVisibleDungeons.filter(dungeon => dungeon.area === category);
+function renderDungeonsByCategory(category, allVisibleDungeons, isTutorial = false) {
+    let dungeonsToDisplay;
+
+    // (요구사항 5) 튜토리얼 모드 필터링
+    if (isTutorial) {
+        dungeonsToDisplay = allVisibleDungeons.filter(dungeon => 
+            dungeon.area === category && dungeon.id === 'D998'
+        );
+        // 튜토리얼 오버레이 제거 (카테고리 버튼)
+        removeTutorialOverlay(".dungeon-category-btn"); 
+    } else {
+        dungeonsToDisplay = allVisibleDungeons.filter(dungeon => 
+            dungeon.area === category
+        );
+    }
 
     if (!dungeonsToDisplay || dungeonsToDisplay.length === 0) {
         dungeonListEl.innerHTML = "<p>해당 카테고리의 던전이 없습니다.</p>";
     } else {
-        dungeonListEl.innerHTML = ''; // 이전 목록 초기화
+        dungeonListEl.innerHTML = ''; 
         dungeonsToDisplay.forEach(dungeon => {
             const card = document.createElement('div');
             card.className = 'dungeon-card';
-            card.innerHTML = `<h2>${dungeon.name}</h2><p>테마: ${dungeon.area}</p><p>난이도: ${dungeon.recommendedLevel}</p>`;
+            card.setAttribute('data-dungeon-id', dungeon.id); // [신규] ID 추가
+            
+            // D998의 이름이 '튜토리얼'이 아닐 수 있으니, 튜토리얼 이름 강제
+            if (isTutorial) {
+                card.innerHTML = `<h2>튜토리얼 전투</h2><p>테마: ${dungeon.area}</p><p>난이도: ${dungeon.recommendedLevel}</p>`;
+            } else {
+                card.innerHTML = `<h2>${dungeon.name}</h2><p>테마: ${dungeon.area}</p><p>난이도: ${dungeon.recommendedLevel}</p>`;
+            }
+            
             card.addEventListener('click', () => {
-            modalBackdrop.classList.add('hidden');
-            dungeonModal.classList.add('hidden'); 
-                startBattle(dungeon.id);
+                if (isTutorial) {
+                    removeTutorialOverlay('.dungeon-card[data-dungeon-id="D998"]');
+                }
+                modalBackdrop.classList.add('hidden');
+                dungeonModal.classList.add('hidden'); 
+                startBattle(dungeon.id); // D998 ID로 전투 시작
             }); 
             dungeonListEl.appendChild(card);
+
+            // (요구사항 4) 튜토리얼 던전 하이라이트
+            if (isTutorial) {
+                setTimeout(() => {
+                    showTutorialOverlay("'튜토리얼 전투'를 선택하여 시작하세요.", '.dungeon-card[data-dungeon-id="D998"]');
+                }, 100);
+            }
         });
     }
-
-    // 숨겨져 있던 던전 목록을 보여줍니다.
     dungeonListEl.classList.remove('hidden');
 }
 
-function endBattle() {
+function endBattle(tutorialCompleted = false) {
     const battleContainer = document.getElementById('battle-mode-container');
     
     // [추가] 전투 BGM을 찾아 정지
@@ -527,12 +697,20 @@ function endBattle() {
     document.getElementById('bgm-main')?.play();
 
     displayUserData();
+
+    // [수정] 튜토리얼 완료 처리
+    if (isTutorialActive && tutorialCompleted) {
+        nextTutorialStep(); // 5단계(마무리) 안내 시작
+    }
 }
 // endBattle 함수를 battle.js에서 호출할 수 있도록 전역 함수로 등록
 window.endBattle = endBattle;
 
 // 전투 시작 함수
 async function startBattle(dungeonId) {
+    if (dungeonId === 'D998') {
+        localStorage.setItem('isTutorialBattle', 'true');
+    }
     localStorage.setItem('selectedDungeonId', dungeonId);
     const battleContainer = document.getElementById('battle-mode-container');
     battleContainer.innerHTML = '<h2>Loading...</h2>';
@@ -601,6 +779,7 @@ const growthGoals = [
 
 // [교체] openGrowthGoalsModal 함수
 function openGrowthGoalsModal() {
+
     const userData = JSON.parse(localStorage.getItem('userData'));
     const cardDB = JSON.parse(localStorage.getItem('cardDB'));
     if (!userData || !cardDB) return; // 데이터 없으면 중단
@@ -610,9 +789,37 @@ function openGrowthGoalsModal() {
     const baseMp = userData.baseMp;
     const baseAttack = userData.baseAttack;
     const ownedCardCount = userData.ownedCards.length;
-    const collectionHpBonus = ownedCardCount * 1;
-    const collectionMpBonus = Math.round(ownedCardCount * 0.5);
-    const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+    // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
+    const tierBonuses = [
+        { hp: 10, mp: 5, att: 5 },   // 10개 이상
+        { hp: 20, mp: 10, att: 10 }, // 20개 이상
+        { hp: 30, mp: 15, att: 15 }  // 30개 이상
+        // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+    ];
+
+
+    // 1. 기본 보너스를 계산합니다.
+    let collectionHpBonus = ownedCardCount * 1;
+    let collectionMpBonus = Math.round(ownedCardCount * 0.5);
+    let collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+    // 2. 10개 단위 티어(tier)를 계산합니다.
+    // (예: 35개면 3티어, 9개면 0티어)
+    const tiers = Math.floor(ownedCardCount / 10);
+    
+    // 3. 달성한 티어만큼 설정 배열을 순회하며 보너스를 누적합니다.
+    for (let i = 0; i < tiers; i++) {
+        
+        // 설정 배열에 해당 티어의 보너스가 정의되어 있는지 확인
+        if (tierBonuses[i]) {
+            collectionHpBonus += tierBonuses[i].hp;
+            collectionMpBonus += tierBonuses[i].mp;
+            collectionAttackBonus += tierBonuses[i].att;
+
+            console.log(tierBonuses);
+        }
+    }
+
     let equippedHpBonus = 0;
     let equippedMpBonus = 0;
     let equippedAttackBonus = 0;
@@ -683,6 +890,43 @@ function openGrowthGoalsModal() {
     openModal(growthGoalsModal);
 }
 
+// 튜토리얼 프롬프트 모달 버튼 이벤트 등록 함수
+function setupTutorialPromptButtons() {
+    const startBtn = document.getElementById('tutorial-start-btn');
+    const skipBtn = document.getElementById('tutorial-skip-btn');
+    
+    // 기존 리스너 제거 (중복 방지)
+    const newStartBtn = startBtn.cloneNode(true);
+    const newSkipBtn = skipBtn.cloneNode(true);
+    startBtn.parentNode.replaceChild(newStartBtn, startBtn);
+    skipBtn.parentNode.replaceChild(newSkipBtn, skipBtn);
+    
+    // 진행하기 버튼
+    document.getElementById('tutorial-start-btn').onclick = () => {
+        closeModal();
+        isTutorialActive = true;
+        tutorialStep = 1;
+        
+        tutorialUserData = {
+            ownedCards: [],
+            equippedCards: [],
+            inventory: {}
+        };
+        
+        runTutorialStep(tutorialStep);
+    };
+    
+    // 다음에 하기 버튼
+    document.getElementById('tutorial-skip-btn').onclick = () => {
+        closeModal();
+        isTutorialActive = false;
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        userData.tutorial = '1';
+        localStorage.setItem('userData', JSON.stringify(userData));
+        if (userData.id) uploadUserData(userData.id);
+    };
+}
+
 async function initializeMainScreen() {
     // localStorage에 cardDB가 없으면 서버에서 모든 게임 DB를 불러옴
     if (!localStorage.getItem('cardDB')) {
@@ -690,6 +934,7 @@ async function initializeMainScreen() {
         if (!success) return; // 데이터 로딩 실패 시 함수 중단
     }
     
+
     // ✨ 수정됨: 데이터 로딩이 끝난 후, 로딩 메시지를 숨기고 메인 메뉴를 표시
     loadingMessageEl.style.display = 'none';
     mainMenuEl.classList.remove('hidden');
@@ -697,94 +942,399 @@ async function initializeMainScreen() {
     // 사용자 정보와 던전 목록 표시
     displayUserData();
 
-    // 이벤트 리스너 설정
-    cardViewBtn.addEventListener('click', openCardDexModal);
-    itemViewBtn.addEventListener('click', openItemViewModal);
-    exploreBtn.addEventListener('click', openDungeonModal);
-    goalsBtn.addEventListener('click', openGrowthGoalsModal);
-    gachaBtn.addEventListener('click', openGachaModal);
-    // 뽑기 결과 확인 버튼 리스너 추가
-    gachaConfirmBtn.addEventListener('click', () => {
-        // 결과 창을 숨기고 다시 팩 목록을 보여줌
-        gachaResultView.classList.add('hidden');
-        openGachaModal(); // 팩 목록을 재구성하여 버튼 상태 등을 갱신
+    // (요구사항 2) 튜토리얼 시작 여부 확인
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData && userData.tutorial === '0') {
+        const promptModal = document.getElementById('tutorial-prompt-modal');
+        openModal(promptModal); // 튜토리얼 진행 확인 모달 표시
+        setupTutorialPromptButtons(); // 함수 호출
+
+        document.getElementById('tutorial-start-btn').onclick = () => {
+            closeModal();
+            isTutorialActive = true;
+            tutorialStep = 1;
+            
+            // 튜토리얼용 임시 데이터 생성 (빈 상태로 시작)
+            tutorialUserData = {
+                ownedCards: [],
+                equippedCards: [],
+                inventory: {}
+            };
+            
+            runTutorialStep(tutorialStep); // 1단계(카드 뽑기) 안내 시작
+        };
+        
+        document.getElementById('tutorial-skip-btn').onclick = () => {
+            closeModal();
+            isTutorialActive = false;
+            userData.tutorial = '1'; // 튜토리얼 '완료(스킵)' 처리
+            localStorage.setItem('userData', JSON.stringify(userData));
+            if (userData.id) uploadUserData(userData.id);
+            alert("튜토리얼을 건너뜁니다. '튜토리얼' 버튼을 누르면 언제든 다시 시작할 수 있습니다.");
+        };
+    }
+
+    // --- [수정] 모든 이벤트 리스너에 튜토리얼 분기 처리 ---
+
+    cardViewBtn.addEventListener('click', () => {
+        if (isTutorialActive) {
+            if (tutorialStep !== 2) return; // 2단계가 아니면 무시
+            removeTutorialOverlay("#card-view-btn");
+            openCardDexModal(true); // 튜토리얼 모드
+        } else {
+            openCardDexModal(false); // 일반 모드
+        }
     });
 
-    shopBtn.addEventListener('click', openShopModal);
+    itemViewBtn.addEventListener('click', () => {
+        if (isTutorialActive) return; // 튜토리얼 중 비활성화
+        openItemViewModal();
+    });
 
-    // 상점 목록에 이벤트 위임을 사용하여 '구매' 버튼 클릭 처리
+    exploreBtn.addEventListener('click', () => {
+        if (isTutorialActive) {
+            if (tutorialStep !== 4) return;
+            removeTutorialOverlay("#explore-btn");
+            openDungeonModal(true); // 튜토리얼 모드
+        } else {
+            openDungeonModal(false);
+        }
+    });
+
+    goalsBtn.addEventListener('click', () => {
+        if (isTutorialActive) return; // 튜토리얼 중 비활성화
+        openGrowthGoalsModal();
+    });
+    
+    gachaBtn.addEventListener('click', () => {
+        if (isTutorialActive) {
+            if (tutorialStep !== 1) return;
+            removeTutorialOverlay("#gacha-btn");
+            openGachaModal(true); // 튜토리얼 모드
+        } else {
+            openGachaModal(false);
+        }
+    });
+
+    shopBtn.addEventListener('click', () => {
+        if (isTutorialActive) {
+            if (tutorialStep !== 3) return;
+            removeTutorialOverlay("#shop-btn");
+            openShopModal(true); // 튜토리얼 모드
+        } else {
+            openShopModal(false);
+        }
+    });
+    
+    document.getElementById('guidebook-btn').addEventListener('click', () => {
+        // 가이드북(튜토리얼 모달) 열기
+        if (window.gameTutorial) {
+            window.gameTutorial.openTutorial();
+        }
+    });
+
+    document.getElementById('guidebook-btn').addEventListener('click', () => {
+        // 가이드북(튜토리얼 모달) 열기
+        if (window.gameTutorial) {
+            window.gameTutorial.openTutorial();
+        }
+    });
+    
+    // 튜토리얼 버튼 리스너 추가
+    document.getElementById('tutorial-btn').addEventListener('click', () => {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (userData.tutorial === '1') {
+            // 이미 완료한 경우 - 튜토리얼 프롬프트 모달 표시
+            const tutorialPromptModal = document.getElementById('tutorial-prompt-modal');
+            openModal(tutorialPromptModal);
+            setupTutorialPromptButtons(); // 함수 호출 추가
+        } else {
+            // 미완료 상태라면 바로 시작
+            isTutorialActive = true;
+            tutorialStep = 1;
+            tutorialUserData = {
+                ownedCards: [],
+                equippedCards: [],
+                inventory: {}
+            };
+            runTutorialStep(1);
+        }
+    });
+    
+    // 튜토리얼 완료 버튼 리스너
+    document.getElementById('tutorial-complete-btn').addEventListener('click', () => {
+        // 튜토리얼 완료 처리
+        isTutorialActive = false;
+        tutorialStep = 0;
+        
+        // 튜토리얼용 임시 데이터 삭제
+        tutorialUserData = null;
+        
+        let userData = JSON.parse(localStorage.getItem('userData'));
+        userData.tutorial = '1'; // '완료' 처리
+        localStorage.setItem('userData', JSON.stringify(userData));
+        if (userData.id) uploadUserData(userData.id);
+        
+        // 모달 닫기
+        closeModal();
+    });
+    // 이벤트 리스너 설정 (기존 코드)
     shopItemList.addEventListener('click', function(event) {
+        if (isTutorialActive) return; // 튜토리얼 중에는 상점 아이템 클릭 방지
         if (event.target.classList.contains('buy-btn')) {
             const itemId = event.target.dataset.itemId;
             buyItem(itemId);
         }
     });
 
-    detailModalCloseBtn.addEventListener('click', () => {
-    // 1. 카드 상세보기 모달('cardDetailModal') 숨기기
-        cardDetailModal.classList.add('hidden');
+    gachaConfirmBtn.addEventListener('click', () => {
+        if (isTutorialActive) return; // 튜토리얼 전용 버튼을 사용하므로 기존 버튼 방지
+        gachaResultView.classList.add('hidden');
+        openGachaModal();
+    });
 
-        // 2. 카드 보기 모달('cardDexModal') 다시 확실하게 보여주기
+    detailModalCloseBtn.addEventListener('click', () => {
+        cardDetailModal.classList.add('hidden');
         cardDexModal.classList.remove('hidden');
     });
 
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
-        // detailModalCloseBtn에는 'modal-close-btn' 클래스가 없어야 이 로직이 적용되지 않음
-        if (btn.id !== 'detail-modal-close-btn') { // 상세보기 닫기 버튼 제외 (선택적 안전장치)
+        // 튜토리얼 프롬프트 모달과 튜토리얼 완료 모달의 버튼은 별도 처리했으므로 제외
+        if (!btn.closest('#tutorial-prompt-modal') && !btn.closest('#tutorial-complete-modal')) {
             btn.addEventListener('click', closeModal);
         }
     });
 
     dexFilterButtons.addEventListener('click', (event) => {
-    if (event.target.classList.contains('dex-filter-btn')) {
-        currentDexPage = event.target.dataset.range;
-        renderCardDex(); // 선택된 페이지로 도감 내용 다시 그리기
-    }
-});
+        if (isTutorialActive) return; // 튜토리얼 중 필터 클릭 방지
+        if (event.target.classList.contains('dex-filter-btn')) {
+            currentDexPage = event.target.dataset.range;
+            renderCardDex();
+        }
+    });
 }
 
-function openShopModal() {
+// [신규] 튜토리얼 제어 함수 5개 추가
+/**
+ * (요구사항 4) 튜토리얼 오버레이(커튼)를 표시하고 특정 요소를 하이라이트합니다.
+ * @param {string} text - 설명 텍스트
+ * @param {string} targetSelector - 하이라이트할 요소의 CSS 선택자
+ */
+function showTutorialOverlay(text, targetSelector, position = 'bottom') {
+    const targetElement = document.querySelector(targetSelector);
+    if (!targetElement) {
+        console.warn("Tutorial target not found:", targetSelector);
+        return;
+    }
+
+    // 1. 오버레이(커튼) 설정
+    tutorialOverlay.innerHTML = ''; // 내용 초기화
+    tutorialOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+    `;
+    // 모달창이 떠 있다면 그 위에 오버레이를 띄워야 함
+    if (modalBackdrop.classList.contains('hidden')) {
+        document.body.appendChild(tutorialOverlay);
+    } else {
+        modalBackdrop.appendChild(tutorialOverlay);
+    }
+
+
+    // 2. 타겟 요소 하이라이트 (커튼 위로 올리기)
+    targetElement.style.position = 'relative'; // z-index 적용을 위해 필요
+    targetElement.style.zIndex = '10001';
+    targetElement.classList.add('tutorial-focus'); // [수정] CSS 클래스 사용
+
+    // 3. 이전 설명 박스 제거 (중첩 방지)
+    const oldTextBoxes = document.querySelectorAll('.tutorial-textbox');
+    oldTextBoxes.forEach(box => box.remove());
+
+    // 4. 새로운 설명 박스 생성
+    const textBox = document.createElement('div');
+    textBox.className = position === 'top' ? 'tutorial-textbox tutorial-textbox-top' : 'tutorial-textbox';
+    textBox.innerHTML = `<p>${text}</p>`;
+
+    // tutorialOverlay가 아닌 body에 직접 추가하여 독립적인 stacking context 생성
+    document.body.appendChild(textBox);
+}
+
+/** (요구사항 4) 오버레이와 하이라이트 제거 */
+function removeTutorialOverlay(targetSelector) {
+    // [수정] 부모 노드가 있으면 거기서 제거
+    if (tutorialOverlay.parentNode) {
+        tutorialOverlay.parentNode.removeChild(tutorialOverlay);
+    }
+
+    // textBox도 제거 (body에 직접 추가되었으므로)
+    const oldTextBoxes = document.querySelectorAll('.tutorial-textbox');
+    oldTextBoxes.forEach(box => box.remove());
+
+    const targetElement = document.querySelector(targetSelector);
+    if (targetElement) {
+        targetElement.style.position = ''; // position 속성 초기화
+        targetElement.style.zIndex = ''; // z-index 초기화
+        targetElement.classList.remove('tutorial-focus'); // 하이라이트 클래스 제거
+    }
+}
+
+/** 튜토리얼 다음 단계로 진행 */
+function nextTutorialStep() {
+    if (!isTutorialActive) return;
+    tutorialStep++;
+    runTutorialStep(tutorialStep);
+}
+
+/** 튜토리얼 특정 단계 실행 (안내 시작) */
+function runTutorialStep(step) {
+    switch(step) {
+        case 1: // (1) 카드 뽑기 유도
+            showTutorialOverlay("환영합니다! '카드 뽑기'로 튜토리얼 카드를 획득해봅시다.", "#gacha-btn");
+            break;
+        case 2: // (2) 카드 장착 유도
+            showTutorialOverlay("좋습니다! '카드 보기'로 이동해 방금 뽑은 카드를 장착해봅시다.", "#card-view-btn", "top");
+            break;
+        case 3: // (3) 아이템 구매 유도
+            showTutorialOverlay("잘했습니다! 카드를 장착하거나 보유하면 캐릭터가 점점 강해집니다.<br>이제 '상점'에서 전투에 필요한 물약을 구매해봅시다.", "#shop-btn");
+            break;
+        case 4: // (4) 전투 시작 유도
+            showTutorialOverlay("준비가 끝났습니다. '탐험하기'를 눌러 튜토리얼 전투를 시작하세요!", "#explore-btn");
+            break;
+        case 5: // (5) 튜토리얼 종료 (전투 완료 후)
+            // 오버레이 제거
+            removeTutorialOverlay();
+            // 튜토리얼 완료 모달 표시
+            const tutorialCompleteModal = document.getElementById('tutorial-complete-modal');
+            openModal(tutorialCompleteModal);
+            break;
+    }
+}
+
+function purchaseCardPackTutorial(packId) {
+    // 오버레이 제거
+    removeTutorialOverlay(".dungeon-card .buy-btn");
+
+    const cardDB = JSON.parse(localStorage.getItem('cardDB'));
+    const drawnCardId = 'C001'; // 튜토리얼이므로 'C001' 카드 확정
+    const drawnCard = cardDB.find(c => c.id === drawnCardId);
+    
+    // 튜토리얼용 임시 데이터에 카드 추가 (실제 userData는 건드리지 않음)
+    if (!tutorialUserData.ownedCards.includes(drawnCardId)) {
+        tutorialUserData.ownedCards.push(drawnCardId);
+    }
+    
+    // 가짜 결과창 표시 (비용 소모 없음)
+    gachaPackList.classList.add('hidden');
+    gachaResultView.classList.remove('hidden');
+    gachaResultView.querySelector('h4').textContent = '✨ 튜토리얼 카드 획득! ✨';
+    gachaResultView.querySelector('p').textContent = `'${drawnCard.name}'(#001) 카드를 획득했습니다. 카드는 고유한 '번호'를 가집니다.`;
+    gachaResultCard.innerHTML = `<strong>${drawnCard.name}</strong>`;
+    
+    // 확인 버튼 하이라이트
+    showTutorialOverlay("카드를 확인했으면 [확인] 버튼을 누르세요.", "#gacha-confirm-btn");
+
+    // 확인 버튼 클릭 시 다음 튜토리얼 단계로
+    gachaConfirmBtn.onclick = () => {
+        removeTutorialOverlay("#gacha-confirm-btn");
+        closeModal();
+        nextTutorialStep(); // 2단계(카드 장착)로 이동
+    };
+}
+
+function buyItemTutorial(itemId) {
+    // 오버레이 제거
+    removeTutorialOverlay(`.item-list-item[data-item-id="I001"] .buy-btn`);
+
+    const itemDB = JSON.parse(localStorage.getItem('itemDB')); // itemDB 선언 추가
+    const itemToBuy = itemDB.find(i => i.id === itemId);
+
+    // 튜토리얼용 임시 인벤토리에 아이템 추가 (실제 userData는 건드리지 않음)
+    tutorialUserData.inventory[itemToBuy.id] = (tutorialUserData.inventory[itemToBuy.id] || 0) + 1;
+
+    closeModal();
+    nextTutorialStep(); // 4단계(전투)로 이동
+}
+
+function openShopModal(isTutorial = false) {
     const userData = JSON.parse(localStorage.getItem('userData'));
     const itemDB = JSON.parse(localStorage.getItem('itemDB'));
     
     shopUserGold.textContent = userData.gold; // 상점 창에 현재 골드 표시
     shopItemList.innerHTML = ''; // 목록 초기화
 
-    // forSale 플래그가 1인 아이템만 필터링
-    const itemsForSale = itemDB.filter(item => item.forSale === 1);
+// (요구사항 4) 튜토리얼 모드일 때
+if (isTutorial) {
+    const item = itemDB.find(i => i.id === 'I001'); // 하급 HP 포션
+    if (item) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'item-list-item';
+        itemEl.setAttribute('data-item-id', item.id); // data 속성 추가
+        itemEl.innerHTML = `
+            <div class="item-details">
+                <div class="item-name">${item.name}</div>
+                <div class="item-desc">${item.desc}</div>
+            </div>
+            <div class="item-buy-action">
+                <div class="item-price">(튜토리얼 무료)</div>
+                <button class="buy-btn" data-item-id="${item.id}">구매</button>
+            </div>
+        `;
+        const buyBtn = itemEl.querySelector('.buy-btn');
+        buyBtn.onclick = () => buyItemTutorial(item.id);
+        shopItemList.appendChild(itemEl);
 
-    if (itemsForSale.length === 0) {
-        shopItemList.innerHTML = '<p>현재 판매 중인 아이템이 없습니다.</p>';
-    } else {
-        itemsForSale.forEach(item => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'item-list-item';
+        openModal(shopModal);
 
-            // 아이템 정보와 구매 버튼을 포함하는 HTML 구조
-            itemEl.innerHTML = `
-                <div class="item-details">
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-desc">${item.desc}</div>
-                </div>
-                <div class="item-buy-action">
-                    <div class="item-price">${item.price} G</div>
-                    <button class="buy-btn" data-item-id="${item.id}">구매</button>
-                </div>
-            `;
-            
-            const buyBtn = itemEl.querySelector('.buy-btn');
-            
-            // 골드가 부족하면 구매 버튼 비활성화
-            if (userData.gold < item.price) {
-                buyBtn.disabled = true;
+        // 튜토리얼 중에는 닫기 버튼 비활성화
+        const closeBtn = shopModal.querySelector('.close-btn');
+        if (closeBtn) closeBtn.disabled = true;
+
+        // (요구사항 4) 하이라이트
+        setTimeout(() => {
+            const targetBtn = document.querySelector(`.item-list-item[data-item-id="I001"] .buy-btn`);
+            if (targetBtn) {
+                targetBtn.classList.add('tutorial-focus'); // 하이라이트 클래스 추가
+                targetBtn.style.position = 'relative';
+                targetBtn.style.zIndex = '10001';
             }
+            showTutorialOverlay("'하급 회복 물약'의 [구매] 버튼을 누르세요.", `.item-list-item[data-item-id="I001"] .buy-btn`);
+        }, 100);
 
-            shopItemList.appendChild(itemEl);
-        });
+    } else {
+        shopItemList.innerHTML = '<p>튜토리얼 아이템(I001)을 DB에서 찾을 수 없습니다.</p>';
+        openModal(shopModal);
     }
-    
-    modalBackdrop.classList.remove('hidden');
-    shopModal.classList.remove('hidden');
+        
+    } else {
+        // [기존] 일반 상점 로직
+        const itemsForSale = itemDB.filter(item => item.forSale === 1);
+
+        if (itemsForSale.length === 0) {
+            shopItemList.innerHTML = '<p>현재 판매 중인 아이템이 없습니다.</p>';
+        } else {
+            itemsForSale.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'item-list-item';
+                itemEl.innerHTML = `
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-desc">${item.desc}</div>
+                    </div>
+                    <div class="item-buy-action">
+                        <div class="item-price">${item.price} G</div>
+                        <button class="buy-btn" data-item-id="${item.id}">구매</button>
+                    </div>
+                `;
+                const buyBtn = itemEl.querySelector('.buy-btn');
+                if (userData.gold < item.price) {
+                    buyBtn.disabled = true;
+                }
+                shopItemList.appendChild(itemEl);
+            });
+        }
+        openModal(shopModal);
+    }
 }
 
 /**
@@ -971,42 +1521,81 @@ function drawCard(pack) {
     }
 
 
-function openGachaModal() {
-    // 1. 팩 목록과 결과 창은 숨기고, 카테고리 목록을 표시
-    gachaCategoryListEl.innerHTML = '';
-    gachaPackList.innerHTML = '';
-    gachaPackList.classList.add('hidden');
-    gachaResultView.classList.add('hidden');
-
+function openGachaModal(isTutorial = false) {
     const cardPackDB = JSON.parse(localStorage.getItem('cardPackDB') || '[]');
-    const packsForSale = cardPackDB.filter(p => p.forSale === 1);
-    const packsForSaleIds = packsForSale.map(p => p.id);
 
-    // 2. 정의된 카테고리를 기반으로 버튼 생성
-    for (const categoryName in GACHA_CATEGORIES) {
-        const packIdsInCategory = GACHA_CATEGORIES[categoryName];
-        
-        // 해당 카테고리에 속한 팩 중 판매 중인 것이 하나라도 있는지 확인
-        const isCategoryActive = packIdsInCategory.some(id => packsForSaleIds.includes(id));
+    // (요구사항 3) 튜토리얼 모드일 때
+    if (isTutorial) {
+        gachaCategoryListEl.innerHTML = '<h3>튜토리얼: 카드 뽑기</h3>';
+        gachaPackList.innerHTML = '';
+        gachaPackList.classList.remove('hidden');
+        gachaResultView.classList.add('hidden');
 
-        if (isCategoryActive) {
-            const button = document.createElement('button');
-            button.className = 'gacha-category-btn';
-            button.textContent = categoryName;
-            button.addEventListener('click', () => {
-                // 클릭한 버튼 활성화
-                document.querySelectorAll('.gacha-category-btn').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // 해당 카테고리의 팩 목록 렌더링
-                renderPacksByCategory(categoryName, packsForSale);
-            });
-            gachaCategoryListEl.appendChild(button);
+        const pack = cardPackDB.find(p => p.id === 'CP001'); // CP001 정보 로드
+        if (!pack) {
+             gachaPackList.innerHTML = '<p>튜토리얼 팩(CP001)을 DB에서 찾을 수 없습니다.</p>';
+             openModal(gachaModal);
+             return;
         }
-    }
 
-    // 3. 모달 열기
-    openModal(gachaModal);
+        // (요구사항 3) CP001 정보로 팩 UI 생성
+        const packEl = document.createElement('div');
+        packEl.className = 'dungeon-card';
+        packEl.innerHTML = `
+            <h2>${pack.name}</h2>
+            <p>${pack.description}</p>
+            <p><strong>가격:</strong> (튜토리얼 무료)</p>
+        `;
+        const purchaseBtn = document.createElement('button');
+        purchaseBtn.textContent = '구매';
+        purchaseBtn.className = 'buy-btn';
+        purchaseBtn.style.marginTop = '10px';
+        purchaseBtn.onclick = () => purchaseCardPackTutorial(pack.id);
+        
+        packEl.appendChild(purchaseBtn);
+        gachaPackList.appendChild(packEl);
+        
+        openModal(gachaModal);
+        
+        // (요구사항 4) 구매 버튼 하이라이트
+        setTimeout(() => {
+            showTutorialOverlay("'명사 입문 카드팩'의 [구매] 버튼을 누르세요.", ".dungeon-card .buy-btn");
+        }, 100);
+
+    } else {
+        // [기존] 일반 카드 뽑기 로직
+        gachaCategoryListEl.innerHTML = '';
+        gachaPackList.innerHTML = '';
+        gachaPackList.classList.add('hidden');
+        gachaResultView.classList.add('hidden');
+
+        const packsForSale = cardPackDB.filter(p => p.forSale === 1);
+        const packsForSaleIds = packsForSale.map(p => p.id);
+
+        for (const categoryName in GACHA_CATEGORIES) {
+            const packIdsInCategory = GACHA_CATEGORIES[categoryName];
+            
+            // 해당 카테고리에 속한 팩 중 판매 중인 것이 하나라도 있는지 확인
+            const isCategoryActive = packIdsInCategory.some(id => packsForSaleIds.includes(id));
+
+            if (isCategoryActive) {
+                const button = document.createElement('button');
+                button.className = 'gacha-category-btn';
+                button.textContent = categoryName;
+                button.addEventListener('click', () => {
+                    // 클릭한 버튼 활성화
+                    document.querySelectorAll('.gacha-category-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // 해당 카테고리의 팩 목록 렌더링
+                    renderPacksByCategory(categoryName, packsForSale);
+                });
+                gachaCategoryListEl.appendChild(button);
+            }
+        }
+        
+        openModal(gachaModal);
+    }
 }
 
 // [추가] 카테고리별로 카드팩 목록을 생성하는 함수

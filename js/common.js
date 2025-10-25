@@ -24,7 +24,8 @@ function parseUserDataString(dataString) {
             points: parts[7] ? JSON.parse(parts[7]) : { partsOfSpeech: 0 },
             ownedCards: parts[8] ? parts[8].split(',').filter(id => id) : [],
             equippedCards: parts[9] ? parts[9].split(',').filter(id => id) : [],
-            inventory: parts[10] ? JSON.parse(parts[10]) : {}
+            inventory: parts[10] ? JSON.parse(parts[10]) : {},
+            tutorial: parts[11] || '0'
         };
         return userData;
     } catch (error) {
@@ -69,7 +70,8 @@ async function uploadUserData(userId) {
         points: JSON.stringify(userData.points),
         ownedCards: userData.ownedCards.join(','),
         equippedCards: userData.equippedCards.join(','),
-        inventory: JSON.stringify(userData.inventory)
+        inventory: JSON.stringify(userData.inventory),
+        tutorial: userData.tutorial
     };
     try {
         const response = await fetch(UPLOAD_WEBHOOK_URL, {

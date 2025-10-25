@@ -619,6 +619,7 @@ body::before {
     display: flex; 
     justify-content: center; 
     align-items: center; 
+    z-index: 15000; /* ⭐ tutorialOverlay(10000)보다 높게 설정 */
 }
 
 .modal-window { 

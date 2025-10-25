@@ -98,6 +98,93 @@ let onQuizComplete = null;
 let isActionInProgress = false;
 let isReturningToMain = false;
 
+// [신규] 튜토리얼 전투 상태 변수
+let isTutorialBattle = false;
+let tutorialBattleStep = 1;
+
+// 튜토리얼 오버레이 요소
+const tutorialOverlay = document.createElement('div');
+tutorialOverlay.id = 'ui-curtain';
+
+/**
+ * 튜토리얼 오버레이를 표시하고 특정 요소를 하이라이트합니다.
+ * @param {string} text - 설명 텍스트
+ * @param {string} targetSelector - 하이라이트할 요소의 CSS 선택자
+ */
+function showTutorialOverlay(text, targetSelector) {
+    const targetElement = document.querySelector(targetSelector);
+    if (!targetElement) {
+        console.warn("Tutorial target not found:", targetSelector);
+        return;
+    }
+
+    // 1. 오버레이(커튼) 설정
+    tutorialOverlay.innerHTML = ''; // 내용 초기화
+    tutorialOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        pointer-events: none;
+    `;
+    gameContainer.appendChild(tutorialOverlay);
+
+    // 2. 부모 요소(action-menu)도 z-index 높이기
+    const actionMenu = document.getElementById('action-menu');
+    if (actionMenu) {
+        actionMenu.style.position = 'relative';
+        actionMenu.style.zIndex = '25000';
+    }
+
+    // 3. 타겟 요소 하이라이트 (커튼 위로 올리기)
+    targetElement.style.position = 'relative';
+    targetElement.style.zIndex = '10001';
+    targetElement.classList.add('tutorial-focus');
+
+    // 4. 이전 설명 박스 제거 (중첩 방지)
+    const oldTextBoxes = document.querySelectorAll('.tutorial-textbox');
+    oldTextBoxes.forEach(box => box.remove());
+
+    // 5. 새로운 설명 박스 생성
+    const textBox = document.createElement('div');
+    textBox.className = 'tutorial-textbox';
+    textBox.innerHTML = `<p>${text}</p>`;
+
+    // body에 직접 추가하여 독립적인 stacking context 생성
+    gameContainer.appendChild(textBox);
+}
+
+/**
+ * 오버레이와 하이라이트를 제거합니다.
+ */
+function removeTutorialOverlay(targetSelector) {
+    // 오버레이 제거
+    if (tutorialOverlay.parentNode) {
+        tutorialOverlay.parentNode.removeChild(tutorialOverlay);
+    }
+
+    // textBox 제거
+    const oldTextBoxes = document.querySelectorAll('.tutorial-textbox');
+    oldTextBoxes.forEach(box => box.remove());
+
+    // action-menu z-index 원래대로
+    const actionMenu = document.getElementById('action-menu');
+    if (actionMenu) {
+        actionMenu.style.position = '';
+        actionMenu.style.zIndex = '';
+    }
+
+    // 타겟 요소 하이라이트 제거
+    if (targetSelector) {
+        const targetElement = document.querySelector(targetSelector);
+        if (targetElement) {
+            targetElement.style.position = '';
+            targetElement.style.zIndex = '';
+            targetElement.style.pointerEvents = '';
+            targetElement.classList.remove('tutorial-focus');
+        }
+    }
+}
+
 // 🎯 새로운 기능: 전투 로그 추가 함수
 function addBattleLog(message, icon = '⚔️') {
     const logEntry = document.createElement('div');
@@ -141,9 +228,34 @@ function updateProgressBar() {
 
 function calculatePlayerStats() {
     const ownedCardCount = player.ownedCards.length;
-    const collectionHpBonus = ownedCardCount * 1;
-    const collectionMpBonus = Math.round(ownedCardCount * 0.5);
-    const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+        // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
+        const tierBonuses = [
+            { hp: 10, mp: 5, att: 5 },   // 10개 이상
+            { hp: 15, mp: 8, att: 7 }, // 20개 이상
+            { hp: 20, mp: 12, att: 13 }  // 30개 이상
+            // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+        ];
+
+
+        // 1. 기본 보너스를 계산합니다.
+        let collectionHpBonus = ownedCardCount * 1;
+        let collectionMpBonus = Math.round(ownedCardCount * 0.5);
+        let collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+        // 2. 10개 단위 티어(tier)를 계산합니다.
+        // (예: 35개면 3티어, 9개면 0티어)
+        const tiers = Math.floor(ownedCardCount / 10);
+        
+        // 3. 달성한 티어만큼 설정 배열을 순회하며 보너스를 누적합니다.
+        for (let i = 0; i < tiers; i++) {
+            
+            // 설정 배열에 해당 티어의 보너스가 정의되어 있는지 확인
+            if (tierBonuses[i]) {
+                collectionHpBonus += tierBonuses[i].hp;
+                collectionMpBonus += tierBonuses[i].mp;
+                collectionAttackBonus += tierBonuses[i].att;
+            }
+        }
 
     player.maxHp = player.baseHp + collectionHpBonus;
     player.maxMp = player.baseMp + collectionMpBonus;
@@ -245,7 +357,7 @@ function showMessage(text, detailsOrCallback, callback) {
         let waitTime = 1500;
         if (isAfterQuiz) {
             if (explanation) {
-                waitTime = 3500;
+                waitTime = 2500;
             } else {
                 waitTime = 2500; 
             }
@@ -417,7 +529,31 @@ function handleQuizAnswer(isCorrect) {
     const shortAnswerSubmitBtn = quizBox.querySelector('#short-answer-submit-btn');
     if (shortAnswerInput) shortAnswerInput.disabled = true;
     if (shortAnswerSubmitBtn) shortAnswerSubmitBtn.disabled = true;
+
+    // (요구사항 7) [신규] 튜토리얼 오답 처리
+    if (isTutorialBattle && !isCorrect) {
+        let penaltyDesc = (turn === 'player')
+            ? "실제 전투였다면 당신의 행동이 실패했을 겁니다!"
+            : "실제 전투였다면 몬스터의 공격을 그대로 받았을 겁니다!";
+        
+        // 정답/해설을 먼저 보여주고 '다시 시도' 안내
+        showMessage(
+            `정답이 아닙니다! (${penaltyDesc})`, 
+            { isCorrect: false, explanation: currentQuestion.explanation }, 
+            () => {
+                // 해설 메시지가 닫힌 후, 퀴즈 UI를 다시 활성화
+                quizBox.classList.remove('hidden');
+                messageBox.classList.add('hidden');
+                
+                quizAnswersButtons.forEach(btn => btn.disabled = false);
+                if (shortAnswerInput) shortAnswerInput.disabled = false;
+                if (shortAnswerSubmitBtn) shortAnswerSubmitBtn.disabled = false;
+            }
+        );
+        return; // onQuizComplete를 호출하지 않고 종료 (턴이 안 넘어감)
+    }
     
+    // [기존] 정답 또는 일반 전투
     if (onQuizComplete) { 
         onQuizComplete(isCorrect);
     }
@@ -489,11 +625,12 @@ function startPlayerTurn() {
     });
 }
 
-function startEnemyTurn() {
+function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
     turn = 'enemy';
     toggleActionMenu(false);
     setMonsterImage('idle');
     updateTurnIndicator('enemy');
+    
     showMessage("몬스터의 턴입니다.", () => {
         const randomKey = getRandomQuestion();
         if (!randomKey) {
@@ -504,48 +641,63 @@ function startEnemyTurn() {
         const rawQuestion = currentMonster.questionSet[randomKey];
         const questionType = currentMonster.questionSet.type;
         const question = parseQuestion(rawQuestion, questionType);
-        const monsterSkills = [
-            currentMonster.skillId1, currentMonster.skillId2, currentMonster.skillId3
-        ].filter(id => id).map(id => skillDB.find(s => s.id === id))
-         .filter(skill => skill && parseInt(currentMonster.mp) >= parseInt(skill.mpCost));
-        
-        let actionWeights = [];
-        
-        if (monsterSkills.length === 0) {
-            actionWeights = [{ action: 'attack', weight: 100 }];
-        } else if (monsterSkills.length === 1) {
-            actionWeights = [
-                { action: 'skill', skill: monsterSkills[0], weight: 40 },
-                { action: 'attack', weight: 60 }
-            ];
-        } else if (monsterSkills.length === 2) {
-            actionWeights = [
-                { action: 'skill', skill: monsterSkills[0], weight: 30 },
-                { action: 'skill', skill: monsterSkills[1], weight: 25 },
-                { action: 'attack', weight: 45 }
-            ];
-        } else {
-            actionWeights = [
-                { action: 'skill', skill: monsterSkills[0], weight: 30 },
-                { action: 'skill', skill: monsterSkills[1], weight: 23 },
-                { action: 'skill', skill: monsterSkills[2], weight: 17 },
-                { action: 'attack', weight: 30 }
-            ];
-        }
-        
-        const totalWeight = actionWeights.reduce((sum, item) => sum + item.weight, 0);
-        let random = Math.random() * totalWeight;
         
         let selectedAction = null;
-        for (const item of actionWeights) {
-            if (random < item.weight) {
-                selectedAction = item;
-                break;
+
+        // [신규] (요구사항 6) 튜토리얼 스킬 강제
+        if (isTutorialBattle && forceSkillId) {
+            const skillToUse = skillDB.find(s => s.id === forceSkillId);
+            if (skillToUse && parseInt(currentMonster.mp) >= parseInt(skillToUse.mpCost)) {
+                selectedAction = { action: 'skill', skill: skillToUse };
+            } else if (skillToUse) {
+                console.warn(`튜토리얼: 몬스터 MP 부족 (${skillToUse.name})`);
             }
-            random -= item.weight;
         }
         
-        if (selectedAction.action === 'skill') {
+        // 튜토리얼 스킬 강제가 아니면 기존 랜덤 로직
+        if (!selectedAction) {
+                const monsterSkills = [
+                currentMonster.skillId1, currentMonster.skillId2, currentMonster.skillId3
+            ].filter(id => id).map(id => skillDB.find(s => s.id === id))
+            .filter(skill => skill && parseInt(currentMonster.mp) >= parseInt(skill.mpCost));
+            
+            let actionWeights = [];
+            
+            if (monsterSkills.length === 0) {
+                actionWeights = [{ action: 'attack', weight: 100 }];
+            } else if (monsterSkills.length === 1) {
+                actionWeights = [
+                    { action: 'skill', skill: monsterSkills[0], weight: 40 },
+                    { action: 'attack', weight: 60 }
+                ];
+            } else if (monsterSkills.length === 2) {
+                actionWeights = [
+                    { action: 'skill', skill: monsterSkills[0], weight: 30 },
+                    { action: 'skill', skill: monsterSkills[1], weight: 25 },
+                    { action: 'attack', weight: 45 }
+                ];
+            } else {
+                actionWeights = [
+                    { action: 'skill', skill: monsterSkills[0], weight: 30 },
+                    { action: 'skill', skill: monsterSkills[1], weight: 23 },
+                    { action: 'skill', skill: monsterSkills[2], weight: 17 },
+                    { action: 'attack', weight: 30 }
+                ];
+            }
+            
+            const totalWeight = actionWeights.reduce((sum, item) => sum + item.weight, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (const item of actionWeights) {
+                if (random < item.weight) {
+                    selectedAction = item;
+                    break;
+                }
+                random -= item.weight;
+            }
+        }
+        
+        if (selectedAction && selectedAction.action === 'skill') {
             const skillToUse = selectedAction.skill;
             currentMonster.mp -= parseInt(skillToUse.mpCost);
             showQuiz(question, async (isCorrect) => {
@@ -651,6 +803,11 @@ function getRandomQuestion() {
 
 function handleAction(action) {
     if (turn !== 'player' || isActionInProgress) return;
+
+    if (isTutorialBattle) {
+        removeTutorialOverlay(`button[data-action="${action}"]`);
+    }
+
     isActionInProgress = true;
     toggleActionMenu(false);
 
@@ -713,98 +870,141 @@ function handleAction(action) {
 
 function checkBattleEnd() {
     updateUI();
-    if (player.hp <= 0) {
-        const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100;
-        const goldPenalty = Math.floor(player.gold * penaltyRate);
-        
-        let pointsPenalty = 0;
-        let pointTypeKey = '';
-        let pointTypeName = '';
-
-        if (currentMonster.affiliation === '품사') {
-            pointTypeKey = 'partsOfSpeech';
-            pointTypeName = '품사';
-        } else if (currentMonster.affiliation === '문장 성분') {
-            pointTypeKey = 'sentenceComponents';
-            pointTypeName = '문장 성분';
-        }
-
-        if (pointTypeKey && player.points[pointTypeKey] > 0) {
-            pointsPenalty = Math.floor(player.points[pointTypeKey] * penaltyRate);
-            player.points[pointTypeKey] -= pointsPenalty;
-        }
-        player.gold -= goldPenalty;
-
-        let finalUserData = JSON.parse(localStorage.getItem('userData'));
-        finalUserData.gold = player.gold;
-        finalUserData.points = player.points;
-        localStorage.setItem('userData', JSON.stringify(finalUserData));
-        if (finalUserData.id) {
-            uploadUserData(finalUserData.id);
-        }
-
-        let penaltyMessage = `전투에서 패배하여 골드 ${goldPenalty} G`;
-        if (pointsPenalty > 0) {
-            penaltyMessage += `와 ${pointTypeName} 포인트 ${pointsPenalty} P`;
-        }
-        penaltyMessage += '를 잃었습니다.';
-        gameOverMessageEl.textContent = penaltyMessage;
-        
-        gameOverEl.classList.remove('hidden'); 
-        return;
-    }
     
-    if (currentMonster.hp <= 0) {
-        const goldReward = parseInt(currentMonster.goldReward, 10) || 0;
-        const pointReward = parseInt(currentMonster.pointReward, 10) || 0;
-        dungeonRewards.gold += goldReward;
-
-        let pointTypeKey = '';
-        let pointTypeName = '';
-
-        if (currentMonster.affiliation === '품사') {
-            pointTypeKey = 'partsOfSpeech';
-            pointTypeName = '품사';
-        } else if (currentMonster.affiliation === '문장 성분') {
-            pointTypeKey = 'sentenceComponents';
-            pointTypeName = '문장 성분';
+    if (isTutorialBattle) {
+        if (player.hp <= 0) {
+            gameOverMessageEl.textContent = "튜토리얼 전투에서 패배했습니다. 다시 시도해주세요.";
+            gameOverEl.classList.remove('hidden'); 
+            return;
         }
+        if (currentMonster.hp <= 0) { // 승리
+            tutorialBattleStep = 6; // ⭐ 6단계(전투 종료)로 강제 이동
+            runTutorialBattleStep(tutorialBattleStep);
+            return;
+        }
+        
+        // 승패가 안 났으면, 다음 튜토리얼 스크립트로 이동
+        setTimeout(() => {
+            nextTutorialBattleStep();
+        }, 1500);
 
-        if (pointTypeKey) {
-            if (!dungeonRewards.points[pointTypeKey]) {
-                dungeonRewards.points[pointTypeKey] = 0;
+    } else {
+        if (player.hp <= 0) {
+                const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100;
+                const goldPenalty = Math.floor(player.gold * penaltyRate);
+                
+                let pointsPenalty = 0;
+                let pointTypeKey = '';
+                let pointTypeName = '';
+
+                if (currentMonster.affiliation === '품사') {
+                    pointTypeKey = 'partsOfSpeech';
+                    pointTypeName = '품사';
+                } else if (currentMonster.affiliation === '문장 성분') {
+                    pointTypeKey = 'sentenceComponents';
+                    pointTypeName = '문장 성분';
+                }
+
+                if (pointTypeKey && player.points[pointTypeKey] > 0) {
+                    pointsPenalty = Math.floor(player.points[pointTypeKey] * penaltyRate);
+                    player.points[pointTypeKey] -= pointsPenalty;
+                }
+                player.gold -= goldPenalty;
+
+                let finalUserData = JSON.parse(localStorage.getItem('userData'));
+                finalUserData.gold = player.gold;
+                finalUserData.points = player.points;
+                localStorage.setItem('userData', JSON.stringify(finalUserData));
+                if (finalUserData.id) {
+                    uploadUserData(finalUserData.id);
+                }
+
+                let penaltyMessage = `전투에서 패배하여 골드 ${goldPenalty} G`;
+                if (pointsPenalty > 0) {
+                    penaltyMessage += `와 ${pointTypeName} 포인트 ${pointsPenalty} P`;
+                }
+                penaltyMessage += '를 잃었습니다.';
+                gameOverMessageEl.textContent = penaltyMessage;
+                
+                gameOverEl.classList.remove('hidden'); 
+                return;
             }
-            dungeonRewards.points[pointTypeKey] += pointReward;
-        }
+            
+            if (currentMonster.hp <= 0) {
+                const goldReward = parseInt(currentMonster.goldReward, 10) || 0;
+                const pointReward = parseInt(currentMonster.pointReward, 10) || 0;
+                dungeonRewards.gold += goldReward;
 
-        const rewardText = `보상으로 ${goldReward} 골드와 ${pointTypeName} 포인트 ${pointReward} P를 획득했다!`;
-        victoryMessageEl.innerHTML = `${currentMonster.name}를 쓰러트렸다!<br>${rewardText}`;
-        openModal(victoryModal);
-        return;
+                let pointTypeKey = '';
+                let pointTypeName = '';
+
+                if (currentMonster.affiliation === '품사') {
+                    pointTypeKey = 'partsOfSpeech';
+                    pointTypeName = '품사';
+                } else if (currentMonster.affiliation === '문장 성분') {
+                    pointTypeKey = 'sentenceComponents';
+                    pointTypeName = '문장 성분';
+                }
+
+                if (pointTypeKey) {
+                    if (!dungeonRewards.points[pointTypeKey]) {
+                        dungeonRewards.points[pointTypeKey] = 0;
+                    }
+                    dungeonRewards.points[pointTypeKey] += pointReward;
+                }
+
+                const rewardText = `보상으로 ${goldReward} 골드와 ${pointTypeName} 포인트 ${pointReward} P를 획득했다!`;
+                victoryMessageEl.innerHTML = `${currentMonster.name}를 쓰러트렸다!<br>${rewardText}`;
+                openModal(victoryModal);
+                return;
+            }
+            
+            if (turn === 'player') startEnemyTurn();
+            else startPlayerTurn();
     }
-    
-    if (turn === 'player') startEnemyTurn();
-    else startPlayerTurn();
 }
 
 function openSkillMenu() {
     skillList.innerHTML = '';
-    player.equippedCards.forEach(cardId => {
-        const card = cardDB.find(c => c.id === cardId);
-        if (!card || !card.skillId) return;
-        const skill = skillDB.find(s => s.id === card.skillId);
-        if(!skill) return;
-        const button = document.createElement('button');
-        button.className = 'menu-item-btn';
-        button.innerHTML = `${skill.name} <span class="item-quantity">MP ${skill.mpCost}</span><br><small>${skill.desc}</small>`;
-        button.disabled = player.mp < skill.mpCost;
-        button.onclick = () => useSkill(skill);
-        skillList.appendChild(button);
-    });
+    
+    if (isTutorialBattle) {
+        // (요구사항 6) 튜토리얼: S998 스킬만 표시 (DB에서 로드)
+        const skill = skillDB.find(s => s.id === 'S998');
+        if (!skill) {
+             skillList.innerHTML = '<p>튜토리얼 스킬(S998)을 DB에서 찾을 수 없습니다.</p>';
+        } else {
+            const button = document.createElement('button');
+            button.className = 'menu-item-btn';
+            button.innerHTML = `${skill.name} <span class="item-quantity">MP ${skill.mpCost}</span><br><small>${skill.desc}</small>`;
+            button.disabled = player.mp < skill.mpCost;
+            button.onclick = () => useSkill(skill); // useSkill은 정상 호출
+            skillList.appendChild(button);
+            // (요구사항 4) 하이라이트
+            button.style.boxShadow = '0 0 10px 3px var(--accent-color)';
+        }
+    } else {
+        // [기존] 일반 모드
+        player.equippedCards.forEach(cardId => {
+            const card = cardDB.find(c => c.id === cardId);
+            if (!card || !card.skillId) return;
+            const skill = skillDB.find(s => s.id === card.skillId);
+            if(!skill) return;
+            const button = document.createElement('button');
+            button.className = 'menu-item-btn';
+            button.innerHTML = `${skill.name} <span class="item-quantity">MP ${skill.mpCost}</span><br><small>${skill.desc}</small>`;
+            button.disabled = player.mp < skill.mpCost;
+            button.onclick = () => useSkill(skill);
+            skillList.appendChild(button);
+        });
+    }
     openModal(skillModal);
 }
 
 function useSkill(skill) {
+    if (isTutorialBattle) {
+        removeTutorialOverlay('.menu-item-btn'); // 스킬/아이템 모달의 버튼 선택자
+    }
+
     closeModal();
     isActionInProgress = true;
     const randomKey = getRandomQuestion();
@@ -851,30 +1051,56 @@ function useSkill(skill) {
 }
 
 function openItemMenu() {
-    const usableItems = Object.keys(player.inventory).filter(key => player.inventory[key] > 0);
-    if (usableItems.length === 0) {
-        showMessage("사용할 아이템이 없습니다.");
-        setTimeout(() => { 
-            toggleActionMenu(true); 
-            isActionInProgress = false;
-        }, 1500);
-        return;
+    itemList.innerHTML = ''; // [수정] 목록 초기화를 위로 이동
+
+    if (isTutorialBattle) {
+        // (요구사항 6) 튜토리얼: I001 아이템만 표시
+        const item = itemDB.find(i => i.id === 'I001');
+        const quantity = player.inventory[item.id] || 0;
+        
+        if (item && quantity > 0) {
+             const button = document.createElement('button');
+             button.className = 'menu-item-btn';
+             button.innerHTML = `${item.name} <span class="item-quantity">x${quantity}</span><br><small>${item.desc}</small>`;
+             button.onclick = () => useItem(item); // useItem은 정상 호출
+             itemList.appendChild(button);
+             // (요구사항 4) 하이라이트
+             button.style.boxShadow = '0 0 10px 3px var(--accent-color)';
+        } else {
+             itemList.innerHTML = '<p>포션이 없습니다. (튜토리얼 오류)</p>';
+        }
+
+    } else {
+        // [기존] 일반 모드
+        const usableItems = Object.keys(player.inventory).filter(key => player.inventory[key] > 0);
+        if (usableItems.length === 0) {
+            showMessage("사용할 아이템이 없습니다.");
+            setTimeout(() => { 
+                toggleActionMenu(true); 
+                isActionInProgress = false;
+            }, 1500);
+            return; // [수정] 모달을 열지 않고 리턴
+        }
+        
+        usableItems.forEach(key => {
+            const item = itemDB.find(i => i.id === key);
+            if (!item) return;
+            const quantity = player.inventory[key];
+            const button = document.createElement('button');
+            button.className = 'menu-item-btn';
+            button.innerHTML = `${item.name} <span class="item-quantity">x${quantity}</span><br><small>${item.desc}</small>`;
+            button.onclick = () => useItem(item);
+            itemList.appendChild(button);
+        });
     }
-    itemList.innerHTML = '';
-    usableItems.forEach(key => {
-        const item = itemDB.find(i => i.id === key);
-        if (!item) return;
-        const quantity = player.inventory[key];
-        const button = document.createElement('button');
-        button.className = 'menu-item-btn';
-        button.innerHTML = `${item.name} <span class="item-quantity">x${quantity}</span><br><small>${item.desc}</small>`;
-        button.onclick = () => useItem(item);
-        itemList.appendChild(button);
-    });
     openModal(itemModal);
 }
 
 async function useItem(item) {
+    if (isTutorialBattle) {
+        removeTutorialOverlay('.menu-item-btn'); // 스킬/아이템 모달의 버튼 선택자
+    }
+
     closeModal();
     isActionInProgress = true;
     player.inventory[item.id]--;
@@ -903,27 +1129,50 @@ async function useItem(item) {
 function initGame() {
     preloadSounds();
 
+    // [신규] 튜토리얼 플래그 확인
+    isTutorialBattle = localStorage.getItem('isTutorialBattle') === 'true';
+    localStorage.removeItem('isTutorialBattle'); // 플래그 즉시 제거
+
     if (!userData) {
         alert("사용자 정보를 불러올 수 없습니다. 메인 화면으로 돌아갑니다.");
         window.location.href = 'main.html';
         return;
     }
     
-    player = { 
-        name: userData.nickname || '용사',
-        baseHp: userData.baseHp || 80,
-        baseMp: userData.baseMp || 50,
-        baseAttack: userData.baseAttack || 15,
-        ownedCards: userData.ownedCards || [],
-        equippedCards: userData.equippedCards || [],
-        inventory: userData.inventory || {},
-        gold: userData.gold || 0,
-        points: userData.points || { partsOfSpeech: 0, sentenceComponents: 0 }
-    };
+    // 튜토리얼 전투일 때는 가상 스펙 사용
+    if (isTutorialBattle) {
+        // 튜토리얼용 임시 데이터 로드
+        const tutorialUserData = JSON.parse(localStorage.getItem('tutorialUserData'));
+        
+        player = { 
+            name: userData.nickname || '용사',
+            baseHp: 40,  // 튜토리얼 기본 HP
+            baseMp: 20,  // 튜토리얼 기본 MP
+            baseAttack: 10,  // 튜토리얼 기본 ATK
+            ownedCards: tutorialUserData ? tutorialUserData.ownedCards : ['C001'],
+            equippedCards: tutorialUserData ? tutorialUserData.equippedCards : ['C001'],
+            inventory: tutorialUserData ? tutorialUserData.inventory : { 'I001': 1 },
+            gold: 0,
+            points: { partsOfSpeech: 0, sentenceComponents: 0 }
+        };
+    } else {
+        // 일반 전투는 실제 유저 데이터 사용
+        player = { 
+            name: userData.nickname || '용사',
+            baseHp: userData.baseHp || 80,
+            baseMp: userData.baseMp || 50,
+            baseAttack: userData.baseAttack || 15,
+            ownedCards: userData.ownedCards || [],
+            equippedCards: userData.equippedCards || [],
+            inventory: userData.inventory || {},
+            gold: userData.gold || 0,
+            points: userData.points || { partsOfSpeech: 0, sentenceComponents: 0 }
+        };
+    }
     
     calculatePlayerStats();
 
-    const playerImageEl = gameContainer.querySelector('#player-image');
+    // conditionsMet 계산 (플레이어 성장 단계)
     let conditionsMet = 0;
     if (player.maxHp >= 50) conditionsMet++;
     if (player.maxHp >= 80) conditionsMet++;
@@ -931,33 +1180,64 @@ function initGame() {
     if (player.maxHp >= 250) conditionsMet++;
     if (player.maxHp >= 350) conditionsMet++;
     if (player.maxHp >= 500) conditionsMet++;
+    
     if (player.maxMp >= 50) conditionsMet++;
     if (player.maxMp >= 80) conditionsMet++;
     if (player.maxMp >= 160) conditionsMet++;
     if (player.maxMp >= 190) conditionsMet++;
     if (player.maxMp >= 250) conditionsMet++;
     if (player.maxMp >= 350) conditionsMet++;
+    
     if (player.attack >= 30) conditionsMet++;
     if (player.attack >= 45) conditionsMet++;
     if (player.attack >= 70) conditionsMet++;
     if (player.attack >= 100) conditionsMet++;
     if (player.attack >= 140) conditionsMet++;
     if (player.attack >= 190) conditionsMet++;
-    
+
+    const playerImageEl = gameContainer.querySelector('#player-image');
     playerImageEl.src = `img/player${conditionsMet}.png`;
 
     player.hp = player.maxHp;
     player.mp = player.maxMp;
 
     currentMonsterIndex = 0;
-    generateMonsters();
-    
+
+    // 튜토리얼 전투일 때는 M998 몬스터만 사용
+    if (isTutorialBattle) {
+        const tutorialMonster = monsterDB.find(m => m.id === 'M998');
+        if (tutorialMonster) {
+            const questionsData = questionDB.find(q => q.id === tutorialMonster.questionId);
+            const newMonster = { ...tutorialMonster };
+            newMonster.usedQuestions = [];
+            newMonster.questionCount = {};
+            newMonster.maxHp = newMonster.hp;
+            
+            if (questionsData) {
+                newMonster.questionSet = questionsData;
+            } else {
+                console.error(`튜토리얼 몬스터 '${newMonster.name}'에 대한 Question DB를 찾을 수 없습니다.`);
+                newMonster.questionSet = { type: '1', quizBank: [] };
+            }
+            
+            monstersInDungeon = [newMonster];
+        } else {
+            alert("튜토리얼 몬스터(M998)를 찾을 수 없습니다.");
+            window.location.href = 'main.html';
+            return;
+        }
+    } else {
+        // 일반 전투는 기존 로직 사용
+        generateMonsters();
+    }
+
     if (monstersInDungeon.length === 0) {
         messageTextEl.textContent = "던전에 출현할 몬스터가 없습니다!";
         toggleActionMenu(false);
         return;
     }
-    
+
+        // ⭐ setupMonster 함수 추가
     const setupMonster = (monsterData) => {
         const newMonster = { ...monsterData };
         newMonster.maxHp = parseInt(newMonster.hp, 10) || 50;
@@ -965,7 +1245,14 @@ function initGame() {
         newMonster.mp = parseInt(newMonster.mp, 10) || 10;
         return newMonster;
     };
-    currentMonster = setupMonster(monstersInDungeon[currentMonsterIndex]);
+
+    // ⭐ 튜토리얼이 아닐 때만 setupMonster 사용
+    if (!isTutorialBattle) {
+        currentMonster = setupMonster(monstersInDungeon[currentMonsterIndex]);
+    } else {
+        // 튜토리얼은 이미 설정됨
+        currentMonster = monstersInDungeon[currentMonsterIndex];
+    }
      
     playerNameEl.textContent = player.name;
     monsterNameEl.textContent = currentMonster.name;
@@ -973,16 +1260,16 @@ function initGame() {
     isActionInProgress = true;
     toggleActionMenu(false);
 
+    // 이벤트 리스너 설정
     actionButtons.forEach(btn => btn.addEventListener('click', () => handleAction(btn.dataset.action)));
+    
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
         btn.addEventListener('click', (event) => {
-            // 내 정보 모달의 닫기 버튼인지 확인
             const isInfoModalClose = event.target.closest('#info-modal');
-            
             closeModal();
             
-            // 내 정보 모달이 아닐 때만 액션 메뉴 활성화
-            if (!isInfoModalClose) {
+            // [수정] 튜토리얼 중이 아닐 때만 액션 메뉴 활성화
+            if (!isInfoModalClose && !isTutorialBattle) {
                 isActionInProgress = false;
                 toggleActionMenu(true);
             }
@@ -1057,11 +1344,36 @@ function initGame() {
         }
     });
 
+    // [수정] infoBtn 리스너 (튜토리얼 5단계 처리를 위해)
     infoBtn.addEventListener('click', () => {
-        const ownedCardCount = player.ownedCards.length;
-        const collectionAttackBonus = Math.round(ownedCardCount * 0.5);
-        const collectionHpBonus = ownedCardCount * 1;
-        const collectionMpBonus = Math.round(ownedCardCount * 0.5);
+            const ownedCardCount = player.ownedCards.length;
+        // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
+        const tierBonuses = [
+            { hp: 10, mp: 5, att: 5 },   // 10개 이상
+            { hp: 15, mp: 8, att: 7 }, // 20개 이상
+            { hp: 20, mp: 12, att: 13 }  // 30개 이상
+            // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+        ];
+
+        // 1. 기본 보너스를 계산합니다.
+        let collectionHpBonus = ownedCardCount * 1;
+        let collectionMpBonus = Math.round(ownedCardCount * 0.5);
+        let collectionAttackBonus = Math.round(ownedCardCount * 0.5);
+
+        // 2. 10개 단위 티어(tier)를 계산합니다.
+        // (예: 35개면 3티어, 9개면 0티어)
+        const tiers = Math.floor(ownedCardCount / 10);
+        
+        // 3. 달성한 티어만큼 설정 배열을 순회하며 보너스를 누적합니다.
+        for (let i = 0; i < tiers; i++) {
+            
+            // 설정 배열에 해당 티어의 보너스가 정의되어 있는지 확인
+            if (tierBonuses[i]) {
+                collectionHpBonus += tierBonuses[i].hp;
+                collectionMpBonus += tierBonuses[i].mp;
+                collectionAttackBonus += tierBonuses[i].att;
+            }
+        }
         const equippedAttackBonus = player.attack - player.baseAttack - collectionAttackBonus;
         const equippedHpBonus = player.maxHp - player.baseHp - collectionHpBonus;
         const equippedMpBonus = player.maxMp - player.baseMp - collectionMpBonus;
@@ -1143,10 +1455,80 @@ function initGame() {
     
     updateProgressBar();
     updateUI();
-    startPlayerTurn();
+    
+    // [수정] 턴 시작 로직
+    if (isTutorialBattle) {
+        tutorialBattleStep = 1;
+        runTutorialBattleStep(tutorialBattleStep); // 튜토리얼 1단계 시작
+    } else {
+        startPlayerTurn(); // 일반 전투 시작
+    }
 }
 
 initGame();
+
+// ... initGame(); 바로 아래에 추가 ...
+
+function runTutorialBattleStep(step) {
+    toggleActionMenu(false);
+    isActionInProgress = false;
+    turn = 'player';
+    updateTurnIndicator('player');
+    let message = "";
+    
+    switch(step) {
+        case 1: // (1) 유저 공격
+            actionButtons.forEach(btn => {
+                if (btn.dataset.action === 'attack') {
+                    btn.disabled = false;
+                    showTutorialOverlay("전투 시작! '공격' 버튼을 눌러 몬스터를 공격하세요.", `button[data-action="attack"]`);
+                }
+            });
+            break;
+        case 2: // (2) 몬스터 공격(방어)
+            message = "몬스터가 반격합니다! 문제를 맞추면 '방어'에 성공해 피해가 50% 줄어듭니다!";
+            setTimeout(() => startEnemyTurn(null), 2500);
+            break;
+        case 3: // (3) 유저 아이템 사용(회복)
+            actionButtons.forEach(btn => {
+                if (btn.dataset.action === 'item') {
+                    btn.disabled = false;
+                    showTutorialOverlay("피해를 너무 많이 입었네요. '아이템'을 사용해서 HP를 회복하세요.", `button[data-action="item"]`);
+                }
+            });
+            break;
+        case 4: // (4) 몬스터 스킬 사용(방해)
+            message = "몬스터가 스킬을 사용합니다! 문제를 맞추면 '방해'에 성공해 피해나 회복량이 50% 줄어듭니다!";
+            setTimeout(() => startEnemyTurn('S997'), 2500);
+            break;
+        case 5: // (5) 유저 스킬 사용 (끝)
+            actionButtons.forEach(btn => {
+                if (btn.dataset.action === 'skill') {
+                    btn.disabled = false;
+                    showTutorialOverlay("마지막입니다! '스킬'을 사용해서 몬스터를 쓰러뜨리세요!", `button[data-action="skill"]`);
+                }
+            });
+            break;
+        case 6: // (6) 전투 종료
+            message = "튜토리얼 전투에서 승리했습니다! 메인 화면으로 돌아갑니다.";
+            setTimeout(() => {
+                if (window.endBattle) window.endBattle(true);
+            }, 1500);
+            break;
+    }
+    
+    if (message) {
+        showMessage(message);
+    }
+}
+
+/** 튜토리얼 전투 다음 단계로 진행 */
+function nextTutorialBattleStep() {
+    if (!isTutorialBattle) return;
+    tutorialBattleStep++;
+    runTutorialBattleStep(tutorialBattleStep);
+}
+
 
 function runRandomTest(questionId, iterations = 100) {
     const questionSet = questionDB.find(q => q.id === questionId);

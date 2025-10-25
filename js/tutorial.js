@@ -40,6 +40,10 @@ class GameTutorial {
                     
                     <p style="margin-top: 15px;"><strong>🔹 보유 카드:</strong> 수집한 모든 카드는 누적 보너스를 제공합니다.</p>
                     <p style="margin: 5px 0; color: #999;">• 카드 1장 = HP +1, MP +0.5, 공격력 +0.5</p>
+                    <p style="margin: 5px 0; color: #999;">• 카드 10장마다 강력한 추가 효과를 부여받습니다.</p>
+                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 보유 카드 10장 이상 : HP + 10, MP + 5, 공격력 + 5</p>
+                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 보유 카드 20장 이상 : HP + 25, MP + 13, 공격력 + 12</p>
+                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 이후에도 10장당 추가 효과를 부여 받습니다.</p>
                     
                     <p style="margin-top: 15px;"><strong>⚡ 장착 카드:</strong> 최대 4장까지 선택해 장착할 수 있습니다.</p>
                     <p style="margin: 5px 0; color: #999;">• 각 카드는 고유한 HP, MP, 공격력 보너스를 제공합니다</p>
@@ -173,11 +177,11 @@ class GameTutorial {
 
         const nextBtn = document.getElementById('tutorial-next-btn');
         const prevBtn = document.getElementById('tutorial-prev-btn');
-        const skipBtn = document.getElementById('tutorial-skip-btn');
-
+        const closeBtn = document.getElementById('tutorial-close-btn');
+        
         if (nextBtn) nextBtn.addEventListener('click', () => this.nextStep());
         if (prevBtn) prevBtn.addEventListener('click', () => this.prevStep());
-        if (skipBtn) skipBtn.addEventListener('click', () => this.closeTutorial());
+        if (closeBtn) closeBtn.addEventListener('click', () => this.closeTutorial());
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
