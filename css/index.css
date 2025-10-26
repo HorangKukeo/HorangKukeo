@@ -1,0 +1,130 @@
+/* 📢 [신규] 공지사항 버튼 및 모달 스타일 */
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Nanum+Gothic+Coding&display=swap');
+
+.hidden { 
+    display: none !important; 
+}
+
+.notice-btn {
+    background-color: #ffc107;
+    color: #4a2c00; /* 👈 [수정] #2b2b2b -> #4a2c00 (다크 브라운) */
+    border: none;
+    padding: 15px; 
+    font-family: inherit;
+    font-size: 1.1em; 
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 15px;
+    font-weight: 700; 
+    width: 100%;
+    box-sizing: border-box; 
+}
+.notice-btn:hover {
+    background-color: #f0b400;
+}
+
+/* 👈 (3) [신규] 버튼 focus 스타일 */
+.notice-btn:focus {
+    outline: 2px solid #4caf50; /* 로그인 버튼과 구분되게 녹색 outine */
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+/* --- 공지사항 모달 --- */
+#notice-modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-window { /* 모달창 공통 스타일 */
+    background-color: #2b2b2b;
+    border: 3px solid #666;
+    border-radius: 10px;
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+}
+
+#notice-modal h3 {
+    margin-top: 0;
+    color: #ffc107;
+    font-family: 'Nanum Gothic Coding', monospace; /* 👈 (4) 타이틀 폰트 유지 */
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #666;
+    padding-bottom: 10px;
+}
+
+.notice-content {
+    min-height: 100px;
+    max-height: 40vh;
+    overflow-y: auto;
+    background-color: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 5px;
+    text-align: left;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.notice-content p {
+    margin: 0 0 10px 0;
+}
+
+.notice-content strong {
+    color: #ffc107;
+}
+
+.modal-close-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #555;
+    color: #f0f0f0;
+    border: 1px solid #666;
+    border-radius: 5px;
+    transition: background-color 0.2s, box-shadow 0.2s; /* 👈 (5) transition 추가 */
+    font-family: inherit; /* 👈 (6) 폰트 상속 */
+    width: 100%;
+    font-weight: 700; /* 👈 (7) 폰트 굵게 */
+}
+
+.modal-close-btn:hover {
+    background-color: #666;
+}
+
+/* 👈 (8) [신규] 닫기 버튼 focus 스타일 */
+.modal-close-btn:focus {
+    outline: 2px solid #ffc107;
+    box-shadow: 0 0 5px rgba(255, 193, 7, 0.3);
+}
+
+.outdent {
+    /* (1) '10px'만큼 왼쪽으로 내어씁니다. */
+    text-indent: -10px; 
+    
+    /* (2) 내어쓴 공간만큼 왼쪽에 여백을 주어 줄을 맞춥니다. */
+    padding-left: 10px; 
+    
+    /* (3) 기존 margin 스타일은 제거해도 됩니다. */
+    margin: 0 0 5px 0 !important; /* 위아래 간격만 살짝 줍니다. */
+}
+
+/* 👈 (9) [신규] 모바일에서 모달 패딩 줄이기 */
+@media (max-width: 600px) {
+    .modal-window {
+        padding: 20px;
+    }
+
+    /* 👈 [수정] 모바일에서 버튼 패딩 통일 */
+    .notice-btn {
+        padding: 14px;
+    }
+}

@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문법 RPG</title> <link rel="stylesheet" href="style.css">
-</head>
+    <title>문법 RPG</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/index.css"> </head>
 <body>
     <div id="game-container">
         <h3>호랑국어 신성식의</h3>
         <h1>⚔️ 문법 RPG ⚔️</h1>
 
         <form id="login-form">
-            <h2>로그인</h2>
             <div class="input-group">
                 <label for="username">아이디</label>
                 <input type="text" id="username" name="username" required>
@@ -20,8 +20,13 @@
                 <label for="password">비밀번호</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit" class="login-btn">게임 시작</button>
+            
+            <button type="submit" class="login-btn">🔓 로그인</button>
+            <br>
+            <button type="button" id="notice-btn" class="notice-btn">📢 공지사항</button>
             <p class="form-switcher">계정이 없으신가요? <a href="#" id="show-register-form">회원가입</a></p>
+            
+            <p class="update-date">Last Updated: 2025-10-26</p>
         </form>
 
         <form id="register-form">
@@ -42,7 +47,25 @@
             <p class="form-switcher">이미 계정이 있으신가요? <a href="#" id="show-login-form">로그인</a></p>
         </form>
 
+    </div> <div id="notice-modal-backdrop" class="hidden">
+        <div id="notice-modal" class="modal-window">
+            <h3>📢 공지사항</h3>
+            <div class="notice-content">
+                <p><strong>[공지사항]</strong></p>
+                    <p class="outdent">- 아이디와 비밀번호는 최대한 간단하게 만들어주세요.</p>
+                    <p class="outdent">- 이름은 실명을 적어 주세요. 일반적이지 않은 이름은 삭제 조치될 수 있습니다.</p>
+                <br>
+                <p><strong>[2025-10-26] 업데이트 내용</strong></p>
+                    <p class="outdent">- 튜토리얼 기능이 추가되었습니다.</p>
+                    <p class="outdent">- 신규 회복 아이템이 추가되었습니다.</p>
+                    <p class="outdent">- 카드 10장당 추가 효과가 생겼습니다.</p>
+                    <p class="outdent">- 모바일 환경에 대한 최적화 작업이 진행되었습니다.</p>
+                </div>
+            <button id="notice-close-btn" class="modal-close-btn">닫기</button>
+        </div>
+    </div>
+
     <script src="js/common.js"></script>
     <script src="js/login.js"></script>
-</body>
+    <script src="js/index.js"></script> </body>
 </html>
