@@ -117,6 +117,38 @@
     margin: 0 0 5px 0 !important; /* 위아래 간격만 살짝 줍니다. */
 }
 
+/* [신규] 로딩 스피너 스타일 */
+.loader {
+    width: 20px;  /* 크기 조절 */
+    height: 20px; /* 크기 조절 */
+    border-radius: 50%;
+    display: inline-block;
+    border-top: 3px solid #FFF; /* 스피너 색상 (흰색) */
+    border-right: 3px solid transparent;
+    box-sizing: border-box;
+    animation: rotation 0.8s linear infinite;
+    margin: 0 auto; /* 버튼 중앙 정렬 */
+}
+
+/* '로그인' 버튼 안의 스피너 색상 (흰색) */
+.login-btn .loader {
+    border-top-color: white; 
+}
+
+/* '공지사항' 버튼 안의 스피너 색상 (다크 브라운) */
+.notice-btn .loader {
+    border-top-color: #4a2c00; 
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 /* 👈 (9) [신규] 모바일에서 모달 패딩 줄이기 */
 @media (max-width: 600px) {
     .modal-window {

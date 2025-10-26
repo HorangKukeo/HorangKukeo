@@ -10,7 +10,8 @@ const detailCardStatsEl = document.getElementById('card-detail-stats');
 const detailCardSkillEl = document.getElementById('card-detail-skill');
 const detailCardDescEl = document.getElementById('card-detail-desc');
 const dexFilterButtons = document.getElementById('dex-filter-buttons');
-const loadingMessageEl = document.getElementById('loading-message');
+const fullScreenLoader = document.getElementById('full-screen-loader'); // 👈 [신규]
+const fullScreenLoaderMessage = document.getElementById('full-screen-loader-message'); // 👈 [신규]
 const dungeonListEl = document.getElementById('dungeon-list');
 const dungeonCategoryListEl = document.getElementById('dungeon-category-list'); // [추가]
 const userNicknameEl = document.getElementById('user-nickname');
@@ -76,12 +77,20 @@ const GACHA_CATEGORIES = {
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
 const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013','D021','D022','D023','D024','D025','D026','D027','D028'];
 
+// [신규] 로딩 지연을 위한 sleep 함수
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function fetchAndStoreGameData() {
     try {
-        loadingMessageEl.textContent = "게임 데이터를 서버에서 불러오는 중...";
+        fullScreenLoaderMessage.textContent = "게임 데이터를 서버에서 불러오는 중...";
         const response = await fetch(GAME_DATA_URL);
         if (!response.ok) throw new Error(`서버 응답 오류: ${response.status}`);
         const data = await response.json();
+
+        // ▼ [수정] 데이터 처리 시작
+        fullScreenLoaderMessage.textContent = "데이터 처리 중... (0/7)";
+        await sleep(150); // (표시를 위한 약간의 지연)
+
         const parseDB = (rawData, headers) => {
             if (!rawData) return [];
             return rawData.map(s => JSON.parse(s)).map(rawObj => {
@@ -91,7 +100,7 @@ async function fetchAndStoreGameData() {
             });
         };
 
-        // 카드 DB 로딩
+        // 1. 카드 DB
         const cards = parseDB(data.Cards, ['id', 'name', 'hpBonus', 'mpBonus', 'attackBonus', 'skillId', 'description', 'class']);
         cards.forEach(card => {
             card.hpBonus = parseInt(card.hpBonus, 10) || 0;
@@ -99,8 +108,10 @@ async function fetchAndStoreGameData() {
             card.attackBonus = parseInt(card.attackBonus, 10) || 0;
         });
         localStorage.setItem('cardDB', JSON.stringify(cards));
+        fullScreenLoaderMessage.textContent = "카드 데이터 처리 완료 (1/7)";
+        await sleep(150);
 
-        // 스킬 DB 로딩
+        // 2. 스킬 DB
         const skills = parseDB(data.Skills, ['id', 'name', 'type', 'effect', 'mpCost', 'desc']);
         skills.forEach(skill => {
             skill.type = parseInt(skill.type, 10) || 0;
@@ -108,8 +119,10 @@ async function fetchAndStoreGameData() {
             skill.mpCost = parseInt(skill.mpCost, 10) || 0;
         });
         localStorage.setItem('skillDB', JSON.stringify(skills));
+        fullScreenLoaderMessage.textContent = "스킬 데이터 처리 완료 (2/7)";
+        await sleep(150);
 
-        // 아이템 DB 로딩
+        // 3. 아이템 DB
         const items = parseDB(data.Items, ['id', 'name', 'type', 'value', 'price', 'forSale', 'desc']);
         items.forEach(item => {
             item.type = parseInt(item.type, 10) || 0;
@@ -118,31 +131,44 @@ async function fetchAndStoreGameData() {
             item.forSale = parseInt(item.forSale, 10) || 0;
         });
         localStorage.setItem('itemDB', JSON.stringify(items));
+        fullScreenLoaderMessage.textContent = "아이템 데이터 처리 완료 (3/7)";
+        await sleep(150);
         
-        // [수정된 부분] 카드팩 DB 로딩 로직 추가
+        // 4. 카드팩 DB
         const cardPacks = parseDB(data.CardPacks, ['id', 'name', 'priceGold', 'pricePoints', 'description', 'forSale', 'cardPool']);
         cardPacks.forEach(pack => {
             pack.priceGold = parseInt(pack.priceGold, 10) || 0;
             try {
-                // pricePoints가 비어있으면 빈 객체{}, 아니면 JSON으로 파싱
                 pack.pricePoints = pack.pricePoints ? JSON.parse(pack.pricePoints) : {};
             } catch (e) {
                 console.error(`카드팩(${pack.id})의 pricePoints JSON 파싱 오류:`, pack.pricePoints);
-                pack.pricePoints = {}; // 오류 발생 시 빈 객체로 처리
+                pack.pricePoints = {};
             }
             pack.forSale = parseInt(pack.forSale, 10) || 0;
         });
         localStorage.setItem('cardPackDB', JSON.stringify(cardPacks));
+        fullScreenLoaderMessage.textContent = "카드팩 데이터 처리 완료 (4/7)";
+        await sleep(150);
 
-        // 기타 DB 로딩
+        // 5. 던전 DB
         localStorage.setItem('dungeonDB', JSON.stringify(parseDB(data.Dungeons, ['id', 'name', 'area', 'recommendedLevel', 'monster1Id', 'monster2Id', 'monster3Id', 'monster4Id', 'monster5Id'])));
+        fullScreenLoaderMessage.textContent = "던전 데이터 처리 완료 (5/7)";
+        await sleep(150);
+
+        // 6. 몬스터 DB
         localStorage.setItem('monsterDB', JSON.stringify(parseDB(data.Monsters, ['id', 'name', 'level', 'hp', 'mp', 'attack', 'goldReward', 'pointReward', 'affiliation', 'questionId', 'skillId1', 'skillId2', 'skillId3', 'img'])));
+        fullScreenLoaderMessage.textContent = "몬스터 데이터 처리 완료 (6/7)";
+        await sleep(150);
+
+        // 7. 문제 DB
         localStorage.setItem('questionDB', JSON.stringify(parseDB(data.Questions, ['id', 'name', 'type', 'question1', 'question2', 'question3', 'question4', 'question5', 'question6', 'question7', 'question8', 'question9', 'question10', 'question11', 'question12', 'question13', 'question14', 'question15', 'question16', 'question17', 'question18', 'question19', 'question20'])));
+        fullScreenLoaderMessage.textContent = "문제 데이터 처리 완료 (7/7)";
+        await sleep(200); // 마지막 단계는 조금 더 길게
         
         return true;
     } catch (error) {
         console.error('게임 데이터를 불러오는 중 오류 발생:', error);
-        loadingMessageEl.textContent = '데이터 로딩 실패! 페이지를 새로고침 해주세요.';
+        fullScreenLoaderMessage.textContent = '데이터 로딩 실패! 페이지를 새로고침 해주세요.';
         return false;
     }
 }
@@ -738,7 +764,7 @@ async function startBattle(dungeonId) {
         const battleStyle = document.createElement('link');
         battleStyle.id = 'battle-style';
         battleStyle.rel = 'stylesheet';
-        battleStyle.href = 'battlestyle.css';
+        battleStyle.href = 'css/battlestyle.css';
         document.head.appendChild(battleStyle);
 
         const battleScript = document.createElement('script');
@@ -936,7 +962,7 @@ async function initializeMainScreen() {
     
 
     // ✨ 수정됨: 데이터 로딩이 끝난 후, 로딩 메시지를 숨기고 메인 메뉴를 표시
-    loadingMessageEl.style.display = 'none';
+    fullScreenLoader.style.display = 'none'; // 👈 [신규]
     mainMenuEl.classList.remove('hidden');
 
     // 사용자 정보와 던전 목록 표시

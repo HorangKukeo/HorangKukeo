@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>문법 RPG - 메인</title>
+    <link rel="stylesheet" href="css/comain.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/tuto.css">
 </head>
 <body>
+    <div id="full-screen-loader" class="loader-overlay">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p id="full-screen-loader-message">게임 데이터를 불러오는 중...</p>
+        </div>
+    </div>
     <h3 class="main-title">호랑국어 신성식의 문법 RPG</h3>
     <div class="main-container">
         <div id="player-status-container">
@@ -57,7 +64,6 @@
         </div>
 
         <div id="main-content-container">
-            <p id="loading-message">게임 데이터를 불러오는 중...</p>
             <div id="main-menu" class="hidden">
                 <button id="explore-btn" class="main-menu-btn">🗺️ 탐험하기</button>
                 <button id="goals-btn" class="main-menu-btn">🎯 성장 목표</button>
