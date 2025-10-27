@@ -75,7 +75,9 @@ const GACHA_CATEGORIES = {
 
 // Webhook URL
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
-const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013','D021','D022','D023','D024','D025','D026','D027','D028'];
+const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013',
+    'D021','D022','D023','D024','D025','D026','D027','D028',
+    'D029', 'D030','D031','D032'];
 
 // [신규] 로딩 지연을 위한 sleep 함수
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -156,7 +158,7 @@ async function fetchAndStoreGameData() {
         await sleep(150);
 
         // 6. 몬스터 DB
-        localStorage.setItem('monsterDB', JSON.stringify(parseDB(data.Monsters, ['id', 'name', 'level', 'hp', 'mp', 'attack', 'goldReward', 'pointReward', 'affiliation', 'questionId', 'skillId1', 'skillId2', 'skillId3', 'img'])));
+        localStorage.setItem('monsterDB', JSON.stringify(parseDB(data.Monsters, ['id', 'name', 'level', 'hp', 'mp', 'attack', 'goldReward', 'pointReward', 'affiliation', 'questionPool', 'skillId1', 'skillId2', 'skillId3', 'img'])));
         fullScreenLoaderMessage.textContent = "몬스터 데이터 처리 완료 (6/7)";
         await sleep(150);
 

@@ -581,31 +581,94 @@ function closeModal() {
     infoModal.classList.add('hidden'); 
 }
 
+/**
+ * Question Pool 문자열(예: "Q001, Q003~Q005")을 파싱하여 ID 배열 반환
+ * @param {string} poolString - 파싱할 문자열
+ * @returns {string[]} 파싱된 문제 세트 ID 배열 (예: ['Q001', 'Q003', 'Q004', 'Q005'])
+ */
+function parseQuestionPool(poolString) {
+    if (!poolString) return [];
+    const ids = new Set();
+    const parts = poolString.split(',');
+    let prefix = '';
+    let padLength = 0;
+
+    for (const part of parts) {
+        const trimmedPart = part.trim();
+        if (trimmedPart.includes('~')) {
+            const [startStr, endStr] = trimmedPart.split('~');
+            // ID 형식(예: Q001)에서 문자 부분과 숫자 부분을 분리
+            const matchStart = startStr.match(/([a-zA-Z]*)(\d+)/);
+            const matchEnd = endStr.match(/([a-zA-Z]*)(\d+)/);
+
+            if (matchStart && matchEnd && matchStart[1] === matchEnd[1]) { // Prefix가 같아야 함
+                 prefix = matchStart[1];
+                 padLength = matchStart[2].length; // 숫자 부분 길이 (0 채우기용)
+                 const startNum = parseInt(matchStart[2], 10);
+                 const endNum = parseInt(matchEnd[2], 10);
+
+                 if (!isNaN(startNum) && !isNaN(endNum) && startNum <= endNum) {
+                    for (let i = startNum; i <= endNum; i++) {
+                         ids.add(prefix + String(i).padStart(padLength, '0'));
+                     }
+                 } else {
+                     console.warn(`잘못된 범위 형식: ${trimmedPart}`);
+                 }
+            } else {
+                console.warn(`범위 지정 오류 또는 Prefix 불일치: ${trimmedPart}`);
+            }
+        } else {
+             // 단일 ID 형식 검사 (선택 사항)
+             const matchSingle = trimmedPart.match(/([a-zA-Z]*)(\d+)/);
+             if (matchSingle) {
+                 ids.add(trimmedPart);
+             } else {
+                  console.warn(`잘못된 ID 형식: ${trimmedPart}`);
+             }
+        }
+    }
+    return Array.from(ids);
+}
+
 function generateMonsters() {
     const selectedDungeon = dungeonDB.find(d => d.id === selectedDungeonId);
-    if (!selectedDungeon) { 
-        console.error("선택된 던전 정보 없음:", selectedDungeonId); 
-        monstersInDungeon = []; 
-        return; 
+    if (!selectedDungeon) {
+        console.error("선택된 던전 정보 없음:", selectedDungeonId);
+        monstersInDungeon = [];
+        return;
     }
     const monsterIds = [
-        selectedDungeon.monster1Id, selectedDungeon.monster2Id, selectedDungeon.monster3Id, 
+        selectedDungeon.monster1Id, selectedDungeon.monster2Id, selectedDungeon.monster3Id,
         selectedDungeon.monster4Id, selectedDungeon.monster5Id
     ].filter(id => id);
-    
+
     monstersInDungeon = monsterIds.map(id => {
         const monsterData = monsterDB.find(monster => monster.id === id);
         if (monsterData) {
-            const questionsData = questionDB.find(q => q.id === monsterData.questionId);
+            // ▼ Question Pool 파싱 및 랜덤 선택 로직 시작 ▼
+            const possibleQuestionSetIds = parseQuestionPool(monsterData.questionPool);
+            let selectedQuestionSetId = null;
+            let questionsData = null;
+
+            if (possibleQuestionSetIds.length > 0) {
+                // 목록에서 랜덤하게 하나 선택
+                selectedQuestionSetId = possibleQuestionSetIds[Math.floor(Math.random() * possibleQuestionSetIds.length)];
+                // 선택된 ID로 questionDB에서 데이터 찾기
+                questionsData = questionDB.find(q => q.id === selectedQuestionSetId);
+            }
+            // ▲ Question Pool 파싱 및 랜덤 선택 로직 끝 ▲
+
             const newMonster = { ...monsterData };
             newMonster.usedQuestions = [];
             newMonster.questionCount = {};
-            
+
             if (questionsData) {
-                newMonster.questionSet = questionsData;
+                newMonster.questionSet = questionsData; // 선택된 문제 세트 할당
+                console.log(`몬스터 '${newMonster.name}'(ID: ${id})가 이번 전투에서 문제 세트 '${selectedQuestionSetId}'를 사용합니다.`);
             } else {
-                console.error(`몬스터 '${newMonster.name}'(ID: ${id})에 대한 Question DB(ID: ${newMonster.questionId})를 찾을 수 없습니다.`);
-                newMonster.questionSet = { type: '1', quizBank: [] };
+                console.error(`몬스터 '${newMonster.name}'(ID: ${id})에 사용할 유효한 Question DB를 찾을 수 없습니다. Pool: "${monsterData.questionPool}", Selected: "${selectedQuestionSetId}"`);
+                // 오류 발생 시 기본 문제 세트 또는 빈 세트 할당 (게임 멈춤 방지)
+                newMonster.questionSet = { id: 'error', name: '오류', type: '1', /* ... 빈 문제들 ... */ };
             }
             return newMonster;
         }
@@ -702,7 +765,7 @@ function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
             currentMonster.mp -= parseInt(skillToUse.mpCost);
             showQuiz(question, async (isCorrect) => {
                 if (isCorrect) {
-                    setMonsterImage('hurt');
+                    setMonsterImage('happy');
                     if (skillToUse.type == 1) {
                         playSound('monster-skillat-miss');
                         await sleep(200);
@@ -717,7 +780,7 @@ function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
                         const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
                         currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
                         addBattleLog(`방해 성공! ${skillToUse.name} 회복량 감소!`, '🛡️');
-                        showMessage(`방해 성공! 몬스터가 ${skillToUse.name}으로 HP를 ${healAmount}만 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                        showMessage(`방해 성공! 몬스터가 ${skillToUse.name}(으)로 HP를 ${healAmount}만 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                     }
                 } else {
                     setMonsterImage('happy');
@@ -736,7 +799,7 @@ function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
                         const healAmount = parseInt(skillToUse.effect);
                         currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
                         addBattleLog(`${skillToUse.name}! HP ${healAmount} 회복!`, '💚');
-                        showMessage(`몬스터가 ${skillToUse.name}으로 HP를 ${healAmount} 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                        showMessage(`몬스터가 ${skillToUse.name}(으)로 HP를 ${healAmount} 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                     }
                 }
                 updateUI();
@@ -752,7 +815,7 @@ function enemyBasicAttack(question) {
         if (isCorrect) {
             playSound('monster-attack-blocked');
             await sleep(200);
-            setMonsterImage('hurt');
+            setMonsterImage('happy');
             const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
