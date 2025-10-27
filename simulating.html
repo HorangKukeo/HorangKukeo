@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문법 RPG - 전투 시뮬레이터</title>
+    <style>
+        :root {
+            --bg-color: #2b2b2b; --border-color: #666; --text-color: #f0f0f0;
+            --accent-color: #ffc107; --hp-color: #4caf50;
+        }
+        body {
+            background-color: #1a1a1a; color: var(--text-color);
+            font-family: 'Nanum Gothic Coding', monospace;
+            padding: 20px; line-height: 1.6;
+        }
+        #simulator-container {
+            max-width: 800px; margin: 0 auto;
+            border: 3px solid var(--border-color); padding: 20px;
+            background-color: var(--bg-color); border-radius: 10px;
+        }
+        h1 { color: var(--accent-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .hidden { display: none !important; }
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(26, 26, 26, 0.95); display: flex;
+            justify-content: center; align-items: center; z-index: 9999;
+            flex-direction: column; color: var(--text-color);
+        }
+        .loader-overlay.hidden { display: none; }
+        .loader-spinner {
+            width: 50px; height: 50px; border-radius: 50%; display: inline-block;
+            border-top: 4px solid var(--accent-color); border-right: 4px solid transparent;
+            animation: rotation 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #db-loader-panel {
+            padding: 15px; background: #333; border-radius: 5px;
+            text-align: center; margin-bottom: 20px;
+        }
+        #db-status { font-style: italic; color: #ccc; margin: 0 0 10px 0; }
+        #load-db-btn {
+            padding: 12px 20px; font-size: 1.1em; font-family: inherit;
+            background-color: var(--accent-color); color: #333;
+            border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+        }
+        #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .control-group { background: #333; padding: 15px; border-radius: 5px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--accent-color); }
+        /* [수정] select, input, button 공통 스타일 */
+        select, input[type="number"], button {
+            width: 100%; padding: 10px; font-family: inherit; font-size: 1em;
+            background: #555; color: white; border: 1px solid var(--border-color); border-radius: 4px;
+            box-sizing: border-box; /* 너비 계산에 padding 포함 */
+        }
+        #start-sim-btn {
+            grid-column: 1 / -1; background-color: var(--hp-color); color: white;
+            font-weight: bold; cursor: pointer; font-size: 1.1em; padding: 12px;
+        }
+        #sort-options {
+            grid-column: 1 / -1; background: #333; padding: 10px 15px; border-radius: 5px;
+            display: flex; align-items: center; gap: 15px;
+        }
+        #sort-options strong { color: var(--accent-color); }
+        #sort-options .radio-group { display: flex; gap: 10px; }
+        #sort-options .radio-group label {
+            color: var(--text-color); font-weight: normal;
+            margin-bottom: 0; display: flex; align-items: center; gap: 4px;
+        }
+        h2 { color: var(--hp-color); margin: 10px 0 5px 0; border-bottom: 1px dashed #555; padding: 5px 0; font-size: 1.2em; }
+        #report {
+            background: #111; border: 1px solid #444; padding: 15px;
+            border-radius: 5px; min-height: 300px; max-height: 60vh;
+            overflow-y: auto; font-size: 0.9em; white-space: pre-wrap;
+        }
+        #report h3 { font-size: 1.1em; margin-top: 15px; }
+        #report .trial-log {
+            font-size: 0.85em; line-height: 1.4; word-break: break-all;
+            background: #222; padding: 5px; border-radius: 3px;
+        }
+        #report .fail { color: #c74343; }
+        #report .success { color: #7eff7e; }
+        #report .dungeon-monster-log { margin-left: 10px; font-style: italic; color: #aaa; font-size: 0.9em;}
+        #recent-logs-container { margin-top: 20px; }
+        #recent-logs-list {
+            background: #222; border: 1px solid #444; padding: 15px;
+            border-radius: 5px; font-size: 0.9em;
+        }
+        #recent-logs-list div { padding: 5px 0; border-bottom: 1px dashed #333; }
+        #recent-logs-list div:last-child { border-bottom: none; }
+        #recent-logs-list span { display: inline-block; }
+        #recent-logs-list .log-name { color: #ccc; width: 60%; }
+        #recent-logs-list .log-n { color: var(--accent-color); font-weight: bold; width: 20%; }
+        #recent-logs-list .log-date { color: #777; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div id="full-screen-loader" class="loader-overlay hidden">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p id="full-screen-loader-message">게임 DB 불러오는 중...</p>
+        </div>
+    </div>
+
+    <div id="simulator-container">
+        <h1>전투 시뮬레이터</h1>
+
+        <div id="db-loader-panel">
+            <p id="db-status">DB 상태 확인 중...</p>
+            <button id="load-db-btn">Load Game DB from Server</button>
+        </div>
+
+        <div id="recent-logs-container" class="hidden">
+            <h2>최근 10회 시뮬레이션 (N값)</h2>
+            <div id="recent-logs-list">
+                <p>로그가 없습니다.</p>
+            </div>
+        </div>
+
+        <div id="simulator-panel" class="hidden">
+            <div id="controls">
+                <div id="sort-options">
+                    <strong>정렬:</strong>
+                    <div class="radio-group">
+                        <label> <input type="radio" name="sortOrder" value="name" checked> 이름순 </label>
+                        <label> <input type="radio" name="sortOrder" value="id"> 번호순 </label>
+                        <label> <input type="radio" name="sortOrder" value="level"> 레벨순 </label>
+                    </div>
+                </div>
+
+                <div class="control-group" style="grid-column: 1 / -1;">
+                    <label for="start-level-input">시작 L 설정 (기본값: 1)</label>
+                    <input type="number" id="start-level-input" value="1" min="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="monster-select">몬스터 선택 (단일)</label>
+                    <select id="monster-select"> <option value="">-- 몬스터 선택 --</option> </select>
+                </div>
+                <div class="control-group">
+                    <label for="dungeon-select">던전 선택 (연속)</label>
+                    <select id="dungeon-select"> <option value="">-- 던전 선택 --</option> </select>
+                </div>
+                <button id="start-sim-btn">시뮬레이션 시작</button>
+            </div>
+            <h2>리포트</h2>
+            <div id="report" aria-live="polite">
+                시뮬레이션 대기 중...
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/simulation.js"></script>
+</body>
+</html>

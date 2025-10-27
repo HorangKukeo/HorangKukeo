@@ -79,6 +79,12 @@ const continueBattleBtn = battleModeContainer.querySelector('#continue-battle-bt
 const gameOverMessageEl = battleModeContainer.querySelector('#game-over-message');
 const returnToMainFromGameOverBtn = battleModeContainer.querySelector('#return-to-main-from-gameover-btn');
 
+const reviewAllBtn = battleModeContainer.querySelector('#review-all-btn');
+const reviewWrongBtn = battleModeContainer.querySelector('#review-wrong-btn');
+const quizReviewModal = battleModeContainer.querySelector('#quiz-review-modal');
+const quizReviewTitle = battleModeContainer.querySelector('#quiz-review-title');
+const quizReviewList = battleModeContainer.querySelector('#quiz-review-list');
+
 const cardDB = JSON.parse(localStorage.getItem('cardDB')) || [];
 const skillDB = JSON.parse(localStorage.getItem('skillDB')) || [];
 const itemDB = JSON.parse(localStorage.getItem('itemDB')) || [];
@@ -97,6 +103,8 @@ let turn = 'player';
 let onQuizComplete = null;
 let isActionInProgress = false;
 let isReturningToMain = false;
+
+let dungeonQuestionHistory = [];
 
 // [신규] 튜토리얼 전투 상태 변수
 let isTutorialBattle = false;
@@ -338,7 +346,8 @@ function showMessage(text, detailsOrCallback, callback) {
         }
         
         if (explanation) {
-            explanationHTML = `<div style="margin-top: 10px; padding: 10px; background-color: rgba(255,193,7,0.2); border-left: 3px solid var(--accent-color); text-align: left;"><strong>💡 해설:</strong> ${explanation}</div>`;
+            explanationHTML = '';
+            /*explanationHTML = `<div style="margin-top: 10px; padding: 10px; background-color: rgba(255,193,7,0.2); border-left: 3px solid var(--accent-color); text-align: left;"><strong>💡 해설:</strong> ${explanation}</div>`;*/
         }
         
         fullMessage += `<br><br>${answerHTML}${explanationHTML}`;
@@ -353,12 +362,12 @@ function showMessage(text, detailsOrCallback, callback) {
     }
 
     if (finalCallback) { 
-        let waitTime = 1500;
+        let waitTime = 1200;
         if (isAfterQuiz) {
             if (explanation) {
-                waitTime = 2500;
+                waitTime = 1500;
             } else {
-                waitTime = 2500; 
+                waitTime = 1500; 
             }
         }
         setTimeout(finalCallback, waitTime);
@@ -551,6 +560,10 @@ function handleQuizAnswer(isCorrect) {
         );
         return; // onQuizComplete를 호출하지 않고 종료 (턴이 안 넘어감)
     }
+
+    if (currentQuestion) {
+        dungeonQuestionHistory.push({ question: currentQuestion, isCorrect: isCorrect });
+    }
     
     // [기존] 정답 또는 일반 전투
     if (onQuizComplete) { 
@@ -574,10 +587,14 @@ function openModal(modal) {
 
 function closeModal() { 
     modalBackdrop.classList.add('hidden'); 
+    // backdrop 안의 모든 모달을 숨깁니다.
     skillModal.classList.add('hidden'); 
     itemModal.classList.add('hidden'); 
     victoryModal.classList.add('hidden'); 
-    infoModal.classList.add('hidden'); 
+    infoModal.classList.add('hidden');
+    gameOverEl.classList.add('hidden');
+    dungeonClearEl.classList.add('hidden');
+    quizReviewModal.classList.add('hidden');
 }
 
 /**
@@ -1061,7 +1078,7 @@ function checkBattleEnd() {
                 penaltyMessage += '를 잃었습니다.';
                 gameOverMessageEl.textContent = penaltyMessage;
                 
-                gameOverEl.classList.remove('hidden'); 
+                openModal(gameOverEl); 
                 return;
             }
             
@@ -1367,10 +1384,10 @@ function initGame() {
 
     player.hp = player.maxHp;
     player.mp = player.maxMp;
-
     player.interferenceMultiplier = 0.5;
 
     currentMonsterIndex = 0;
+    dungeonQuestionHistory = []; // [추가] 던전 시작 시 문제 기록 초기화
 
     // 튜토리얼 전투일 때는 M998 몬스터만 사용
     if (isTutorialBattle) {
@@ -1464,7 +1481,7 @@ function initGame() {
                 }
             }
             finalRewardsEl.innerHTML = rewardsHTML;
-            dungeonClearEl.classList.remove('hidden');
+            openModal(dungeonClearEl);
         } else {
             currentMonster = setupMonster(monstersInDungeon[currentMonsterIndex]);
             monsterNameEl.textContent = currentMonster.name;
@@ -1514,6 +1531,9 @@ function initGame() {
             window.endBattle();
         }
     });
+
+    reviewAllBtn.addEventListener('click', () => showQuizReview('all'));
+    reviewWrongBtn.addEventListener('click', () => showQuizReview('wrong'));
 
     // [수정] infoBtn 리스너 (튜토리얼 5단계 처리를 위해)
     infoBtn.addEventListener('click', () => {
@@ -1752,4 +1772,67 @@ window.runRandomTest = runRandomTest;
             console.log("현재 몬스터가 없습니다.");
         }
     };
+
+    /**
+     * [신규] 문제 리뷰 모달을 생성하고 표시하는 함수
+     * @param {'all' | 'wrong'} filter - 'all' (모든 문제) 또는 'wrong' (오답 문제만)
+     */
+    function showQuizReview(filter) {
+        // 1. 필터링
+        let questionsToShow = [];
+        if (filter === 'all') {
+            quizReviewTitle.textContent = `모든 문제 다시보기 (${dungeonQuestionHistory.length}개)`;
+            questionsToShow = dungeonQuestionHistory;
+        } else { // 'wrong'
+            questionsToShow = dungeonQuestionHistory.filter(item => !item.isCorrect);
+            quizReviewTitle.textContent = `오답 문제 다시보기 (${questionsToShow.length}개)`;
+        }
+    
+        // 2. HTML 생성
+        quizReviewList.innerHTML = '';
+        if (questionsToShow.length === 0) {
+            quizReviewList.innerHTML = '<p style="text-align: center; padding: 20px 0;">해당하는 문제가 없습니다.</p>';
+        } else {
+            questionsToShow.forEach((item, index) => {
+                const q = item.question;
+                const isCorrect = item.isCorrect;
+    
+                const itemEl = document.createElement('div');
+                itemEl.className = 'quiz-review-item';
+                itemEl.style.cssText = `
+                    padding: 15px; 
+                    margin-bottom: 10px; 
+                    border: 1px solid ${isCorrect ? 'var(--hp-color)' : '#c74343'}; 
+                    border-left-width: 5px; 
+                    background: none; /* [수정] (5) 배경색 제거 */
+                    border-radius: 5px;
+                `;
+    
+                const displayPrompt = q.prompt.replace(/@(.*?)@/g, '<u>$1</u>').replace(/▽/g, '<br>');
+                const displayContext = q.context ? q.context.replace(/@(.*?)@/g, '<u>$1</u>').replace(/▽/g, '<br>') : '';
+                const formattedAnswer = q.correctAnswer.replace(/@(.*?)@/g, '<u>$1</u>');
+                const explanation = q.explanation || '';
+    
+                itemEl.innerHTML = `
+                    <p style="font-weight: bold; margin-bottom: 8px;">Q${index + 1}. ${displayPrompt}</p>
+                    ${displayContext ? `<p style="background: #2a2a2a; padding: 8px; border-radius: 4px; margin-bottom: 8px;">${displayContext}</p>` : ''}
+                    
+                    <div style="margin-top: 10px; padding: 10px; background-color: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--hp-color); text-align: left;">
+                        <strong>정답:</strong> ${formattedAnswer}
+                    </div>
+                    ${explanation ? `
+                    <div style="margin-top: 8px; padding: 10px; background-color: rgba(255,193,7,0.1); border-left: 3px solid var(--accent-color); text-align: left;">
+                        <strong>해설:</strong> ${explanation}
+                    </div>
+                    ` : ''}
+                `;
+                quizReviewList.appendChild(itemEl);
+            });
+        }
+    
+        // 3. 모달 전환
+        dungeonClearEl.classList.add('hidden'); // '던전 클리어' 모달 숨기기
+        openModal(quizReviewModal); // '리뷰' 모달 열기
+    }
+
 })();

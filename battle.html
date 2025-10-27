@@ -122,23 +122,38 @@
         <div id="info-modal" class="modal-window hidden">
             <h3>내 정보</h3><div id="info-list"></div><button class="modal-close-btn">닫기</button>
         </div>
-    </div>
 
-    <div id="game-over" class="modal hidden">
-        <div class="modal-window" style="text-align: center;">
-            <h2 style="color: #c74343; font-family: var(--font-pixel); font-size: 3em;">GAME OVER</h2>
-            <p id="game-over-message" style="margin: 20px 0;"></p>
-            <button id="return-to-main-from-gameover-btn" class="return-to-main-btn" style="background-color: #7c3c7c; border-color: #b981b9;">메인 화면으로 돌아가기</button>
+        <div id="game-over" class="modal hidden">
+            <div class="modal-window" style="text-align: center;">
+                <h2 style="color: #c74343; font-family: var(--font-pixel); font-size: 3em;">GAME OVER</h2>
+                <p id="game-over-message" style="margin: 20px 0;"></p>
+                <button id="return-to-main-from-gameover-btn" class="return-to-main-btn" style="background-color: #7c3c7c; border-color: #b981b9;">메인 화면으로 돌아가기</button>
+            </div>
         </div>
-    </div>
 
-    <div id="dungeon-clear" class="modal hidden">
-        <div class="modal-window" style="width: auto;">
-            <h2>던전 클리어!</h2>
-            <p>이번 탐험에서 획득한 보상입니다.</p>
-            <div id="final-rewards"></div>
-            <button id="return-to-main-btn">메인 화면으로 돌아가기</button>
+        <div id="dungeon-clear" class="modal hidden">
+            <div class="modal-window" style="width: auto;">
+                <h2>던전 클리어!</h2>
+                <p>이번 탐험에서 획득한 보상입니다.</p>
+                <div id="final-rewards"></div>
+            
+            <div id="review-options" style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px; text-align: center;">
+                <p>던전에서 풀이한 문제의 정답과 해설을 확인하세요.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <button id="review-all-btn" class="quiz-btn" style="background-color: #4a6a8a; text-align: center;">모든 문제 보기</button>
+                        <button id="review-wrong-btn" class="quiz-btn" style="background-color: #a05a5a; text-align: center;">오답 문제만 보기</button>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div id="quiz-review-modal" class="modal-window hidden" style="width: 90%; max-width: 600px; max-height: 80vh;">
+            <h3 id="quiz-review-title">문제 다시보기</h3>
+            <div id="quiz-review-list" style="overflow-y: auto; max-height: 60vh; padding: 10px; border-top: 1px solid #555; border-bottom: 1px solid #555; margin: 15px 0; background: #222;">
+                </div>
+            <button id="return-to-main-btn">보상 받고 돌아가기</button>
+        </div>
+
     </div>
 
     <audio id="bgm-battle" src="music/battle-theme3.mp3" loop></audio>
