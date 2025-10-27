@@ -227,8 +227,7 @@ function updateProgressBar() {
 }
 
 function calculatePlayerStats() {
-    const ownedCardCount = player.ownedCards.length;
-        // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
+        const ownedCardCount = player.ownedCards.length;
         const tierBonuses = [
             { hp: 10, mp: 5, att: 5 },   // 10개 이상
             { hp: 15, mp: 8, att: 7 }, // 20개 이상
@@ -770,17 +769,58 @@ function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
                         playSound('monster-skillat-miss');
                         await sleep(200);
                         const damage = Math.floor(parseInt(currentMonster.attack) * parseFloat(skillToUse.effect));
-                        const finalDamage = Math.floor(damage * 0.5);
+                        const finalDamage = Math.floor(damage * player.interferenceMultiplier);
                         player.hp = Math.max(0, player.hp - finalDamage);
                         addBattleLog(`방해 성공! ${skillToUse.name} 데미지 감소!`, '🛡️');
                         showMessage(`방해 성공! 몬스터의 ${skillToUse.name} 데미지가 ${finalDamage}(으)로 감소!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                     } else if (skillToUse.type == 2) {
                         playSound('monster-skillheal-miss');
                         await sleep(200);
-                        const healAmount = Math.floor(parseInt(skillToUse.effect) * 0.5);
+                        const healAmount = Math.floor(parseInt(skillToUse.effect) * player.interferenceMultiplier);
                         currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
                         addBattleLog(`방해 성공! ${skillToUse.name} 회복량 감소!`, '🛡️');
                         showMessage(`방해 성공! 몬스터가 ${skillToUse.name}(으)로 HP를 ${healAmount}만 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                    } else if (skillToUse.type == 3) { // Type 3: 공격력 상승 (방해 배율 적용)
+                        // 0.5 대신 player.interferenceMultiplier 사용
+                        const effectValue = Math.floor(skillToUse.effect * player.interferenceMultiplier); 
+                        currentMonster.attack += effectValue;
+                        playSound('monster-skillheal-miss'); // (임의 효과음)
+                        await sleep(200);
+                        // [수정] 로그 메시지 (방해율 표시)
+                        const blockPercent = (1 - player.interferenceMultiplier) * 100;
+                        addBattleLog(`방해 성공! ${skillToUse.name} 효과 ${blockPercent.toFixed(0)}% 감소!`, '🛡️');
+                        showMessage(`방해 성공! 몬스터의 공격력이 ${effectValue}만 증가했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+                    } else if (skillToUse.type == 4) { // Type 4: HP 상승 (방해 배율 적용, 비율 유지)
+                        // 0.5 대신 player.interferenceMultiplier 사용
+                        const effectValue = Math.floor(skillToUse.effect * player.interferenceMultiplier);
+                        const hpPercent = currentMonster.hp / currentMonster.maxHp;
+                        currentMonster.maxHp += effectValue;
+                        currentMonster.hp = Math.round(currentMonster.maxHp * hpPercent);
+                        playSound('monster-skillheal-miss'); // (임의 효과음)
+                        await sleep(200);
+                        // [수정] 로그 메시지 (방해율 표시)
+                        const blockPercent = (1 - player.interferenceMultiplier) * 100;
+                        addBattleLog(`방해 성공! ${skillToUse.name} 효과 ${blockPercent.toFixed(0)}% 감소!`, '🛡️');
+                        showMessage(`방해 성공! 몬스터의 최대 HP가 ${effectValue}만 증가했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+                    } else if (skillToUse.type == 5) { // Type 5: 방해 효과 감소 (방해 배율 적용)
+                        // 0.5 대신 player.interferenceMultiplier 사용
+                        const effectValue = skillToUse.effect * player.interferenceMultiplier; 
+                        const effectDecreasePercent = (effectValue * 100).toFixed(0); // 1. 방해 효과 감소량
+                        
+                        player.interferenceMultiplier += effectValue;
+                        player.interferenceMultiplier = Math.min(1.0, player.interferenceMultiplier);
+
+                        const totalBlockPercent = (1 - player.interferenceMultiplier) * 100; // 2. 총 방해 효과
+                        
+                        playSound('monster-skillat-miss'); // (임의 효과음)
+                        await sleep(200);
+                        // [수정] 로그 메시지 (방해율 표시)
+                        const blockPercent = (1 - player.interferenceMultiplier) * 100;
+                        addBattleLog(`방해 성공! ${skillToUse.name} 효과 ${blockPercent.toFixed(0)}% 감소!`, '🛡️');
+                        // 3. 메시지 수정 (UI용)
+                        showMessage(`방해 성공! 방해/방어 효과가 ${effectDecreasePercent}%만 감소했다!<br>현재 방해/방어 효과: ${totalBlockPercent.toFixed(0)}%`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                     }
                 } else {
                     setMonsterImage('happy');
@@ -800,6 +840,38 @@ function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
                         currentMonster.hp = Math.min(currentMonster.maxHp, currentMonster.hp + healAmount);
                         addBattleLog(`${skillToUse.name}! HP ${healAmount} 회복!`, '💚');
                         showMessage(`몬스터가 ${skillToUse.name}(으)로 HP를 ${healAmount} 회복!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+                    } else if (skillToUse.type == 3) { // Type 3: 공격력 상승 (100% 적용)
+                        const effectValue = skillToUse.effect;
+                        currentMonster.attack += effectValue;
+                        playSound('monster-skillheal-hit'); // (임의 효과음)
+                        await sleep(200);
+                        addBattleLog(`${skillToUse.name} 발동! 공격력 ${effectValue} 증가!`, '🔥');
+                        showMessage(`방해 실패! 몬스터의 공격력이 ${effectValue} 증가했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+                    } else if (skillToUse.type == 4) { // Type 4: HP 상승 (100% 적용, 비율 유지)
+                        const effectValue = skillToUse.effect;
+                        const hpPercent = currentMonster.hp / currentMonster.maxHp;
+                        currentMonster.maxHp += effectValue;
+                        currentMonster.hp = Math.round(currentMonster.maxHp * hpPercent);
+                        playSound('monster-skillheal-hit'); // (임의 효과음)
+                        await sleep(200);
+                        addBattleLog(`${skillToUse.name} 발동! 최대 HP ${effectValue} 증가!`, '💪');
+                        showMessage(`방해 실패! 몬스터의 최대 HP가 ${effectValue} 증가했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+                    } else if (skillToUse.type == 5) { // Type 5: 방해 효과 감소 (100% 적용)
+                        const effectValue = skillToUse.effect; // 100% 적용
+                        const effectDecreasePercent = (effectValue * 100).toFixed(0); // 1. 방해 효과 감소량 (예: 10%)
+
+                        player.interferenceMultiplier += effectValue;
+                        player.interferenceMultiplier = Math.min(1.0, player.interferenceMultiplier);
+                        
+                        const totalBlockPercent = (1 - player.interferenceMultiplier) * 100; // 2. 총 방해 효과 (예: 40%)
+
+                        playSound('monster-skillheal-hit'); // (임의 효과음)
+                        await sleep(200);
+                        addBattleLog(`${skillToUse.name} 발동! 방해 효과 감소!`, '📉');
+                        // 3. 메시지 수정 (UI용)
+                        showMessage(`방해 실패! 방해/방어 효과가 ${effectDecreasePercent}% 감소했다!<br>현재 방해/방어 효과: ${totalBlockPercent.toFixed(0)}%`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
                     }
                 }
                 updateUI();
@@ -816,7 +888,7 @@ function enemyBasicAttack(question) {
             playSound('monster-attack-blocked');
             await sleep(200);
             setMonsterImage('happy');
-            const reducedDamage = Math.floor(parseInt(currentMonster.attack) * 0.5);
+            const reducedDamage = Math.floor(parseInt(currentMonster.attack) * player.interferenceMultiplier);
             player.hp = Math.max(0, player.hp - reducedDamage);
             updateUI();
             addBattleLog(`방어 성공! ${reducedDamage}의 데미지!`, '🛡️');
@@ -1082,7 +1154,7 @@ function useSkill(skill) {
         player.mp -= skill.mpCost;
         if (isCorrect) {
             setMonsterImage('hurt');
-            if (skill.type === 1) {
+            if (skill.type === 1) { // Type 1: 공격
                 playSound('player-skillat-hit');
                 await sleep(200);
                 shakeScreen();
@@ -1090,19 +1162,51 @@ function useSkill(skill) {
                 currentMonster.hp = Math.max(0, currentMonster.hp - damage);
                 addBattleLog(`${skill.name} 발동! ${damage} 데미지!`, '✨');
                 showMessage(`${skill.name} 발동! ${damage}의 데미지!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
-            } else if (skill.type === 2) {
+
+            } else if (skill.type === 2) { // Type 2: 회복
                 playSound('player-skillheal-hit');
                 await sleep(200);
                 player.hp = Math.min(player.maxHp, player.hp + skill.effect);
                 addBattleLog(`${skill.name} 발동! HP ${skill.effect} 회복!`, '💚');
                 showMessage(`${skill.name} 발동! HP를 ${skill.effect} 회복했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+            } else if (skill.type === 3) { // Type 3: 공격력 일시 상승
+                player.attack += skill.effect;
+                playSound('player-skillheal-hit'); // (회복 효과음 재사용)
+                await sleep(200);
+                addBattleLog(`${skill.name} 발동! 공격력 ${skill.effect} 증가!`, '🔥');
+                showMessage(`${skill.name} 발동! 공격력이 일시적으로 ${skill.effect}만큼 증가했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+            } else if (skill.type === 4) { // Type 4: HP 일시 상승 (비율 유지)
+                const hpPercent = player.hp / player.maxHp; // 현재 HP 비율 계산
+                player.maxHp += skill.effect; // 최대 HP 증가
+                player.hp = Math.round(player.maxHp * hpPercent); // 비율에 맞춰 현재 HP 증가
+                playSound('player-skillheal-hit'); // (회복 효과음 재사용)
+                await sleep(200);
+                addBattleLog(`${skill.name} 발동! 최대 HP ${skill.effect} 증가!`, '💪');
+                showMessage(`${skill.name} 발동! 최대 HP가 일시적으로 ${skill.effect}만큼 증가했다!`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
+
+            } else if (skill.type === 5) { // Type 5: 방해/방어 효과 일시 상승
+                const effectIncreasePercent = (skill.effect * 100).toFixed(0); // 1. 방해 효과 증가량 (예: 10%)
+
+                player.interferenceMultiplier -= skill.effect;
+                // 0% 미만으로 떨어지지 않도록 Clamping
+                player.interferenceMultiplier = Math.max(0.2, player.interferenceMultiplier);
+                
+                const totalBlockPercent = (1 - player.interferenceMultiplier) * 100; // 2. 총 방해 효과 (예: 60%)
+
+                playSound('player-skillheal-hit'); // (임의 효과음)
+                await sleep(200);
+                addBattleLog(`${skill.name} 발동! 방해/방어 효과 강화!`, '🛡️');
+                // 3. 메시지 수정 (UI용)
+                showMessage(`${skill.name} 발동! 방해/방어 효과가 ${effectIncreasePercent}% 상승했다!<br>현재 방해/방어 효과: ${totalBlockPercent.toFixed(0)}%`, { isCorrect: isCorrect, explanation: currentQuestion.explanation }, checkBattleEnd);
             }
         } else {
             setMonsterImage('happy');
             if (skill.type === 1){
                 playSound('player-skillat-miss');
                 await sleep(200);
-            } else if (skill.type ===2){
+            } else { /*일단 type 1(공격 스킬) 제외하고는 동일한 효과음 사용.*/
                 playSound('player-skillheal-miss');
                 await sleep(200);
             }
@@ -1264,6 +1368,8 @@ function initGame() {
     player.hp = player.maxHp;
     player.mp = player.maxMp;
 
+    player.interferenceMultiplier = 0.5;
+
     currentMonsterIndex = 0;
 
     // 튜토리얼 전투일 때는 M998 몬스터만 사용
@@ -1306,6 +1412,7 @@ function initGame() {
         newMonster.maxHp = parseInt(newMonster.hp, 10) || 50;
         newMonster.hp = newMonster.maxHp;
         newMonster.mp = parseInt(newMonster.mp, 10) || 10;
+        newMonster.attack = parseInt(newMonster.attack, 10) || 10;
         return newMonster;
     };
 
@@ -1315,6 +1422,7 @@ function initGame() {
     } else {
         // 튜토리얼은 이미 설정됨
         currentMonster = monstersInDungeon[currentMonsterIndex];
+        currentMonster.attack = parseInt(currentMonster.attack, 10) || 10;
     }
      
     playerNameEl.textContent = player.name;
@@ -1437,9 +1545,22 @@ function initGame() {
                 collectionAttackBonus += tierBonuses[i].att;
             }
         }
-        const equippedAttackBonus = player.attack - player.baseAttack - collectionAttackBonus;
-        const equippedHpBonus = player.maxHp - player.baseHp - collectionHpBonus;
-        const equippedMpBonus = player.maxMp - player.baseMp - collectionMpBonus;
+        let equippedHpBonus = 0;
+        let equippedMpBonus = 0;
+        let equippedAttackBonus = 0;
+
+        player.equippedCards.forEach(cardId => {
+            const card = cardDB.find(c => c.id === cardId);
+            if (card) {
+                equippedHpBonus += card.hpBonus;
+                equippedMpBonus += card.mpBonus;
+                equippedAttackBonus += card.attackBonus;
+            }
+        });
+
+        const buffHp = player.maxHp - player.baseHp - collectionHpBonus - equippedHpBonus;
+        const buffMp = player.maxMp - player.baseMp - collectionMpBonus - equippedMpBonus;
+        const buffAttack = player.attack - player.baseAttack - collectionAttackBonus - equippedAttackBonus;
 
         // ✅ (5) 장착 카드 목록 HTML 생성
         let equippedCardsHTML = '';
@@ -1465,21 +1586,21 @@ function initGame() {
                     <span class="info-value">${player.maxHp}</span>
                 </div>
                 <div class="info-row" style="font-size: 0.85em; color: #999; padding-left: 20px; padding-top: 0;">
-                    <span>기본 ${player.baseHp} + 도감 ${collectionHpBonus} + 장착 ${equippedHpBonus}</span>
+                    <span>기본 ${player.baseHp} + 도감 ${collectionHpBonus} + 장착 ${equippedHpBonus} + 부가 ${buffHp}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">최대 MP</span>
                     <span class="info-value">${player.maxMp}</span>
                 </div>
                 <div class="info-row" style="font-size: 0.85em; color: #999; padding-left: 20px; padding-top: 0;">
-                    <span>기본 ${player.baseMp} + 도감 ${collectionMpBonus} + 장착 ${equippedMpBonus}</span>
+                    <span>기본 ${player.baseMp} + 도감 ${collectionMpBonus} + 장착 ${equippedMpBonus} + 부가 ${buffMp}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">공격력</span>
                     <span class="info-value">${player.attack}</span>
                 </div>
                 <div class="info-row" style="font-size: 0.85em; color: #999; padding-left: 20px; padding-top: 0;">
-                    <span>기본 ${player.baseAttack} + 도감 ${collectionAttackBonus} + 장착 ${equippedAttackBonus}</span>
+                    <span>기본 ${player.baseAttack} + 도감 ${collectionAttackBonus} + 장착 ${equippedAttackBonus} + 부가 ${buffAttack}</span>
                 </div>
             </div>
 
@@ -1623,4 +1744,12 @@ function runRandomTest(questionId, iterations = 100) {
 }
 
 window.runRandomTest = runRandomTest;
+// [임시 디버그 기능]
+    window.matk = function() {
+        if (currentMonster) {
+            console.log(`현재 몬스터(${currentMonster.name})의 공격력: ${currentMonster.attack}`);
+        } else {
+            console.log("현재 몬스터가 없습니다.");
+        }
+    };
 })();

@@ -69,7 +69,8 @@ tutorialOverlay.id = 'ui-curtain'; // ID 변경
 const GACHA_CATEGORIES = {
     '품사 ①': ['CP001', 'CP002', 'CP003'],
     '품사 ②': ['CP004', 'CP005', 'CP006', 'CP007', 'CP008','CP010'],
-    '문장 성분 ①': ['CP021', 'CP022', 'CP023']
+    '문장 성분 ①': ['CP021', 'CP022', 'CP023'],
+    '문장 성분 ②': ['CP024', 'CP025', 'CP026', 'CP027', 'CP028','CP030']
     // 추후 새로운 카테고리와 카드팩 ID를 여기에 추가하면 됩니다.
 };
 
@@ -1498,7 +1499,7 @@ function drawCard(pack) {
             userData.gold += goldRefund;
 
             for (const pointType in requiredPoints) {
-                const pointsRefund = Math.round(requiredPoints[pointType] * 0.7);
+                const pointsRefund = Math.round(requiredPoints[pointType] * 0.6);
                 if (pointsRefund > 0) {
                     const pointName = pointTypeNames[pointType] || pointType;
                     // [수정] "이름 수치P" 순서로 메시지 생성
@@ -1510,7 +1511,7 @@ function drawCard(pack) {
             resultTitle.textContent = '💧 이런... 이미 소유한 카드네요.💧';
 
             // 최종 메시지 조합
-            let finalMessage = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 70%인 `;
+            let finalMessage = `'${drawnCard.name}' 카드를 이미 소유하고 있어,<br>비용의 60%인 `;
             let refundParts = [];
 
             if (goldRefund > 0) {
