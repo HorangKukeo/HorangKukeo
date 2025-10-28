@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제 풀이 사이트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #5f7a8f 0%, #78909c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5f7a8f 0%, #78909c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.3);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .question-section {
+            padding: 40px;
+        }
+
+        .question-number {
+            color: #5f7a8f;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .question-type {
+            display: inline-block;
+            background: #eceff1;
+            color: #5f7a8f;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* OX 버튼 스타일 */
+        .ox-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .ox-btn {
+            flex: 1;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: 700;
+            border: 3px solid #e2e8f0;
+            background: white;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ox-btn:hover {
+            border-color: #5f7a8f;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(95, 122, 143, 0.2);
+        }
+
+        .ox-btn.selected {
+            background: #5f7a8f;
+            color: white;
+            border-color: #5f7a8f;
+        }
+
+        .ox-btn.o {
+            color: #5f8d6b;
+        }
+
+        .ox-btn.o.selected {
+            background: #5f8d6b;
+            border-color: #5f8d6b;
+            color: white;
+        }
+
+        .ox-btn.x {
+            color: #c17171;
+        }
+
+        .ox-btn.x.selected {
+            background: #c17171;
+            border-color: #c17171;
+            color: white;
+        }
+
+        /* 단답형 입력 스타일 */
+        .short-answer {
+            margin-bottom: 20px;
+        }
+
+        .short-answer input {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 16px;
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .short-answer input:focus {
+            outline: none;
+            border-color: #5f7a8f;
+            box-shadow: 0 0 0 4px rgba(95, 122, 143, 0.1);
+        }
+
+        /* 버튼 */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background: #5f7a8f;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #4d6477;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(95, 122, 143, 0.3);
+        }
+
+        .btn-next {
+            background: #5f8d6b;
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #4d7557;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(95, 141, 107, 0.3);
+        }
+
+        .btn-skip {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-skip:hover {
+            background: #cbd5e0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 결과 피드백 */
+        .feedback {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.correct {
+            background: #d4e7d9;
+            color: #2d5237;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #ead7d7;
+            color: #6b3737;
+            display: block;
+        }
+
+        /* 점수 표시 */
+        .score {
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 640px) {
+            .container {
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 24px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .question-section {
+                padding: 30px 24px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .ox-btn {
+                font-size: 20px;
+                padding: 16px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+
+        /* 완료 화면 */
+        .completion-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .completion-screen.active {
+            display: block;
+        }
+
+        .completion-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+
+        .completion-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+
+        .completion-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: #5f7a8f;
+            margin-bottom: 30px;
+        }
+
+        .completion-message {
+            font-size: 18px;
+            color: #718096;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>문제 풀이</h1>
+            <div class="score">점수: <span id="score">0</span> / <span id="total">0</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+        </div>
+
+        <div class="question-section" id="questionSection">
+            <div class="question-number">문제 <span id="currentQuestion">1</span> / <span id="totalQuestions">5</span></div>
+            <span class="question-type" id="questionType">OX</span>
+            <div class="question-text" id="questionText">
+                한글은 세종대왕이 만든 문자이다.
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+
+            <!-- OX 버튼 -->
+            <div class="ox-buttons" id="oxButtons">
+                <button class="ox-btn o" onclick="selectOX('O')">O</button>
+                <button class="ox-btn x" onclick="selectOX('X')">X</button>
+            </div>
+
+            <!-- 단답형 입력 -->
+            <div class="short-answer" id="shortAnswer" style="display: none;">
+                <input type="text" id="answerInput" placeholder="답을 입력하세요">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-skip" onclick="skipQuestion()">건너뛰기</button>
+                <button class="btn btn-submit" id="submitBtn" onclick="submitAnswer()">제출</button>
+            </div>
+        </div>
+
+        <div class="completion-screen" id="completionScreen">
+            <div class="completion-icon">🎉</div>
+            <h2 class="completion-title">모든 문제를 완료했습니다!</h2>
+            <div class="completion-score"><span id="finalScore">0</span>점</div>
+            <div class="completion-message">
+                총 <span id="finalTotal">5</span>문제 중 <span id="finalCorrect">0</span>문제 정답
+            </div>
+            <button class="btn btn-next" onclick="restartQuiz()">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        // 문제 데이터
+        const questions = [
+            {
+                type: 'ox',
+                question: '한글은 세종대왕이 만든 문자이다.',
+                answer: 'O'
+            },
+            {
+                type: 'short',
+                question: '(_____)은/는 판소리 사설이 소설로 정착한 것이다.',
+                answer: '판소리계 소설'
+            },
+            {
+                type: 'ox',
+                question: '"책상 위에"에서 "위에"는 조사이다.',
+                answer: 'X'
+            },
+            {
+                type: 'short',
+                question: '용언의 어간에 붙어 문법적 의미를 더하는 형태소를 무엇이라 하는가?',
+                answer: '어미'
+            },
+            {
+                type: 'ox',
+                question: '"사랑보다 소중한 슬픔"에 사용된 표현 방법은 역설법이다.',
+                answer: 'O'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswer = null;
+
+        // 초기화
+        function init() {
+            document.getElementById('totalQuestions').textContent = questions.length;
+            document.getElementById('total').textContent = questions.length;
+            loadQuestion();
+        }
+
+        // 문제 불러오기
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletion();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            userAnswer = null;
+
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('questionType').textContent = question.type === 'ox' ? 'OX' : '단답형';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('feedback').className = 'feedback';
+
+            // 진행률 업데이트
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+
+            // 문제 타입에 따라 UI 변경
+            if (question.type === 'ox') {
+                document.getElementById('oxButtons').style.display = 'flex';
+                document.getElementById('shortAnswer').style.display = 'none';
+                document.querySelectorAll('.ox-btn').forEach(btn => btn.classList.remove('selected'));
+            } else {
+                document.getElementById('oxButtons').style.display = 'none';
+                document.getElementById('shortAnswer').style.display = 'block';
+                document.getElementById('answerInput').value = '';
+            }
+
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        // OX 선택
+        function selectOX(value) {
+            userAnswer = value;
+            document.querySelectorAll('.ox-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        // 답안 제출
+        function submitAnswer() {
+            const question = questions[currentQuestionIndex];
+            
+            if (question.type === 'ox') {
+                if (!userAnswer) {
+                    alert('답을 선택해주세요.');
+                    return;
+                }
+            } else {
+                userAnswer = document.getElementById('answerInput').value.trim();
+                if (!userAnswer) {
+                    alert('답을 입력해주세요.');
+                    return;
+                }
+            }
+
+            // 정답 체크
+            const isCorrect = userAnswer === question.answer;
+            
+            if (isCorrect) {
+                score++;
+                document.getElementById('feedback').textContent = '✓ 정답입니다!';
+                document.getElementById('feedback').className = 'feedback correct';
+            } else {
+                document.getElementById('feedback').textContent = `✗ 오답입니다. 정답은 "${question.answer}"입니다.`;
+                document.getElementById('feedback').className = 'feedback incorrect';
+            }
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('submitBtn').disabled = true;
+
+            // 1.5초 후 다음 문제로
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 1500);
+        }
+
+        // 건너뛰기
+        function skipQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        // 완료 화면
+        function showCompletion() {
+            document.getElementById('questionSection').style.display = 'none';
+            document.getElementById('completionScreen').classList.add('active');
+            document.getElementById('finalScore').textContent = Math.round((score / questions.length) * 100);
+            document.getElementById('finalTotal').textContent = questions.length;
+            document.getElementById('finalCorrect').textContent = score;
+
+            // 진행률 100%
+            document.getElementById('progress').style.width = '100%';
+        }
+
+        // 다시 시작
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('score').textContent = 0;
+            document.getElementById('questionSection').style.display = 'block';
+            document.getElementById('completionScreen').classList.remove('active');
+            loadQuestion();
+        }
+
+        // 페이지 로드 시 초기화
+        init();
+    </script>
+</body>
+</html>

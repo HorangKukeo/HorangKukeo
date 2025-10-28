@@ -18,6 +18,7 @@ const userNicknameEl = document.getElementById('user-nickname');
 const userGoldEl = document.getElementById('user-gold');
 const userPosPointsEl = document.getElementById('user-pos-points');
 const userScPointsEl = document.getElementById('user-sc-points');
+const userMorPointsEl = document.getElementById('user-mor-points');
 const userCardCountEl = document.getElementById('user-card-count');
 const playerHpBar = document.getElementById('player-hp-bar');
 const playerHpValue = document.getElementById('player-hp-value');
@@ -196,9 +197,16 @@ function displayUserData() {
 
         // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
         const tierBonuses = [
-            { hp: 10, mp: 5, att: 5 },   // 10개 이상
-            { hp: 15, mp: 8, att: 7 }, // 20개 이상
-            { hp: 20, mp: 12, att: 13 }  // 30개 이상
+            { hp: 10, mp: 5, att: 10 },   // 10개 이상
+            { hp: 15, mp: 10, att: 5 }, // 20개 이상
+            { hp: 20, mp: 10, att: 5 },  // 30개 이상
+            { hp: 10, mp: 5, att: 5 },  // 40개 이상
+            { hp: 30, mp: 20, att: 25 },  // 50개 이상
+            { hp: 20, mp: 30, att: 15 },  // 60개 이상
+            { hp: 10, mp: 40, att: 20 },  // 70개 이상
+            { hp: 40, mp: 15, att: 15 },  // 80개 이상
+            { hp: 50, mp: 15, att: 15 },  // 90개 이상
+            { hp: 60, mp: 30, att: 40 }  // 100개 이상
             // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
         ];
 
@@ -273,6 +281,7 @@ function displayUserData() {
     userGoldEl.textContent = userData.gold;
     userPosPointsEl.textContent = userData.points.partsOfSpeech || 0;
     userScPointsEl.textContent = userData.points.sentenceComponents || 0;
+    userMorPointsEl.textContent = userData.points.morpheme || 0;
     
     userCardCountEl.textContent = ownedCardCount;
     
@@ -1492,7 +1501,8 @@ function drawCard(pack) {
             
             const pointTypeNames = {
                 partsOfSpeech: '품사 포인트',
-                sentenceComponents: '문장 성분 포인트'
+                sentenceComponents: '문장 성분 포인트',
+                morpheme: '형태소'
             };
 
             // 환급액 적용
@@ -1639,7 +1649,8 @@ function renderPacksByCategory(categoryName, allPacksForSale) {
 
     const pointTypeNames = {
         partsOfSpeech: '품사 포인트',
-        sentenceComponents: '문장 성분 포인트'
+        sentenceComponents: '문장 성분 포인트',
+        morpheme: '형태소 포인트'
     };
 
     if (packsToDisplay.length === 0) {

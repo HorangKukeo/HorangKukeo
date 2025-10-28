@@ -1055,6 +1055,9 @@ function checkBattleEnd() {
                 } else if (currentMonster.affiliation === '문장 성분') {
                     pointTypeKey = 'sentenceComponents';
                     pointTypeName = '문장 성분';
+                } else if (currentMonster.affiliation === '형태소') {
+                    pointTypeKey = 'morpheme';
+                    pointTypeName = '형태소';
                 }
 
                 if (pointTypeKey && player.points[pointTypeKey] > 0) {
@@ -1096,6 +1099,9 @@ function checkBattleEnd() {
                 } else if (currentMonster.affiliation === '문장 성분') {
                     pointTypeKey = 'sentenceComponents';
                     pointTypeName = '문장 성분';
+                } else if (currentMonster.affiliation === '형태소') {
+                    pointTypeKey = 'morpheme';
+                    pointTypeName = '형태소';
                 }
 
                 if (pointTypeKey) {
@@ -1393,7 +1399,14 @@ function initGame() {
     if (isTutorialBattle) {
         const tutorialMonster = monsterDB.find(m => m.id === 'M998');
         if (tutorialMonster) {
-            const questionsData = questionDB.find(q => q.id === tutorialMonster.questionId);
+            const possibleQuestionSetIds = parseQuestionPool(tutorialMonster.questionPool);
+            let selectedQuestionSetId = null;
+
+            if (possibleQuestionSetIds.length > 0) {
+                // 2. 튜토리얼은 랜덤이 아니므로, 목록의 첫 번째 ID를 사용합니다.
+                selectedQuestionSetId = possibleQuestionSetIds[0]; 
+            }
+            const questionsData = questionDB.find(q => q.id === selectedQuestionSetId);
             const newMonster = { ...tutorialMonster };
             newMonster.usedQuestions = [];
             newMonster.questionCount = {};
@@ -1471,7 +1484,8 @@ function initGame() {
             let rewardsHTML = `<p>💰 골드: ${dungeonRewards.gold} G</p>`;
             const pointTypeNames = {
                 partsOfSpeech: '품사 포인트',
-                sentenceComponents: '문장 성분 포인트'
+                sentenceComponents: '문장 성분 포인트',
+                morpheme: '형태소 포인트'
             };
             for (const pointType in dungeonRewards.points) {
                 const pointAmount = dungeonRewards.points[pointType];
@@ -1637,6 +1651,10 @@ function initGame() {
                 <div class="info-row">
                     <span class="info-label">문장 성분 포인트</span>
                     <span class="info-value">${player.points.sentenceComponents || 0} P</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">형태소 포인트</span>
+                    <span class="info-value">${player.points.morpheme || 0} P</span>
                 </div>
             </div>
 

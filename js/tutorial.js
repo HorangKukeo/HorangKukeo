@@ -41,8 +41,8 @@ class GameTutorial {
                     <p style="margin-top: 15px;"><strong>🔹 보유 카드:</strong> 수집한 모든 카드는 누적 보너스를 제공합니다.</p>
                     <p style="margin: 5px 0; color: #999;">• 카드 1장 = HP +1, MP +0.5, 공격력 +0.5</p>
                     <p style="margin: 5px 0; color: #999;">• 카드 10장마다 강력한 추가 효과를 부여받습니다.</p>
-                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 보유 카드 10장 이상 : HP + 10, MP + 5, 공격력 + 5</p>
-                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 보유 카드 20장 이상 : HP + 25, MP + 13, 공격력 + 12</p>
+                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 보유 카드 10장 이상 : HP + 10, MP + 5, 공격력 + 10</p>
+                        <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 보유 카드 20장 이상 : HP + 25, MP + 15, 공격력 + 15</p>
                         <p style="margin: 3px 0; margin-left: 20px; color: #999;"> - 이후에도 10장당 추가 효과를 부여 받습니다.</p>
                     
                     <p style="margin-top: 15px;"><strong>⚡ 장착 카드:</strong> 최대 4장까지 선택해 장착할 수 있습니다.</p>
