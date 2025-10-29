@@ -8,6 +8,34 @@
     const CONSECUTIVE_WIN_STOP = 10; // 3회 연속 성공 시 조기 종료
     // EARLY_EXIT_FAILURE_COUNT 상수 제거
 
+    // === [신규] Stat 추정 함수 (JS 변환) ===
+    /** (a=3.7602, b=-32.5005, c=131.6909) */
+    function estimate_hp(level) {
+        const hp = (3.7602 * level**2) + (-32.5005 * level) + 131.6909;
+        return Math.max(10, parseInt(hp)); // 최소 HP 10 보장
+    }
+    /** (a=0.6990, b=-6.1998, c=37.2088) */
+    function estimate_mp(level) {
+        const mp = (0.6990 * level**2) + (-6.1998 * level) + 37.2088;
+        return Math.max(0, parseInt(mp)); // 최소 MP 0 보장
+    }
+    /** (a=0.0021, b=5.4956, c=-0.5188) */
+    function estimate_attack(level) {
+        const attack = (0.0021 * level**2) + (5.4956 * level) - 0.5188;
+        return Math.max(1, parseInt(attack)); // 최소 ATK 1 보장
+    }
+
+    /** (a=12.4120, b=-166.3972, c=462.7128) */
+    function estimate_gold(level) {
+        const gold = ((12.4120 * level**2) + (-166.3972 * level) + 462.7128) * 0.90;
+        return Math.max(0, parseInt(gold)); // 최소 0
+    }
+    /** (a=11.5485, b=-169.3519, c=478.2139) */
+    function estimate_point(level) {
+        const point = ((11.5485 * level**2) + (-169.3519 * level) + 478.2139) * 0.90;
+        return Math.max(0, parseInt(point)); // 최소 0
+    }
+
     // === DB 저장소 ===
     let DB = {
         Cards: [], Skills: [], Items: [], CardPacks: [],
@@ -23,12 +51,33 @@
     const simulatorPanel = document.getElementById('simulator-panel'); //
     const controls = document.getElementById('controls'); //
     const report = document.getElementById('report'); //
+    const reportContainer = document.getElementById('report-container'); // [신규] 리포트 컨테이너
     const monsterSelect = document.getElementById('monster-select'); //
     const dungeonSelect = document.getElementById('dungeon-select'); //
     const startBtn = document.getElementById('start-sim-btn'); //
     const recentLogsContainer = document.getElementById('recent-logs-container'); //
     const recentLogsList = document.getElementById('recent-logs-list'); //
     const startLevelInput = document.getElementById('start-level-input'); // 시작 레벨 입력 필드
+
+    // === [신규] 몬스터 생성기 DOM 요소 ===
+    const generatorPanel = document.getElementById('generator-panel');
+    const genMonsterLevel = document.getElementById('gen-monster-level');
+    const genHp = document.getElementById('gen-hp');
+    const genMp = document.getElementById('gen-mp');
+    const genAtk = document.getElementById('gen-atk');
+    const genGold = document.getElementById('gen-gold');
+    const genPoint = document.getElementById('gen-point');
+    const genCopyStatsBtn = document.getElementById('gen-copy-stats-btn');
+    const genSkill1Type = document.getElementById('gen-skill1-type');
+    const genSkill1Effect = document.getElementById('gen-skill1-effect');
+    const genSkill1Mpcost = document.getElementById('gen-skill1-mpcost');
+    const genSkill2Type = document.getElementById('gen-skill2-type');
+    const genSkill2Effect = document.getElementById('gen-skill2-effect');
+    const genSkill2Mpcost = document.getElementById('gen-skill2-mpcost');
+    const genSkill3Type = document.getElementById('gen-skill3-type');
+    const genSkill3Effect = document.getElementById('gen-skill3-effect');
+    const genSkill3Mpcost = document.getElementById('gen-skill3-mpcost');
+    const startGenSimBtn = document.getElementById('start-gen-sim-btn');
 
     /**
      * 리포트 창에 로그를 추가합니다. (HTML 형식)
@@ -99,6 +148,8 @@
                 if (DB.Monsters && DB.Monsters.length > 0) { // DB 데이터 유효성 확인
                     populateSelects(); //
                     simulatorPanel.classList.remove('hidden'); //
+                    generatorPanel.classList.remove('hidden'); // [신규]
+                    reportContainer.classList.remove('hidden'); // [신규]
                     dbStatus.textContent = "DB loaded from Local Storage."; //
                     loadDbBtn.textContent = "Reload DB from Server"; //
                     recentLogsContainer.classList.remove('hidden'); // 로그 패널 표시
@@ -173,6 +224,8 @@
 
             populateSelects(); //
             simulatorPanel.classList.remove('hidden'); //
+            generatorPanel.classList.remove('hidden'); // [신규]
+            reportContainer.classList.remove('hidden'); // [신규]
             dbStatus.textContent = "DB Loaded successfully from Server."; //
             loadDbBtn.textContent = "Reload DB from Server"; //
             recentLogsContainer.classList.remove('hidden'); // 로그 패널 표시
@@ -246,6 +299,7 @@
                 maxHp: L * 5 + 30, //
                 hp: L * 5 + 30, //
                 attack: L * 2.5 + 10, //
+                interferenceMultiplier: 0.5, // ◀ battle.js의 방해/방어 배율 (기본값 0.5)
             };
         }
 
@@ -299,7 +353,8 @@
                 isCorrect = Math.random() < USER_SUCCESS_RATE; // 유저 방어/방해 성공 여부
 
                 if (action.type === 'attack') { //
-                    const damage = isCorrect ? monster_battle.attack * 0.5 : monster_battle.attack; //
+                    // [수정] 0.5 대신 s_user_battle.interferenceMultiplier 사용
+                    const damage = isCorrect ? monster_battle.attack * s_user_battle.interferenceMultiplier : monster_battle.attack; //
                     s_user_battle.hp -= Math.floor(damage); //
                 }
                 else if (action.type === 'skill') { //
@@ -307,13 +362,34 @@
                     monster_battle.mp -= skill.mpCost; //
                     if (skill.type === 1) { // 공격 스킬
                         const damage = monster_battle.attack * skill.effect; //
-                        const finalDamage = isCorrect ? damage * 0.5 : damage; //
+                        // [수정] 0.5 대신 s_user_battle.interferenceMultiplier 사용
+                        const finalDamage = isCorrect ? damage * s_user_battle.interferenceMultiplier : damage; //
                         s_user_battle.hp -= Math.floor(finalDamage); //
                     } else if (skill.type === 2) { // 회복 스킬
                         const heal = skill.effect; //
-                        const finalHeal = isCorrect ? heal * 0.5 : heal; //
+                        // [수정] 0.5 대신 s_user_battle.interferenceMultiplier 사용
+                        const finalHeal = isCorrect ? heal * s_user_battle.interferenceMultiplier : heal; //
                         monster_battle.hp = Math.min(monster_battle.maxHp, monster_battle.hp + Math.floor(finalHeal)); //
+                    
+                    // === [신규] battle.js 스킬 로직 추가 (Type 3, 4, 5) ===
+                    } else if (skill.type === 3) { // Type 3: 공격력 상승
+                        const effectValue = isCorrect ? skill.effect * s_user_battle.interferenceMultiplier : skill.effect;
+                        monster_battle.attack += Math.floor(effectValue);
+
+                    } else if (skill.type === 4) { // Type 4: HP 상승 (비율 유지)
+                        const effectValue = isCorrect ? skill.effect * s_user_battle.interferenceMultiplier : skill.effect;
+                        const hpPercent = monster_battle.hp / monster_battle.maxHp;
+                        monster_battle.maxHp += Math.floor(effectValue);
+                        monster_battle.hp = Math.round(monster_battle.maxHp * hpPercent);
+
+                    } else if (skill.type === 5) { // Type 5: 방해 효과 감소 (유저 스탯 변경)
+                        // [수정] 0.5 대신 s_user_battle.interferenceMultiplier 사용
+                        const effectValue = isCorrect ? skill.effect * s_user_battle.interferenceMultiplier : skill.effect;
+                        s_user_battle.interferenceMultiplier += effectValue;
+                        // battle.js 로직: 1.0 (100%)를 넘지 않도록 제한
+                        s_user_battle.interferenceMultiplier = Math.min(1.0, s_user_battle.interferenceMultiplier);
                     }
+                    // === [신규] 로직 추가 끝 ===
                 }
                 if (s_user_battle.hp <= 0) return false; // 유저 패배
             }
@@ -377,6 +453,7 @@
                 const finalN = firstSuccessL > 0 ? firstSuccessL : -1; //
                 logToReport(`<h3>시뮬레이션 종료 (50% 클리어 L=${finalN > 0 ? finalN : 'N/A'} + 3)</h3>`); //
                 startBtn.disabled = false; // 버튼 다시 활성화
+                startGenSimBtn.disabled = false; // [신규] 생성 버튼도 활성화
                 saveSimulationLog(monsterData.name, finalN); // 로그 저장
                 return; // 재귀 중단
             }
@@ -454,6 +531,7 @@
                 const finalN = firstSuccessL > 0 ? firstSuccessL : -1; //
                 logToReport(`<h3>시뮬레이션 종료 (50% 클리어 L=${finalN > 0 ? finalN : 'N/A'} + 3)</h3>`); //
                 startBtn.disabled = false; // 버튼 다시 활성화
+                startGenSimBtn.disabled = false; // [신규] 생성 버튼도 활성화
                 saveSimulationLog(dungeonData.name, finalN); // 로그 저장
                 return; // 재귀 중단
             }
@@ -466,10 +544,148 @@
     } // End of SimulationEngine class
 
     /**
+     * [신규] 몬스터 레벨이 변경될 때 Stat 필드를 자동으로 채웁니다.
+     */
+    function updateEstimatedStats() {
+        const L = parseInt(genMonsterLevel.value, 10);
+        if (isNaN(L) || L < 1) {
+            // 값이 유효하지 않으면 필드 비우기
+            genHp.value = ''; genMp.value = ''; genAtk.value = ''; genGold.value = ''; genPoint.value = '';
+            return;
+        }
+        genHp.value = estimate_hp(L);
+        genMp.value = estimate_mp(L);
+        genAtk.value = estimate_attack(L);
+        genGold.value = estimate_gold(L);
+        genPoint.value = estimate_point(L);
+    }
+
+
+    /**
      * 페이지 초기화
      */
     function initialize() {
         loadDbBtn.addEventListener('click', loadAllGameData); //
+        // [신규] 몬스터 레벨 변경 시 Stat 자동 계산 리스너
+        genMonsterLevel.addEventListener('input', updateEstimatedStats);
+        
+        // [신규] 페이지 로드 시 기본값(Lv.10)으로 Stat 자동 계산 실행
+        updateEstimatedStats();
+
+        // [신규] Stat 복사 버튼 리스너
+        genCopyStatsBtn.addEventListener('click', () => {
+            try {
+                const level = genMonsterLevel.value;
+                const hp = genHp.value;
+                const mp = genMp.value;
+                const atk = genAtk.value;
+                const gold = genGold.value;
+                const point = genPoint.value;
+
+                // [수정] 헤더 없이 값만 복사 (LV \t HP \t MP \t Atk \t Gold \t Point)
+                const values = `${level}\t${hp}\t${mp}\t${atk}\t${gold}\t${point}`;
+
+                navigator.clipboard.writeText(values);
+                
+                // 피드백
+                const originalText = genCopyStatsBtn.textContent;
+                genCopyStatsBtn.textContent = '복사 완료!';
+                genCopyStatsBtn.disabled = true;
+                setTimeout(() => {
+                    genCopyStatsBtn.textContent = originalText;
+                    genCopyStatsBtn.disabled = false;
+                }, 1500);
+
+            } catch (err) {
+                console.error('클립보드 복사 실패:', err);
+                alert('클립보드 복사에 실패했습니다. (HTTP 환경에서는 작동하지 않을 수 있습니다.)');
+            }
+        });
+
+
+        // [신규] 생성기 버튼 이벤트 리스너
+        startGenSimBtn.addEventListener('click', () => {
+            const L = parseInt(genMonsterLevel.value, 10);
+            if (isNaN(L) || L < 1) {
+                alert("유효한 몬스터 레벨을 입력하세요 (1 이상).");
+                return;
+            }
+
+            // 1. Stat [수정] -> 필드에서 직접 읽기 (값이 없으면 0으로)
+            const finalHp = parseInt(genHp.value, 10) || 0;
+            const finalMp = parseInt(genMp.value, 10) || 0;
+            const finalAtk = parseInt(genAtk.value, 10) || 0;
+            const finalGold = parseInt(genGold.value, 10) || 0;
+            const finalPoint = parseInt(genPoint.value, 10) || 0;
+
+            if (finalHp <= 0 || finalAtk <= 0) {
+                alert("HP와 Attack은 1 이상이어야 합니다. (Stat 자동 생성 또는 수동 입력 필요)");
+                return;
+            }
+
+            // 2. 임시 스킬 생성
+            const tempSkills = [];
+            const skillInputs = [
+                { type: parseInt(genSkill1Type.value, 10), effect: parseFloat(genSkill1Effect.value), mpCost: parseInt(genSkill1Mpcost.value) },
+                { type: parseInt(genSkill2Type.value, 10), effect: parseFloat(genSkill2Effect.value), mpCost: parseInt(genSkill2Mpcost.value) },
+                { type: parseInt(genSkill3Type.value, 10), effect: parseFloat(genSkill3Effect.value), mpCost: parseInt(genSkill3Mpcost.value) }
+            ];
+
+            skillInputs.forEach((skill, index) => {
+                if (skill.type > 0) {
+                    tempSkills.push({
+                        id: `tempSkill${index + 1}`,
+                        name: `(생성) 스킬 ${index + 1}`,
+                        type: skill.type,
+                        effect: skill.effect || 0,
+                        mpCost: skill.mpCost || 0,
+                        desc: `임시 생성 스킬 (Type: ${skill.type})`
+                    });
+                }
+            });
+
+            // 3. 임시 몬스터 생성
+            const monsterData = {
+                id: 'GEN_MONSTER',
+                name: `(생성) Lv.${L} 몬스터`,
+                level: L,
+                hp: finalHp,
+                maxHp: finalHp,
+                mp: finalMp,
+                maxMp: finalMp,
+                attack: finalAtk,
+                goldReward: finalGold,
+                pointReward: finalPoint,
+                affiliation: 'Generated',
+                questionPool: '', // (시뮬레이션 엔진은 questionPool을 사용하지 않음)
+                skillId1: tempSkills[0] ? tempSkills[0].id : null,
+                skillId2: tempSkills[1] ? tempSkills[1].id : null,
+                skillId3: tempSkills[2] ? tempSkills[2].id : null,
+                img: ''
+            };
+
+            // 4. 시뮬레이션을 위한 임시 DB 생성 (기존 DB는 유지)
+            //    엔진이 스킬을 ID로 참조할 수 있도록 임시 스킬과 몬스터를 DB에 주입
+            const tempDB = {
+                ...DB, // Cards, Items 등 기존 DB 복사
+                Skills: [...DB.Skills, ...tempSkills], // 기존 스킬 + 임시 스킬
+                Monsters: [...DB.Monsters, monsterData] // 기존 몬스터 + 임시 몬스터
+            };
+
+            // 5. 시뮬레이션 시작 (기존 로직과 유사)
+            let startL = parseInt(startLevelInput.value, 10);
+            if (isNaN(startL) || startL < 1) {
+                startL = 1;
+                startLevelInput.value = '1';
+            }
+
+            report.innerHTML = `생성 몬스터 (Lv.${L}, HP:${finalHp}, MP:${finalMp}, ATK:${finalAtk}) 시뮬레이션을 시작합니다...`;
+            startBtn.disabled = true;
+            startGenSimBtn.disabled = true;
+
+            const engine = new SimulationEngine(tempDB); // ★임시 DB로 엔진 생성
+            engine.startMonsterSimulation(monsterData.id, startL); // ★임시 몬스터 ID로 시작
+        });
 
         startBtn.addEventListener('click', () => { //
             const monsterId = monsterSelect.value; //
@@ -498,8 +714,35 @@
             }
         });
 
-        monsterSelect.addEventListener('change', () => { if (monsterSelect.value) dungeonSelect.value = ""; }); //
-        dungeonSelect.addEventListener('change', () => { if (dungeonSelect.value) monsterSelect.value = ""; }); //
+        // [수정] 상호작용: DB 선택 시 생성기 초기화
+        monsterSelect.addEventListener('change', () => { 
+            if (monsterSelect.value) {
+                dungeonSelect.value = ""; 
+                // 생성기 값 초기화 (선택 사항)
+                // genMonsterLevel.value = 10;
+                // genSkill1Type.value = 0; ...
+            }
+        }); 
+        dungeonSelect.addEventListener('change', () => { 
+            if (dungeonSelect.value) {
+                monsterSelect.value = ""; 
+                // 생성기 값 초기화 (선택 사항)
+            }
+        }); 
+
+        // [신규] 상호작용: 생성기 사용 시 DB 선택 해제
+        const genInputs = [
+            genMonsterLevel, 
+            genSkill1Type, genSkill1Effect, genSkill1Mpcost,
+            genSkill2Type, genSkill2Effect, genSkill2Mpcost,
+            genSkill3Type, genSkill3Effect, genSkill3Mpcost
+        ];
+        genInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                monsterSelect.value = "";
+                dungeonSelect.value = "";
+            });
+        });
 
         document.querySelectorAll('input[name="sortOrder"]').forEach(radio => { //
             radio.addEventListener('change', () => { //

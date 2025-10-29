@@ -71,7 +71,8 @@ const GACHA_CATEGORIES = {
     '품사 ①': ['CP001', 'CP002', 'CP003'],
     '품사 ②': ['CP004', 'CP005', 'CP006', 'CP007', 'CP008','CP010'],
     '문장 성분 ①': ['CP021', 'CP022', 'CP023'],
-    '문장 성분 ②': ['CP024', 'CP025', 'CP026', 'CP027', 'CP028','CP030']
+    '문장 성분 ②': ['CP024', 'CP025', 'CP026', 'CP027', 'CP028','CP030'],
+    '형태소': ['CP101']
     // 추후 새로운 카테고리와 카드팩 ID를 여기에 추가하면 됩니다.
 };
 
@@ -79,7 +80,9 @@ const GACHA_CATEGORIES = {
 const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw91';
 const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013',
     'D021','D022','D023','D024','D025','D026','D027','D028',
-    'D029', 'D030','D031','D032'];
+    'D029', 'D030','D031','D032',
+    'D101', 'D102', 'D103'];
+    /*'TT1', 'TT2','TT3','TT4','TT5','TT6','TT7'];*/
 
 // [신규] 로딩 지연을 위한 sleep 함수
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -197,17 +200,16 @@ function displayUserData() {
 
         // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
         const tierBonuses = [
-            { hp: 10, mp: 5, att: 10 },   // 10개 이상
-            { hp: 15, mp: 10, att: 5 }, // 20개 이상
-            { hp: 20, mp: 10, att: 5 },  // 30개 이상
-            { hp: 10, mp: 5, att: 5 },  // 40개 이상
-            { hp: 30, mp: 20, att: 25 },  // 50개 이상
-            { hp: 20, mp: 30, att: 15 },  // 60개 이상
-            { hp: 10, mp: 40, att: 20 },  // 70개 이상
-            { hp: 40, mp: 15, att: 15 },  // 80개 이상
-            { hp: 50, mp: 15, att: 15 },  // 90개 이상
-            { hp: 60, mp: 30, att: 40 }  // 100개 이상
-            // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+        { hp: 10, mp: 5, att: 10 },   // 10개 이상
+        { hp: 20, mp: 10, att: 15 }, // 20개 이상
+        { hp: 30, mp: 15, att: 20 },  // 30개 이상
+        { hp: 40, mp: 20, att: 25 },  // 40개 이상
+        { hp: 70, mp: 40, att: 50 },  // 50개 이상
+        { hp: 60, mp: 30, att: 35 },  // 60개 이상
+        { hp: 70, mp: 35, att: 40 },  // 70개 이상
+        { hp: 80, mp: 40, att: 45 },  // 80개 이상
+        { hp: 90, mp: 45, att: 50 },  // 90개 이상
+        { hp: 120, mp: 70, att: 70 }  // 100개 이상
         ];
 
 
@@ -829,10 +831,16 @@ function openGrowthGoalsModal() {
     const ownedCardCount = userData.ownedCards.length;
     // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
     const tierBonuses = [
-        { hp: 10, mp: 5, att: 5 },   // 10개 이상
-        { hp: 20, mp: 10, att: 10 }, // 20개 이상
-        { hp: 30, mp: 15, att: 15 }  // 30개 이상
-        // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+            { hp: 10, mp: 5, att: 10 },   // 10개 이상
+            { hp: 20, mp: 10, att: 15 }, // 20개 이상
+            { hp: 30, mp: 15, att: 20 },  // 30개 이상
+            { hp: 40, mp: 20, att: 25 },  // 40개 이상
+            { hp: 70, mp: 40, att: 50 },  // 50개 이상
+            { hp: 60, mp: 30, att: 35 },  // 60개 이상
+            { hp: 70, mp: 35, att: 40 },  // 70개 이상
+            { hp: 80, mp: 40, att: 45 },  // 80개 이상
+            { hp: 90, mp: 45, att: 50 },  // 90개 이상
+            { hp: 120, mp: 70, att: 70 }  // 100개 이상
     ];
 
 
@@ -1496,7 +1504,7 @@ function drawCard(pack) {
 
         if (isDuplicate) {
             // [수정 시작] 환급 메시지 생성 로직 전체 변경
-            const goldRefund = Math.round(pack.priceGold * 0.7);
+            const goldRefund = Math.round(pack.priceGold * 0.6);
             let pointRefundMessages = []; // 포인트 환급 메시지만 따로 저장할 배열
             
             const pointTypeNames = {

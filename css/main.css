@@ -275,14 +275,20 @@ body {
 
 .card-grid { /* 카드 목록 그리드 */
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* 반응형 그리드 */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* 반응형 그리드 */
     gap: 10px;
     min-height: 80px; /* 최소 높이 */
+}
+
+/* [신규] 장착 카드 섹션(#equipped-cards-section)은 항상 4열로 고정 */
+#equipped-cards-section {
+    grid-template-columns: repeat(4, 1fr);
 }
 
 /* 🎯 PC에서 높이 제한 추가 */
 #card-dex-modal.modal-window {
     max-height: 85vh;
+    min-width: 60vw;
     display: flex;
     flex-direction: column;
     overflow: hidden; /* 모달 자체는 스크롤 방지 */
@@ -332,7 +338,7 @@ body {
 .card-item .card-name { /* 카드 이름 */
     font-weight: bold;
     color: var(--accent-color);
-    font-size: 0.9em;
+    font-size: 1.1em;
     text-align: left; /* 이름 왼쪽 정렬 */
 }
 
@@ -344,7 +350,7 @@ body {
 .card-item .card-stats { /* ✅ 2x2 그리드로 변경 */
     flex-grow: 1;
     text-align: left;
-    font-size: 0.9em;
+    font-size: 1.2em;
     padding: 8px;
     padding-bottom: 5px;
     padding-right: 5px;
@@ -634,7 +640,7 @@ body {
         max-height: none; /* 높이 제한 제거 */
         overflow-y: visible;
     }
-    .card-section h4 { font-size: 1.2em; margin-bottom: 10px; }
+    .card-section h4 { font-size: 1.1.em; margin-bottom: 10px; }
     .dex-content-wrapper { flex-direction: column; }
     #dex-filter-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 12px; }
     .dex-filter-btn { padding: 10px 14px; font-size: 1em; min-width: 75px; min-height: 44px; flex: 0 0 auto; }
@@ -663,7 +669,7 @@ body {
     }
 
     #equipped-cards-section .card-item .card-header, #card-dex-section .card-item .card-header { grid-column: 1 / -1; margin-bottom: 0; text-align: left; }
-    #equipped-cards-section .card-item .card-name, #card-dex-section .card-item .card-name { font-size: 1.1em; }
+    #equipped-cards-section .card-item .card-name, #card-dex-section .card-item .card-name { font-size: 1em; }
     #equipped-cards-section .card-item .card-number, #card-dex-section .card-item .card-number { font-size: 1em; }
     /* ✅ 카드 스탯 2x2 그리드 - 열 비율 조정 */
     #equipped-cards-section .card-item .card-stats, 
@@ -683,7 +689,7 @@ body {
     
     #equipped-cards-section .card-item .card-stats p, 
     #card-dex-section .card-item .card-stats p { 
-        font-size: 1em; /* 0.85em → 0.8em */
+        font-size: 0.9em; /* 0.85em → 0.8em */
         margin: 0; 
         line-height: 1.3; 
         white-space: nowrap; 

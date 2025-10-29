@@ -77,7 +77,7 @@ const victoryModal = battleModeContainer.querySelector('#victory-modal');
 const victoryMessageEl = battleModeContainer.querySelector('#victory-message');
 const continueBattleBtn = battleModeContainer.querySelector('#continue-battle-btn');
 const gameOverMessageEl = battleModeContainer.querySelector('#game-over-message');
-const returnToMainFromGameOverBtn = battleModeContainer.querySelector('#return-to-main-from-gameover-btn');
+/*const returnToMainFromGameOverBtn = battleModeContainer.querySelector('#return-to-main-from-gameover-btn');*/
 
 const reviewAllBtn = battleModeContainer.querySelector('#review-all-btn');
 const reviewWrongBtn = battleModeContainer.querySelector('#review-wrong-btn');
@@ -103,6 +103,7 @@ let turn = 'player';
 let onQuizComplete = null;
 let isActionInProgress = false;
 let isReturningToMain = false;
+let isBattleLost = false;
 
 let dungeonQuestionHistory = [];
 
@@ -237,10 +238,16 @@ function updateProgressBar() {
 function calculatePlayerStats() {
         const ownedCardCount = player.ownedCards.length;
         const tierBonuses = [
-            { hp: 10, mp: 5, att: 5 },   // 10개 이상
-            { hp: 15, mp: 8, att: 7 }, // 20개 이상
-            { hp: 20, mp: 12, att: 13 }  // 30개 이상
-            // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+            { hp: 10, mp: 5, att: 10 },   // 10개 이상
+            { hp: 20, mp: 10, att: 15 }, // 20개 이상
+            { hp: 30, mp: 15, att: 20 },  // 30개 이상
+            { hp: 40, mp: 20, att: 25 },  // 40개 이상
+            { hp: 70, mp: 40, att: 50 },  // 50개 이상
+            { hp: 60, mp: 30, att: 35 },  // 60개 이상
+            { hp: 70, mp: 35, att: 40 },  // 70개 이상
+            { hp: 80, mp: 40, att: 45 },  // 80개 이상
+            { hp: 90, mp: 45, att: 50 },  // 90개 이상
+            { hp: 120, mp: 70, att: 70 }  // 100개 이상
         ];
 
 
@@ -757,9 +764,9 @@ function startEnemyTurn(forceSkillId = null) { // [수정] 파라미터 추가
                 ];
             } else {
                 actionWeights = [
-                    { action: 'skill', skill: monsterSkills[0], weight: 30 },
-                    { action: 'skill', skill: monsterSkills[1], weight: 23 },
-                    { action: 'skill', skill: monsterSkills[2], weight: 17 },
+                    { action: 'skill', skill: monsterSkills[0], weight: 35 },
+                    { action: 'skill', skill: monsterSkills[1], weight: 25 },
+                    { action: 'skill', skill: monsterSkills[2], weight: 10 },
                     { action: 'attack', weight: 30 }
                 ];
             }
@@ -1042,6 +1049,7 @@ function checkBattleEnd() {
 
     } else {
         if (player.hp <= 0) {
+                isBattleLost = true; // [신규] 전투 패배 플래그 설정
                 const penaltyRate = (Math.floor(Math.random() * 10) + 1) / 100;
                 const goldPenalty = Math.floor(player.gold * penaltyRate);
                 
@@ -1506,33 +1514,40 @@ function initGame() {
         }
     });
     
-    returnToMainBtn.addEventListener('click', async () => {
+returnToMainBtn.addEventListener('click', async () => {
         if (isReturningToMain) return;
         isReturningToMain = true;
         returnToMainBtn.disabled = true;
 
         try {
-            const finalUserData = JSON.parse(localStorage.getItem('userData'));
-            finalUserData.gold += dungeonRewards.gold;
-            if (!finalUserData.points) {
-                finalUserData.points = {};
-            }
-            for (const pointType in dungeonRewards.points) {
-                if (!finalUserData.points[pointType]) {
-                    finalUserData.points[pointType] = 0;
+            // [수정] 전투 승리 시(isBattleLost === false)에만 보상 정산 로직 실행
+            if (!isBattleLost) {
+                const finalUserData = JSON.parse(localStorage.getItem('userData'));
+                finalUserData.gold += dungeonRewards.gold;
+                if (!finalUserData.points) {
+                    finalUserData.points = {};
                 }
-                finalUserData.points[pointType] += dungeonRewards.points[pointType];
+                for (const pointType in dungeonRewards.points) {
+                    if (!finalUserData.points[pointType]) {
+                        finalUserData.points[pointType] = 0;
+                    }
+                    finalUserData.points[pointType] += dungeonRewards.points[pointType];
+                }
+                finalUserData.inventory = player.inventory;
+                localStorage.setItem('userData', JSON.stringify(finalUserData));
+                
+                if (finalUserData.id) {
+                    await uploadUserData(finalUserData.id);
+                } else {
+                    console.error("저장할 사용자 ID가 없습니다.");
+                }
             }
-            finalUserData.inventory = player.inventory;
-            localStorage.setItem('userData', JSON.stringify(finalUserData));
-            
-            if (finalUserData.id) {
-                await uploadUserData(finalUserData.id);
-            } else {
-                console.error("저장할 사용자 ID가 없습니다.");
-            }
-        } catch (error) {
-            console.error("보상 저장 중 오류 발생:", error);
+            // 패배 시(isBattleLost === true)에는 이 try 블록을 건너뜀
+            // 패널티 적용은 checkBattleEnd에서 이미 완료되었음
+        } catch (error)
+        {
+            // [수정] 승리/패배 관계없이 오류가 발생할 수 있으므로 catch 블록은 유지
+            console.error("보상 저장 또는 전투 종료 중 오류 발생:", error);
         } finally {
             if (window.endBattle) {
                 window.endBattle();
@@ -1540,24 +1555,35 @@ function initGame() {
         }
     });
 
-    returnToMainFromGameOverBtn.addEventListener('click', () => {
-        if (window.endBattle) {
-            window.endBattle();
-        }
-    });
-
     reviewAllBtn.addEventListener('click', () => showQuizReview('all'));
     reviewWrongBtn.addEventListener('click', () => showQuizReview('wrong'));
+
+    // [신규] 게임 오버 모달의 리뷰 버튼 리스너 추가
+    const reviewAllGameOverBtn = battleModeContainer.querySelector('#review-all-gameover-btn');
+    const reviewWrongGameOverBtn = battleModeContainer.querySelector('#review-wrong-gameover-btn');
+
+    if (reviewAllGameOverBtn) {
+        reviewAllGameOverBtn.addEventListener('click', () => showQuizReview('all', false)); // [신규] 패배(false) 플래그 전달
+    }
+    if (reviewWrongGameOverBtn) {
+        reviewWrongGameOverBtn.addEventListener('click', () => showQuizReview('wrong', false)); // [신규] 패배(false) 플래그 전달
+    }
 
     // [수정] infoBtn 리스너 (튜토리얼 5단계 처리를 위해)
     infoBtn.addEventListener('click', () => {
             const ownedCardCount = player.ownedCards.length;
         // --- (1) 보너스 설정 배열 (이 부분만 수정하세요) ---
         const tierBonuses = [
-            { hp: 10, mp: 5, att: 5 },   // 10개 이상
-            { hp: 15, mp: 8, att: 7 }, // 20개 이상
-            { hp: 20, mp: 12, att: 13 }  // 30개 이상
-            // 40개 이상 보너스를 추가하려면 여기에 { hp: X, mp: Y, att: Z } 추가
+            { hp: 10, mp: 5, att: 10 },   // 10개 이상
+            { hp: 20, mp: 10, att: 15 }, // 20개 이상
+            { hp: 30, mp: 15, att: 20 },  // 30개 이상
+            { hp: 40, mp: 20, att: 25 },  // 40개 이상
+            { hp: 70, mp: 40, att: 50 },  // 50개 이상
+            { hp: 60, mp: 30, att: 35 },  // 60개 이상
+            { hp: 70, mp: 35, att: 40 },  // 70개 이상
+            { hp: 80, mp: 40, att: 45 },  // 80개 이상
+            { hp: 90, mp: 45, att: 50 },  // 90개 이상
+            { hp: 120, mp: 70, att: 70 }  // 100개 이상
         ];
 
         // 1. 기본 보너스를 계산합니다.
@@ -1795,7 +1821,7 @@ window.runRandomTest = runRandomTest;
      * [신규] 문제 리뷰 모달을 생성하고 표시하는 함수
      * @param {'all' | 'wrong'} filter - 'all' (모든 문제) 또는 'wrong' (오답 문제만)
      */
-    function showQuizReview(filter) {
+    function showQuizReview(filter, isVictory = true) {
         // 1. 필터링
         let questionsToShow = [];
         if (filter === 'all') {
@@ -1849,7 +1875,13 @@ window.runRandomTest = runRandomTest;
         }
     
         // 3. 모달 전환
-        dungeonClearEl.classList.add('hidden'); // '던전 클리어' 모달 숨기기
+        if (isVictory) {
+            dungeonClearEl.classList.add('hidden'); // '던전 클리어' 모달 숨기기
+            returnToMainBtn.textContent = '돌아가기'; // [수정] 승리 시 텍스트
+        } else {
+            gameOverEl.classList.add('hidden'); // [신규] '게임 오버' 모달 숨기기
+            returnToMainBtn.textContent = '돌아가기'; // [수정] 패배 시 텍스트
+        }
         openModal(quizReviewModal); // '리뷰' 모달 열기
     }
 

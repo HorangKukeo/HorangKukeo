@@ -127,7 +127,15 @@
             <div class="modal-window" style="text-align: center;">
                 <h2 style="color: #c74343; font-family: var(--font-pixel); font-size: 3em;">GAME OVER</h2>
                 <p id="game-over-message" style="margin: 20px 0;"></p>
-                <button id="return-to-main-from-gameover-btn" class="return-to-main-btn" style="background-color: #7c3c7c; border-color: #b981b9;">메인 화면으로 돌아가기</button>
+
+                <div id="game-over-review-options" style="margin-top: 20px; border-top: 1px solid #555; padding-top: 15px; text-align: center;">
+                    <p>던전에서 풀이한 문제의 정답과 해설을 확인하세요.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <button id="review-all-gameover-btn" class="quiz-btn" style="background-color: #4a6a8a; text-align: center;">모든 문제 보기</button>
+                        <button id="review-wrong-gameover-btn" class="quiz-btn" style="background-color: #a05a5a; text-align: center;">오답 문제만 보기</button>
+                    </div>
+                </div>
+                
             </div>
         </div>
 
