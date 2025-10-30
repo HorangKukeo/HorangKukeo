@@ -21,8 +21,32 @@
     }
     /** (a=0.0021, b=5.4956, c=-0.5188) */
     function estimate_attack(level) {
-        const attack = (0.0021 * level**2) + (5.4956 * level) - 0.5188;
-        return Math.max(1, parseInt(attack)); // 최소 ATK 1 보장
+        // 1. 기본 공격력을 먼저 계산합니다.
+        const baseAttack = (0.0021 * level**2) + (5.4956 * level) - 0.5188;
+        
+        let multiplier = 1.0;
+
+        // 2. 레벨 30 이상일 경우 배수(multiplier)를 계산합니다.
+        if (level >= 30) {
+            // (level - 30) / 10 : 레벨 30 이후 10레벨 단위가 몇 번 지났는지 계산
+            // ex) 30~39: 0~0.9 -> 0
+            // ex) 40~49: 1~1.9 -> 1
+            // ex) 50~59: 2~2.9 -> 2
+            const steps = Math.floor((level - 30) / 10);
+            
+            // --- 2차 함수 모델 ---
+            // multiplier = 1.1 (시작 배수) 
+            //            + (steps * 0.1) (기존의 선형 증가분)
+            //            + (steps * steps * 0.003) (가속도(증가폭)를 위한 2차 항)
+            // ---------------------
+            // * 0.003 대신 0.01, 0.02 등으로 수치를 조절하여 가속도를 높일 수 있습니다.
+            multiplier = 1.1 + (steps * 0.1) + (steps * steps * 0.02);
+        }
+
+        // 3. 기본 공격력에 배수를 적용합니다.
+        const finalAttack = baseAttack * multiplier;
+
+        return Math.max(1, parseInt(finalAttack)); // 최소 ATK 1 보장
     }
 
     /** (a=12.4120, b=-166.3972, c=462.7128) */
@@ -34,6 +58,13 @@
     function estimate_point(level) {
         const point = ((11.5485 * level**2) + (-169.3519 * level) + 478.2139) * 0.90;
         return Math.max(0, parseInt(point)); // 최소 0
+    }
+
+    function estimateLevelFromN(nValue) {
+        if (nValue <= 0) return 'N/A'; // n값이 0 이하면 계산 불가
+        // L = 3.73 * (N ^ 0.3918)
+        const estimatedL = 3.73 * Math.pow(nValue, 0.3918);
+        return Math.round(estimatedL); // 반올림
     }
 
     // === DB 저장소 ===
@@ -529,7 +560,13 @@
             // 종료 조건 검사 (n + 3 또는 L > 300)
             if ((firstSuccessL !== -1 && L >= firstSuccessL + 3) || L > 1000) { //
                 const finalN = firstSuccessL > 0 ? firstSuccessL : -1; //
-                logToReport(`<h3>시뮬레이션 종료 (50% 클리어 L=${finalN > 0 ? finalN : 'N/A'} + 3)</h3>`); //
+
+                // [신규] 권장 레벨 역산
+                const recommendedLevel = estimateLevelFromN(finalN);
+
+                logToReport(`<h3>시뮬레이션 종료 (50% 클리어 n값 = ${finalN > 0 ? finalN : 'N/A'})</h3>`);
+                logToReport(`<h3 style="color: var(--accent-color);">>>> 📈 DB 권장 레벨(L) 추정치: ${recommendedLevel}</h3>`);
+                
                 startBtn.disabled = false; // 버튼 다시 활성화
                 startGenSimBtn.disabled = false; // [신규] 생성 버튼도 활성화
                 saveSimulationLog(dungeonData.name, finalN); // 로그 저장

@@ -18,6 +18,7 @@ const userNicknameEl = document.getElementById('user-nickname');
 const userGoldEl = document.getElementById('user-gold');
 const userPosPointsEl = document.getElementById('user-pos-points');
 const userScPointsEl = document.getElementById('user-sc-points');
+const userSsPointsEl = document.getElementById('user-ss-points');
 const userMorPointsEl = document.getElementById('user-mor-points');
 const userCardCountEl = document.getElementById('user-card-count');
 const playerHpBar = document.getElementById('player-hp-bar');
@@ -81,7 +82,8 @@ const GAME_DATA_URL = 'https://hook.us2.make.com/9a5ve7598e6kci7tchidj4669axhbw9
 const VISIBLE_DUNGEON_IDS = ['D001', 'D002', 'D003', 'D004', 'D005', 'D006', 'D007', 'D008', 'D009', 'D011','D012','D013',
     'D021','D022','D023','D024','D025','D026','D027','D028',
     'D029', 'D030','D031','D032',
-    'D101', 'D102', 'D103','D104','D105','D106'];
+    'D101', 'D102', 'D103','D104','D105','D106',
+    'D201', 'D202', 'D203','D204','D205'];
     /*'TT1', 'TT2','TT3','TT4','TT5','TT6','TT7'];*/
 
 // [신규] 로딩 지연을 위한 sleep 함수
@@ -284,6 +286,7 @@ function displayUserData() {
     userPosPointsEl.textContent = userData.points.partsOfSpeech || 0;
     userScPointsEl.textContent = userData.points.sentenceComponents || 0;
     userMorPointsEl.textContent = userData.points.morpheme || 0;
+    userSsPointsEl.textContent = userData.points.sentenceStructure || 0;
     
     userCardCountEl.textContent = ownedCardCount;
     
@@ -974,12 +977,15 @@ function setupTutorialPromptButtons() {
 }
 
 async function initializeMainScreen() {
+    const LATEST_VERSION = '251030';
+    // Version 바꿀 때 >> main.html의 js?v부분, login.js의 'ver' 부분도 같이 수정해야 함.
+    let needsDbReload = false;
+
     // localStorage에 cardDB가 없으면 서버에서 모든 게임 DB를 불러옴
     if (!localStorage.getItem('cardDB')) {
         const success = await fetchAndStoreGameData();
         if (!success) return; // 데이터 로딩 실패 시 함수 중단
     }
-    
 
     // ✨ 수정됨: 데이터 로딩이 끝난 후, 로딩 메시지를 숨기고 메인 메뉴를 표시
     fullScreenLoader.style.display = 'none'; // 👈 [신규]
@@ -990,6 +996,38 @@ async function initializeMainScreen() {
 
     // (요구사항 2) 튜토리얼 시작 여부 확인
     const userData = JSON.parse(localStorage.getItem('userData'));
+
+    try {
+        if (!userData || userData.ver !== LATEST_VERSION) {
+            needsDbReload = true;
+        }
+    } catch (e) {
+        // userData 파싱 실패 시 (손상된 데이터)
+        needsDbReload = true;
+    }
+
+    if (!localStorage.getItem('cardDB') || needsDbReload) {
+        
+        // (기존 DB 삭제)
+        localStorage.removeItem('cardDB');
+        localStorage.removeItem('skillDB');
+        localStorage.removeItem('itemDB');
+        localStorage.removeItem('monsterDB');
+        localStorage.removeItem('dungeonDB');
+        localStorage.removeItem('questionDB');
+        localStorage.removeItem('cardPackDB');
+        
+        const success = await fetchAndStoreGameData();
+        if (!success) return; // 데이터 로딩 실패 시 함수 중단
+
+        // [신규] 3. DB 로딩 성공 시, (만약 userData가 있었다면) 최신 버전으로 갱신
+        // (로그인을 다시 하지 않아도, 다음 접속 시 DB를 또 받지 않도록 방지)
+        if (userData) {
+             userData.ver = LATEST_VERSION;
+             localStorage.setItem('userData', JSON.stringify(userData));
+        }
+    }
+
     if (userData && userData.tutorial === '0') {
         const promptModal = document.getElementById('tutorial-prompt-modal');
         openModal(promptModal); // 튜토리얼 진행 확인 모달 표시
@@ -1508,9 +1546,10 @@ function drawCard(pack) {
             let pointRefundMessages = []; // 포인트 환급 메시지만 따로 저장할 배열
             
             const pointTypeNames = {
-                partsOfSpeech: '품사 포인트',
-                sentenceComponents: '문장 성분 포인트',
-                morpheme: '형태소'
+                partsOfSpeech: '품사',
+                sentenceComponents: '문장 성분',
+                morpheme: '형태소',
+                sentenceStructure: '문장의 짜임'
             };
 
             // 환급액 적용
@@ -1656,9 +1695,10 @@ function renderPacksByCategory(categoryName, allPacksForSale) {
     gachaPackList.innerHTML = ''; // 이전 목록 초기화
 
     const pointTypeNames = {
-        partsOfSpeech: '품사 포인트',
-        sentenceComponents: '문장 성분 포인트',
-        morpheme: '형태소 포인트'
+        partsOfSpeech: '품사',
+        sentenceComponents: '문장 성분',
+        morpheme: '형태소',
+        sentenceStructure: '문장의 짜임'
     };
 
     if (packsToDisplay.length === 0) {

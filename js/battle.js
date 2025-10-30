@@ -1063,6 +1063,9 @@ function checkBattleEnd() {
                 } else if (currentMonster.affiliation === '문장 성분') {
                     pointTypeKey = 'sentenceComponents';
                     pointTypeName = '문장 성분';
+                } else if (currentMonster.affiliation === '문장의 짜임') {
+                    pointTypeKey = 'sentenceStructure';
+                    pointTypeName = '문장의 짜임';
                 } else if (currentMonster.affiliation === '형태소') {
                     pointTypeKey = 'morpheme';
                     pointTypeName = '형태소';
@@ -1107,6 +1110,9 @@ function checkBattleEnd() {
                 } else if (currentMonster.affiliation === '문장 성분') {
                     pointTypeKey = 'sentenceComponents';
                     pointTypeName = '문장 성분';
+                } else if (currentMonster.affiliation === '문장의 짜임') {
+                    pointTypeKey = 'sentenceStructure';
+                    pointTypeName = '문장의 짜임';
                 } else if (currentMonster.affiliation === '형태소') {
                     pointTypeKey = 'morpheme';
                     pointTypeName = '형태소';
@@ -1491,9 +1497,10 @@ function initGame() {
         if (currentMonsterIndex >= monstersInDungeon.length) {
             let rewardsHTML = `<p>💰 골드: ${dungeonRewards.gold} G</p>`;
             const pointTypeNames = {
-                partsOfSpeech: '품사 포인트',
-                sentenceComponents: '문장 성분 포인트',
-                morpheme: '형태소 포인트'
+                partsOfSpeech: '품사',
+                sentenceComponents: '문장 성분',
+                morpheme: '형태소 포인트',
+                sentenceStructure : '문장의 짜임'
             };
             for (const pointType in dungeonRewards.points) {
                 const pointAmount = dungeonRewards.points[pointType];
@@ -1671,16 +1678,20 @@ returnToMainBtn.addEventListener('click', async () => {
                     <span class="info-value">${player.gold} G</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">품사 포인트</span>
+                    <span class="info-label">품사</span>
                     <span class="info-value">${player.points.partsOfSpeech || 0} P</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">문장 성분 포인트</span>
+                    <span class="info-label">문장 성분</span>
                     <span class="info-value">${player.points.sentenceComponents || 0} P</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">형태소 포인트</span>
+                    <span class="info-label">형태소</span>
                     <span class="info-value">${player.points.morpheme || 0} P</span>
+                </div>
+                    <div class="info-row">
+                    <span class="info-label">문장의 짜임</span>
+                    <span class="info-value">${player.points.sentenceStructure || 0} P</span>
                 </div>
             </div>
 

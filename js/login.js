@@ -77,7 +77,9 @@ loginForm.addEventListener('submit', async function(event) {
         
         if (result.userData) {
             const processedData = parseUserDataString(result.userData);
-            processedData.id = username; 
+
+            processedData.id = username;
+            processedData.ver = '251030';
             
             localStorage.setItem('userData', JSON.stringify(processedData));
             
