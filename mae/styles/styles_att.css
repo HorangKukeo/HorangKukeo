@@ -1,0 +1,129 @@
+.attContainer{
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    border: 0px solid #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    text-align: center;
+    text-decoration: underline;
+    text-decoration-color: #007bff;
+    text-decoration-thickness: calc(2 / 16 * var(--base));
+    text-underline-offset: calc(5 / 16 * var(--base));
+    font-size: calc(12 / 16 * var(--base));
+    white-space: normal;
+    word-wrap: break-word;
+    /* width은 내용에 따라 자동 조절됨 */
+}
+
+
+.attContainer .attU{
+    text-indent: 0; /* 들여쓰기 초기화 */
+    border: calc(1 / 16 * var(--base)) dotted #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    display: inline-block; /* block에서 inline-block으로 변경 */
+    text-align: center;
+    font-size: calc(10 / 16 * var(--base));
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: calc(5 / 16 * var(--base));
+    padding-left: calc(5 / 16 * var(--base));
+    padding-right: calc(5 / 16 * var(--base));
+    position: absolute;
+    top: -80%; /* 프레임 위로 이동 */
+    left: 50%;  /* 가로 중앙 */
+    background-color: #FFFFFF;
+    transform: translateX(-50%); /* 가로 중앙 정렬 */
+    z-index: 100; /* 다른 요소 위로 표시 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
+
+.attContainer .attD {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    border: calc(1 / 16 * var(--base)) dotted #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    display: inline-block; /* block에서 inline-block으로 변경 */
+    text-align: center;
+    font-size: calc(10 / 16 * var(--base));
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: calc(5 / 16 * var(--base));
+    padding-left: calc(5 / 16 * var(--base));
+    padding-right: calc(5 / 16 * var(--base));
+    position: absolute;
+    top: 110%; /* 프레임 위로 이동 */
+    left: 50%;  /* 가로 중앙 */
+    background-color: #FFFFFF;
+    transform: translateX(-50%); /* 가로 중앙 정렬 */
+    z-index: 100; /* 다른 요소 위로 표시 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
+
+.attContainer_split{
+    text-indent: 0; /* 들여쓰기 초기화 */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+
+    border-radius: 5px;
+    text-align: center;
+
+    white-space: normal;
+    word-wrap: break-word;
+    /* width은 내용에 따라 자동 조절됨 */
+}
+
+
+.attContainer_split .attU_split::before {
+    content: '';
+    position: absolute;
+    left: calc(0.5 / 16 * var(--base));
+    bottom: 0;
+    width: calc(2 / 16 * var(--base)); /* 대각선의 두께 */
+    height: 50%; /* 대각선의 길이 */
+    background-color: #007bff;
+    transform: rotate(-115deg); /* 대각선 방향 */
+    transform-origin: left bottom; /* 변형 기준점 */
+  }
+
+.attContainer_split .attU_split{
+    text-indent: 0; /* 들여쓰기 초기화 */
+    border: calc(1 / 16 * var(--base)) dotted #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    display: inline-block; /* block에서 inline-block으로 변경 */
+    text-align: center;
+    font-size: calc(12 / 16 * var(--base));
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: calc(5 / 16 * var(--base));
+    padding-left: calc(5 / 16 * var(--base));
+    padding-right: calc(5 / 16 * var(--base));
+    position: absolute;
+    left: 100%;
+    bottom: 100%;
+    padding: calc(3 / 16 * var(--base));
+    transform: translate(calc(15 / 16 * var(--base)), calc(-5 / 16 * var(--base))); /* 가로 중앙 정렬 */
+    z-index: 100; /* 다른 요소 위로 표시 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+    box-shadow: calc(2 / 16 * var(--base)) calc(2 / 16 * var(--base)) calc(5 / 16 * var(--base)) rgba(0, 0, 0, 0.288);
+}
+
+.attContainer_split .attD_split {
+    text-indent: 0; /* 들여쓰기 초기화 */
+    border: calc(1 / 16 * var(--base)) dotted #007bff;
+    border-radius: calc(5 / 16 * var(--base));
+    display: inline-block; /* block에서 inline-block으로 변경 */
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: calc(5 / 16 * var(--base));
+    padding-left: calc(5 / 16 * var(--base));
+    padding-right: calc(5 / 16 * var(--base));
+    position: absolute;
+    top: 80%; /* 프레임 위로 이동 */
+    left: 260%;  /* 가로 중앙 */
+    transform: translateX(-50%); /* 가로 중앙 정렬 */
+    z-index: 100; /* 다른 요소 위로 표시 */
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
